@@ -1,0 +1,26 @@
+{
+  "name": "gochineur",
+  "version": "1.0.0",
+  "description": "Application web pour découvrir et partager des événements de vide-greniers, brocantes et bourses",
+  "private": true,
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "build:server": "cd server && npm install",
+    "build:client": "cd client && npm install && npm run build",
+    "start": "cd server && npm start",
+    "dev": "cd server && npm run dev"
+  },
+  "keywords": [
+    "vide-greniers",
+    "brocantes",
+    "bourses",
+    "événements",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "MIT"
+}
+

@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "build": "cd ../client && npm install && npm run build",
+    "build:client": "cd ../client && npm install && npm run build",
+    "postinstall": "cd ../client && npm install",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean-and-import": "node scripts/clean-and-import.js"
   },

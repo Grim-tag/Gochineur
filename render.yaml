@@ -1,0 +1,18 @@
+# Configuration Render pour GoChineur
+# Documentation: https://render.com/docs/yaml-spec
+
+services:
+  - type: web
+    name: gochineur-backend
+    env: node
+    plan: free
+    buildCommand: cd client && npm install && npm run build && cd ../server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      # Ajoutez vos autres variables d'environnement dans le dashboard Render
+      # MONGODB_URI, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, etc.
+
