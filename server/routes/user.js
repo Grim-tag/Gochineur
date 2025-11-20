@@ -1,1 +1,111 @@
+const express = require('express');
+const router = express.Router();
+const { getDb } = require('../config/db');
+const { ObjectId } = require('mongodb');
+const { authenticateJWT } = require('../middleware/auth');
+const { extractTokenFromHeader, verifyToken } = require('../utils/jwt');
 
+module.exports = function () {
+    // Route pour récupérer l'utilisateur courant
+    // Cette route gère l'authentification optionnelle pour le frontend
+    router.get('/current', async (req, res) => {
+        try {
+            // Tenter d'extraire et vérifier le token manuellement pour cette route
+            // car on veut renvoyer { authenticated: false } au lieu de 401 si pas de token
+            const authHeader = req.headers.authorization;
+            const token = extractTokenFromHeader(authHeader);
+
+            if (!token) {
+                return res.json({ authenticated: false, user: null });
+            }
+
+            const decoded = verifyToken(token);
+            if (!decoded) {
+                return res.json({ authenticated: false, user: null });
+            }
+
+            const db = getDb();
+            const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.id) });
+
+            if (!user) {
+                return res.json({ authenticated: false, user: null });
+            }
+
+            // Ne pas renvoyer d'informations sensibles
+            const safeUser = {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                displayName: user.displayName,
+                photo: user.photo,
+                role: user.role || 'user'
+            };
+
+            res.json({
+                authenticated: true,
+                user: safeUser
+            });
+        } catch (error) {
+            console.error('Erreur /current:', error);
+            // En cas d'erreur de token (expiré, invalide), on considère non authentifié
+            res.json({ authenticated: false, user: null, error: error.message });
+        }
+    });
+
+    // Route pour définir le pseudo (Protégée)
+    router.post('/set-pseudo', authenticateJWT, async (req, res) => {
+        try {
+            const { displayName } = req.body;
+            const userId = req.user.id;
+
+            if (!displayName || displayName.trim().length < 2) {
+                return res.status(400).json({ error: 'Le pseudo doit contenir au moins 2 caractères' });
+            }
+
+            const db = getDb();
+
+            // Vérifier si le pseudo est déjà pris (insensible à la casse)
+            const existingUser = await db.collection('users').findOne({
+                displayName: { $regex: new RegExp(`^${displayName.trim()}$`, 'i') },
+                _id: { $ne: new ObjectId(userId) } // Exclure l'utilisateur actuel
+            });
+
+            if (existingUser) {
+                return res.status(400).json({ error: 'Ce pseudo est déjà pris' });
+            }
+
+            // Mettre à jour l'utilisateur
+            const result = await db.collection('users').findOneAndUpdate(
+                { _id: new ObjectId(userId) },
+                { $set: { displayName: displayName.trim(), updatedAt: new Date() } },
+                { returnDocument: 'after' }
+            );
+
+            if (!result) {
+                return res.status(404).json({ error: 'Utilisateur non trouvé' });
+            }
+
+            const updatedUser = result; // findOneAndUpdate retourne le document directement ou dans value selon driver version
+            // Avec mongodb driver v6+, result est le document si returnDocument: 'after'
+
+            const safeUser = {
+                id: updatedUser._id,
+                email: updatedUser.email,
+                name: updatedUser.name,
+                displayName: updatedUser.displayName,
+                photo: updatedUser.photo,
+                role: updatedUser.role || 'user'
+            };
+
+            res.json({
+                success: true,
+                user: safeUser
+            });
+        } catch (error) {
+            console.error('Erreur /set-pseudo:', error);
+            res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du pseudo' });
+        }
+    });
+
+    return router;
+};
