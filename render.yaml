@@ -13,7 +13,17 @@ services:
         value: production
       - key: PORT
         value: 5000
-      # Ajoutez vos autres variables d'environnement dans le dashboard Render
-      # MONGODB_URI, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, etc.
+      - key: MONGODB_URI
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: MASTER_ADMIN_EMAIL
+        sync: false
+      - key: URL
+        sync: false
 
 
