@@ -33,9 +33,12 @@ function configureSession(secret) {
     }
   };
 
+
   if (isProduction && !isHttps) {
     console.log('ℹ️ Mode production locale (HTTP): cookies secure désactivés pour localhost');
   }
+
+  console.log(`🍪 Configuration cookies: secure=${isHttps}, sameSite=${isProduction ? 'none' : 'lax'}, isProduction=${isProduction}`);
 
   // Utiliser MongoDB store en production
   if (isProduction) {
