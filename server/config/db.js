@@ -4,6 +4,7 @@ const { MongoClient } = require('mongodb');
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI manquante. Variables disponibles:', Object.keys(process.env).join(', '));
   throw new Error('❌ MONGODB_URI n\'est pas définie dans les variables d\'environnement');
 }
 
@@ -91,10 +92,10 @@ async function cleanDatabase() {
     if (!eventsCollection) {
       throw new Error('❌ Collection events non disponible');
     }
-    
+
     const initialCount = await eventsCollection.countDocuments({});
     await eventsCollection.deleteMany({});
-    
+
     console.log(`🗑️ Base de données nettoyée: ${initialCount} événement(s) supprimé(s)`);
     return { success: true, deleted: initialCount };
   } catch (error) {
