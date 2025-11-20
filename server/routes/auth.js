@@ -92,19 +92,71 @@ module.exports = function (googleClientId, googleClientSecret) {
           const isProduction = process.env.NODE_ENV === 'production';
           const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
 
-          // Redirection selon le pseudo et le rôle
+          // Déterminer l'URL de redirection selon le pseudo et le rôle
+          let redirectUrl;
           if (!freshUser.displayName) {
             console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
-            return res.redirect(`${mainClientUrl}/set-pseudo`);
-          }
-
-          if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+            redirectUrl = `${mainClientUrl}/set-pseudo`;
+          } else if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
             console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
-            return res.redirect(`${mainClientUrl}/admin/dashboard`);
+            redirectUrl = `${mainClientUrl}/admin/dashboard`;
+          } else {
+            console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
+            redirectUrl = `${mainClientUrl}/`;
           }
 
-          console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
-          return res.redirect(`${mainClientUrl}/`);
+          // Au lieu de rediriger immédiatement, envoyer une page HTML qui redirige via JavaScript
+          // Cela donne au navigateur le temps de traiter le cookie Set-Cookie
+          res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>Connexion réussie</title>
+              <style>
+                body {
+                  font-family: system-ui, -apple-system, sans-serif;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 100vh;
+                  margin: 0;
+                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                .container {
+                  text-align: center;
+                  color: white;
+                }
+                .spinner {
+                  border: 4px solid rgba(255,255,255,0.3);
+                  border-radius: 50%;
+                  border-top: 4px solid white;
+                  width: 40px;
+                  height: 40px;
+                  animation: spin 1s linear infinite;
+                  margin: 20px auto;
+                }
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>✅ Connexion réussie !</h1>
+                <div class="spinner"></div>
+                <p>Redirection en cours...</p>
+              </div>
+              <script>
+                // Attendre un peu pour que le cookie soit bien enregistré
+                setTimeout(function() {
+                  window.location.href = '${redirectUrl}';
+                }, 1000);
+              </script>
+            </body>
+            </html>
+          `);
         });
       });
     } catch (error) {
