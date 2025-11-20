@@ -26,7 +26,7 @@ function configureSession(secret) {
     saveUninitialized: false, // Ne pas créer de session pour les requêtes non authentifiées
     name: 'gochineur.sid', // Nom personnalisé du cookie de session
     cookie: {
-      secure: isHttps, // true uniquement si HTTPS (pas pour localhost HTTP)
+      secure: isProduction ? true : isHttps, // Force true en production (Render utilise toujours HTTPS)
       httpOnly: true, // Empêche l'accès JavaScript au cookie (sécurité)
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
       sameSite: isProduction ? 'none' : 'lax' // 'none' en production pour OAuth, 'lax' en dev
