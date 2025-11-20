@@ -74,13 +74,10 @@ module.exports = function (googleClientId, googleClientSecret) {
       }
 
       // Générer un JWT pour l'utilisateur
-      console.log(`🔐 Génération du JWT pour: ${freshUser.email}, role: ${freshUser.role}`);
-
       const { generateToken } = require('../utils/jwt');
 
       try {
         const token = generateToken(freshUser);
-        console.log(`✅ JWT généré avec succès pour: ${freshUser.email}`);
 
         // Déterminer l'URL du client selon l'environnement
         const isProduction = process.env.NODE_ENV === 'production';
@@ -89,13 +86,10 @@ module.exports = function (googleClientId, googleClientSecret) {
         // Déterminer la destination finale selon le pseudo et le rôle
         let finalDestination;
         if (!freshUser.displayName) {
-          console.log(`➡️  Destination: /set-pseudo pour ${freshUser.email}`);
           finalDestination = '/set-pseudo';
         } else if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
-          console.log(`➡️  Destination: /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
           finalDestination = '/admin/dashboard';
         } else {
-          console.log(`➡️  Destination: / pour ${freshUser.email}`);
           finalDestination = '/';
         }
 

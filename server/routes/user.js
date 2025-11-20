@@ -48,7 +48,6 @@ module.exports = function () {
                 user: safeUser
             });
         } catch (error) {
-            console.error('Erreur /current:', error);
             // En cas d'erreur de token (expiré, invalide), on considère non authentifié
             res.json({ authenticated: false, user: null, error: error.message });
         }
