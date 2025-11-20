@@ -81,8 +81,18 @@ module.exports = function (googleClientId, googleClientSecret) {
         console.log(`✅ Utilisateur connecté via Passport: ${freshUser.email}`);
         console.log(`🍪 Session ID: ${req.sessionID}`);
 
-        // Déterminer l'URL du client selon l'environnement
+        // FORCER l'envoi du cookie manuellement car express-session ne le fait pas automatiquement
         const isProduction = process.env.NODE_ENV === 'production';
+        res.cookie('gochineur.sid', req.sessionID, {
+          httpOnly: true,
+          secure: isProduction,
+          sameSite: 'lax',
+          maxAge: 24 * 60 * 60 * 1000, // 24 heures
+          path: '/'
+        });
+        console.log(`🍪 Cookie défini manuellement: gochineur.sid=${req.sessionID}`);
+
+        // Déterminer l'URL du client selon l'environnement
         const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
 
         // Redirection selon le pseudo et le rôle
