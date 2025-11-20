@@ -1,5 +1,8 @@
 // Charger les variables d'environnement AVANT tout autre code
+const path = require('path');
+// Charger les variables d'environnement depuis .env (local) ou ../.env (racine repo)
 require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 
 const express = require('express');
 const cors = require('cors');
@@ -49,7 +52,7 @@ app.use(cors({
     if (!origin) {
       return callback(null, true);
     }
-    
+
     // Vérifier si l'origine est autorisée
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -110,10 +113,10 @@ app.get('/api/test-mongodb', async (req, res) => {
   try {
     const { getEventsCollection } = require('./config/db');
     const eventsCollection = getEventsCollection();
-    
+
     const totalCount = await eventsCollection.countDocuments({});
     const sampleEvents = await eventsCollection.find({}).limit(3).toArray();
-    
+
     res.json({
       success: true,
       totalEvents: totalCount,
@@ -124,7 +127,7 @@ app.get('/api/test-mongodb', async (req, res) => {
         latitude: e.latitude,
         longitude: e.longitude
       })),
-      message: totalCount > 0 
+      message: totalCount > 0
         ? `${totalCount} événements trouvés dans MongoDB`
         : 'Aucun événement dans MongoDB. Exécutez POST /admin/import-data pour importer des données.'
     });
@@ -148,10 +151,10 @@ app.use((err, req, res, next) => {
       message: err.message
     });
   }
-  
+
   console.error('❌ Erreur non gérée:', err);
   console.error('Stack:', err.stack);
-  
+
   // Toujours renvoyer du JSON, jamais de HTML
   res.status(err.status || 500).json({
     error: err.message || 'Erreur serveur',
@@ -167,20 +170,20 @@ const fs = require('fs');
 if (process.env.NODE_ENV === 'production') {
   // Servir les fichiers statiques depuis le dossier dist du client
   const clientDistPath = path.resolve(__dirname, '..', 'client', 'dist');
-  
+
   // Vérifier que le dossier dist existe
   if (!fs.existsSync(clientDistPath)) {
     console.error('❌ ERREUR: Le dossier client/dist n\'existe pas!');
     console.error('❌ Exécutez "npm run build" dans le dossier client/ avant de démarrer en production.');
     process.exit(1);
   }
-  
+
   // Servir les fichiers statiques (CSS, JS, images, etc.)
   app.use(express.static(clientDistPath, {
     maxAge: '1y', // Cache des fichiers statiques pendant 1 an
     etag: true
   }));
-  
+
   // Pour toutes les routes non-API, servir index.html (SPA routing)
   // Utiliser app.use avec une fonction pour éviter les conflits de routage
   app.use((req, res, next) => {
@@ -188,13 +191,13 @@ if (process.env.NODE_ENV === 'production') {
     if (req.path.startsWith('/api') || req.path.startsWith('/auth')) {
       return next(); // Passer au middleware suivant (404)
     }
-    
+
     // Ne pas intercepter les routes admin API backend (/admin/api/...)
     // Mais servir les routes admin React (/admin/dashboard, etc.)
     if (req.path.startsWith('/admin/api')) {
       return next(); // Passer au middleware suivant (404)
     }
-    
+
     // Si c'est une requête GET et que la réponse n'a pas encore été envoyée
     if (req.method === 'GET' && !res.headersSent) {
       const indexPath = path.resolve(clientDistPath, 'index.html');
@@ -208,7 +211,7 @@ if (process.env.NODE_ENV === 'production') {
       next();
     }
   });
-  
+
   console.log('✅ Mode production: fichiers statiques servis depuis client/dist');
 } else {
   // En développement, retourner JSON pour les routes non trouvées
@@ -221,7 +224,7 @@ if (process.env.NODE_ENV === 'production') {
 connectDB().then(async () => {
   // Initialiser le store de session MongoDB si en production
   await initializeSessionStore();
-  
+
   // Démarrage du serveur
   app.listen(PORT, () => {
     console.log(`🚀 Serveur GoChineur démarré sur le port ${PORT}`);
