@@ -68,96 +68,36 @@ module.exports = function (googleClientId, googleClientSecret) {
       // Sauvegarder la session explicitement pour s'assurer qu'elle est persistée
       console.log(`🔐 Tentative de sauvegarde de session pour: ${freshUser.email}, role: ${freshUser.role}`);
 
-      // IMPORTANT: Régénérer la session pour forcer l'envoi du Set-Cookie header
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error('❌ Erreur lors de la régénération de la session:', err);
+      // IMPORTANT: Utiliser req.login() de Passport pour sérialiser correctement l'utilisateur
+      // Cela force la création du cookie de session
+      req.login(freshUser, (loginErr) => {
+        if (loginErr) {
+          console.error('❌ Erreur lors du login Passport:', loginErr);
           const isProduction = process.env.NODE_ENV === 'production';
           const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
-          return res.redirect(`${mainClientUrl}/?error=session_error`);
+          return res.redirect(`${mainClientUrl}/?error=login_error`);
         }
 
-        // Réassigner l'utilisateur après régénération
-        req.user = freshUser;
+        console.log(`✅ Utilisateur connecté via Passport: ${freshUser.email}`);
+        console.log(`🍪 Session ID: ${req.sessionID}`);
 
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error('❌ Erreur lors de la sauvegarde de la session:', saveErr);
-          } else {
-            console.log(`✅ Session sauvegardée avec succès pour: ${freshUser.email}`);
-            console.log(`🍪 Session ID: ${req.sessionID}`);
-          }
+        // Déterminer l'URL du client selon l'environnement
+        const isProduction = process.env.NODE_ENV === 'production';
+        const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
 
-          // Déterminer l'URL du client selon l'environnement
-          const isProduction = process.env.NODE_ENV === 'production';
-          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+        // Redirection selon le pseudo et le rôle
+        if (!freshUser.displayName) {
+          console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
+          return res.redirect(`${mainClientUrl}/set-pseudo`);
+        }
 
-          // Déterminer l'URL de redirection selon le pseudo et le rôle
-          let redirectUrl;
-          if (!freshUser.displayName) {
-            console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
-            redirectUrl = `${mainClientUrl}/set-pseudo`;
-          } else if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
-            console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
-            redirectUrl = `${mainClientUrl}/admin/dashboard`;
-          } else {
-            console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
-            redirectUrl = `${mainClientUrl}/`;
-          }
+        if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+          console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
+          return res.redirect(`${mainClientUrl}/admin/dashboard`);
+        }
 
-          // Au lieu de rediriger immédiatement, envoyer une page HTML qui redirige via JavaScript
-          // Cela donne au navigateur le temps de traiter le cookie Set-Cookie
-          res.send(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="UTF-8">
-              <title>Connexion réussie</title>
-              <style>
-                body {
-                  font-family: system-ui, -apple-system, sans-serif;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  height: 100vh;
-                  margin: 0;
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                }
-                .container {
-                  text-align: center;
-                  color: white;
-                }
-                .spinner {
-                  border: 4px solid rgba(255,255,255,0.3);
-                  border-radius: 50%;
-                  border-top: 4px solid white;
-                  width: 40px;
-                  height: 40px;
-                  animation: spin 1s linear infinite;
-                  margin: 20px auto;
-                }
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              </style>
-            </head>
-            <body>
-              <div class="container">
-                <h1>✅ Connexion réussie !</h1>
-                <div class="spinner"></div>
-                <p>Redirection en cours...</p>
-              </div>
-              <script>
-                // Attendre un peu pour que le cookie soit bien enregistré
-                setTimeout(function() {
-                  window.location.href = '${redirectUrl}';
-                }, 1000);
-              </script>
-            </body>
-            </html>
-          `);
-        });
+        console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
+        return res.redirect(`${mainClientUrl}/`);
       });
     } catch (error) {
       console.error('❌ Erreur lors du callback Google:', error);
