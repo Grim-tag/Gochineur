@@ -29,7 +29,7 @@ function configureSession(secret) {
       secure: isProduction ? true : isHttps, // Force true en production (Render utilise toujours HTTPS)
       httpOnly: true, // Empêche l'accès JavaScript au cookie (sécurité)
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
-      sameSite: isProduction ? 'none' : 'lax' // 'none' en production pour OAuth, 'lax' en dev
+      sameSite: 'lax' // 'lax' permet les cookies lors des redirections OAuth GET
     }
   };
 
