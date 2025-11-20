@@ -12,14 +12,14 @@ let mongoStoreInstance = null;
 function configureSession(secret) {
   // Utiliser MongoDB store en production, MemoryStore en développement
   const isProduction = process.env.NODE_ENV === 'production';
-  
+
   // Détecter si on est sur HTTPS (production réelle) ou HTTP (localhost)
   // En production locale (localhost), on utilise HTTP, donc secure doit être false
   // Pour la production réelle (gochineur.fr), on utilisera HTTPS et secure sera true
-  const isHttps = process.env.HTTPS === 'true' || 
-                  (process.env.PROTOCOL === 'https') ||
-                  (process.env.URL && process.env.URL.startsWith('https'));
-  
+  const isHttps = process.env.HTTPS === 'true' ||
+    (process.env.PROTOCOL === 'https') ||
+    (process.env.URL && process.env.URL.startsWith('https'));
+
   const sessionConfig = {
     secret: secret || 'gochineur-secret-key-change-in-production',
     resave: false,
@@ -29,10 +29,10 @@ function configureSession(secret) {
       secure: isHttps, // true uniquement si HTTPS (pas pour localhost HTTP)
       httpOnly: true, // Empêche l'accès JavaScript au cookie (sécurité)
       maxAge: 24 * 60 * 60 * 1000, // 24 heures
-      sameSite: 'lax' // Protection CSRF, permet l'envoi de cookies cross-site pour GET
+      sameSite: isProduction ? 'none' : 'lax' // 'none' en production pour OAuth, 'lax' en dev
     }
   };
-  
+
   if (isProduction && !isHttps) {
     console.log('ℹ️ Mode production locale (HTTP): cookies secure désactivés pour localhost');
   }
