@@ -24,8 +24,8 @@ GOOGLE_CLIENT_ID=votre_client_id_google
 GOOGLE_CLIENT_SECRET=votre_client_secret_google
 GOOGLE_CALLBACK_URL=https://votre-domaine.com/auth/google/callback
 
-# Session
-SESSION_SECRET=generer_une_cle_secrete_aleatoire_tres_longue_et_securisee
+# JWT
+JWT_SECRET=generer_une_cle_secrete_aleatoire_tres_longue_et_securisee
 MASTER_ADMIN_EMAIL=votre_email_admin@example.com
 
 # Serveur
@@ -38,7 +38,7 @@ PROTOCOL=https
 URL=https://gochineur.fr
 ```
 
-### Génération d'un SESSION_SECRET sécurisé
+### Génération d'un JWT_SECRET sécurisé
 
 ```bash
 # Sur Linux/Mac
