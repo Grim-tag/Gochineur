@@ -66,20 +66,27 @@ module.exports = function (googleClientId, googleClientSecret) {
       }
 
       // Sauvegarder la session explicitement pour s'assurer qu'elle est persistée
+      console.log(`🔐 Tentative de sauvegarde de session pour: ${freshUser.email}, role: ${freshUser.role}`);
       req.session.save((err) => {
         if (err) {
           console.error('❌ Erreur lors de la sauvegarde de la session:', err);
+        } else {
+          console.log(`✅ Session sauvegardée avec succès pour: ${freshUser.email}`);
+          console.log(`🍪 Session ID: ${req.sessionID}`);
         }
 
         // Redirection selon le pseudo et le rôle
         if (!freshUser.displayName) {
+          console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
           return res.redirect(`${mainClientUrl}/set-pseudo`);
         }
 
         if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+          console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
           return res.redirect(`${mainClientUrl}/admin/dashboard`);
         }
 
+        console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
         return res.redirect(`${mainClientUrl}/`);
       });
     } catch (error) {
