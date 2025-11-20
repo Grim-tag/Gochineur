@@ -67,27 +67,45 @@ module.exports = function (googleClientId, googleClientSecret) {
 
       // Sauvegarder la session explicitement pour s'assurer qu'elle est persistée
       console.log(`🔐 Tentative de sauvegarde de session pour: ${freshUser.email}, role: ${freshUser.role}`);
-      req.session.save((err) => {
+
+      // IMPORTANT: Régénérer la session pour forcer l'envoi du Set-Cookie header
+      req.session.regenerate((err) => {
         if (err) {
-          console.error('❌ Erreur lors de la sauvegarde de la session:', err);
-        } else {
-          console.log(`✅ Session sauvegardée avec succès pour: ${freshUser.email}`);
-          console.log(`🍪 Session ID: ${req.sessionID}`);
+          console.error('❌ Erreur lors de la régénération de la session:', err);
+          const isProduction = process.env.NODE_ENV === 'production';
+          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+          return res.redirect(`${mainClientUrl}/?error=session_error`);
         }
 
-        // Redirection selon le pseudo et le rôle
-        if (!freshUser.displayName) {
-          console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
-          return res.redirect(`${mainClientUrl}/set-pseudo`);
-        }
+        // Réassigner l'utilisateur après régénération
+        req.user = freshUser;
 
-        if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
-          console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
-          return res.redirect(`${mainClientUrl}/admin/dashboard`);
-        }
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('❌ Erreur lors de la sauvegarde de la session:', saveErr);
+          } else {
+            console.log(`✅ Session sauvegardée avec succès pour: ${freshUser.email}`);
+            console.log(`🍪 Session ID: ${req.sessionID}`);
+          }
 
-        console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
-        return res.redirect(`${mainClientUrl}/`);
+          // Déterminer l'URL du client selon l'environnement
+          const isProduction = process.env.NODE_ENV === 'production';
+          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+
+          // Redirection selon le pseudo et le rôle
+          if (!freshUser.displayName) {
+            console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
+            return res.redirect(`${mainClientUrl}/set-pseudo`);
+          }
+
+          if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+            console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
+            return res.redirect(`${mainClientUrl}/admin/dashboard`);
+          }
+
+          console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
+          return res.redirect(`${mainClientUrl}/`);
+        });
       });
     } catch (error) {
       console.error('❌ Erreur lors du callback Google:', error);
