@@ -25,7 +25,9 @@ module.exports = function () {
             }
 
             const db = getDB();
-            const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.id) });
+            // Recherche par le champ 'id' (string) et non '_id' (ObjectId) car les IDs Google sont des strings
+            // ou des IDs générés personnalisés (USER_...)
+            const user = await db.collection('users').findOne({ id: decoded.id });
 
             if (!user) {
                 return res.json({ authenticated: false, user: null });
@@ -33,7 +35,7 @@ module.exports = function () {
 
             // Ne pas renvoyer d'informations sensibles
             const safeUser = {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 name: user.name,
                 displayName: user.displayName,
@@ -67,7 +69,7 @@ module.exports = function () {
             // Vérifier si le pseudo est déjà pris (insensible à la casse)
             const existingUser = await db.collection('users').findOne({
                 displayName: { $regex: new RegExp(`^${displayName.trim()}$`, 'i') },
-                _id: { $ne: new ObjectId(userId) } // Exclure l'utilisateur actuel
+                id: { $ne: userId } // Exclure l'utilisateur actuel
             });
 
             if (existingUser) {
@@ -76,7 +78,7 @@ module.exports = function () {
 
             // Mettre à jour l'utilisateur
             const result = await db.collection('users').findOneAndUpdate(
-                { _id: new ObjectId(userId) },
+                { id: userId },
                 { $set: { displayName: displayName.trim(), updatedAt: new Date() } },
                 { returnDocument: 'after' }
             );
