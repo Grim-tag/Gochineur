@@ -4,8 +4,8 @@ import type { Event } from '../types'
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { calculateDistance } from '../utils/appUtils'
-import { generateChronologicalCircuitUrl, generateEventNavigationUrl } from '../utils/appUtils'
+import { calculateDistance, generateChronologicalCircuitUrl, generateEventNavigationUrl } from '../utils/appUtils'
+import { fetchEvents } from '../services/api'
 
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -72,8 +72,13 @@ export default function MyListPage() {
     const position = userPosition || testPosition
 
         // Charger les détails des événements
-        fetch('http://localhost:5000/api/events')
-          .then(response => response.json())
+        fetchEvents({
+          lat: position.latitude,
+          lon: position.longitude,
+          radius: 2000,
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        })
           .then((allEvents: Event[]) => {
             // Filtrer uniquement les événements du circuit utilisateur
             let eventsInCircuit = allEvents.filter(event => circuit.includes(event.id))

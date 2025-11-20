@@ -6,7 +6,7 @@ import { groupEventsByDay, type GroupedEvents } from '../utils/appUtils'
 import { reverseGeocode } from '../utils/appUtils'
 import { calculatePeriodDates } from '../utils/dateUtils'
 import { fetchEvents } from '../services/api'
-import { EVENTS, GEOLOCATION, API } from '../config/constants'
+import { EVENTS, GEOLOCATION } from '../config/constants'
 
 interface UserPosition {
   latitude: number
@@ -40,7 +40,7 @@ export default function HomePage() {
   useEffect(() => {
     const loadPosition = async () => {
       let position: UserPosition
-      
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -53,8 +53,7 @@ export default function HomePage() {
             // Géocodage inverse pour obtenir le nom de la ville
             reverseGeocode(position.latitude, position.longitude).then(setCity)
           },
-          (error) => {
-            console.error('Erreur de géolocalisation:', error)
+          () => {
             position = testPositionFallback
             setUserPosition(position)
             setLocationError('Position non disponible. Utilisation de la position de test comme point de référence.')
@@ -77,7 +76,7 @@ export default function HomePage() {
         reverseGeocode(position.latitude, position.longitude).then(setCity)
       }
     }
-    
+
     loadPosition()
   }, [])
 
@@ -87,11 +86,12 @@ export default function HomePage() {
     endDate: Date,
     append: boolean = false,
     eventType?: string,
-    customRadius?: number
+    customRadius?: number,
+    customPosition?: UserPosition
   ): Promise<Event[]> => {
-    const position = userPosition || testPositionFallback
+    const position = customPosition || userPosition || testPositionFallback
     const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
-    
+
     const data = await fetchEvents({
       lat: position.latitude,
       lon: position.longitude,
@@ -100,75 +100,41 @@ export default function HomePage() {
       endDate,
       eventType
     })
-    
+
     if (append) {
-      // Ajouter les nouveaux événements à la liste existante
       setEvents(prev => {
-        // Éviter les doublons basés sur l'ID
         const existingIds = new Set(prev.map(e => e.id))
         const newEvents = data.filter(e => !existingIds.has(e.id))
-        console.log(`📊 loadEvents (append): ${newEvents.length} nouveaux événements ajoutés à ${prev.length} existants`)
         return [...prev, ...newEvents]
       })
     } else {
-      // Remplacer la liste complète
-      console.log(`📊 loadEvents: Remplacement de events avec ${data.length} événements`)
       setEvents(data)
     }
-    
+
     return data
   }
 
   // Charger les événements initiaux (2 premiers mois)
   useEffect(() => {
-    // CRITIQUE: Ne pas bloquer le chargement si userPosition n'est pas encore défini
-    // Utiliser testPositionFallback si userPosition est null
-    console.log(`📍 Chargement initial: userPosition=${userPosition ? 'défini' : 'null'}, utilisation de position de fallback`)
-    
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
-    
+
     setCurrentStartDate(start)
     setCurrentEndDate(end)
     setLoading(true)
     setHasMoreEvents(true)
-    
-    // Utiliser la position disponible (userPosition ou fallback)
-    console.log(`🚀 Démarrage du chargement des événements...`)
+
     loadEvents(start, end, false)
       .then((data: Event[]) => {
-        console.log(`📦 Frontend: ${data.length} événements reçus depuis l'API`)
-        console.log(`📋 Frontend: Premier événement:`, data[0] ? {
-          id: data[0].id,
-          name: data[0].name,
-          date_debut: data[0].date_debut
-        } : 'Aucun événement')
-        
-        // CRITIQUE: Mettre à jour events d'abord, puis filteredEvents sera mis à jour par le useEffect
-        console.log(`💾 Mise à jour de events avec ${data.length} événements`)
-        setEvents(data)
-        
-        // Mettre à jour filteredEvents directement aussi pour éviter le délai
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
-        console.log(`📅 Frontend: ${grouped.length} groupes créés depuis ${data.length} événements`)
-        if (grouped.length > 0) {
-          console.log(`📅 Frontend: Premier groupe:`, {
-            date: grouped[0].date,
-            label: grouped[0].label,
-            eventsCount: grouped[0].events.length
-          })
-        }
         setGroupedEvents(grouped)
         setLoading(false)
-        // Vérifier s'il y a plus d'événements à charger
         setHasMoreEvents(data.length > 0)
       })
       .catch(err => {
-        console.error('❌ Erreur lors du chargement des événements:', err)
         setError(err.message)
         setLoading(false)
-        // Même en cas d'erreur, s'assurer que les états sont réinitialisés
         setEvents([])
         setFilteredEvents([])
         setGroupedEvents([])
@@ -177,10 +143,8 @@ export default function HomePage() {
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
-    console.log(`🔄 useEffect [events]: ${events.length} événements dans events, mise à jour de filteredEvents`)
     setFilteredEvents(events)
     const grouped = groupEventsByDay(events)
-    console.log(`🔄 useEffect [events]: ${grouped.length} groupes créés`)
     setGroupedEvents(grouped)
   }, [events])
 
@@ -198,26 +162,26 @@ export default function HomePage() {
   // Fonction pour charger plus d'événements (2 mois suivants)
   const handleLoadMore = async () => {
     if (!currentEndDate || loadingMore) return
-    
+
     setLoadingMore(true)
-    
+
     // Calculer la nouvelle période (2 mois à partir de la fin actuelle)
     const nextStartDate = new Date(currentEndDate)
     nextStartDate.setDate(nextStartDate.getDate() + 1) // Jour suivant
     nextStartDate.setHours(0, 0, 0, 0)
-    
+
     const { start, end } = calculatePeriodDates(nextStartDate)
-    
+
     try {
       const newEvents = await loadEvents(start, end, true)
-      
+
       // Mettre à jour les dates courantes
       setCurrentStartDate(start)
       setCurrentEndDate(end)
-      
+
       // Vérifier s'il y a encore des événements à charger
       setHasMoreEvents(newEvents.length > 0)
-      
+
       // Mettre à jour les événements filtrés
       setFilteredEvents(prev => {
         const existingIds = new Set(prev.map(e => e.id))
@@ -225,120 +189,63 @@ export default function HomePage() {
         return [...prev, ...uniqueNewEvents]
       })
     } catch (err: any) {
-      console.error('Erreur lors du chargement supplémentaire:', err)
       setError(err.message)
     } finally {
       setLoadingMore(false)
     }
   }
 
-  // Fonction pour charger les événements avec une position spécifique
-  const loadEventsWithPosition = async (
-    startDate: Date,
-    endDate: Date,
-    append: boolean = false,
-    eventType?: string,
-    customRadius?: number,
-    customPosition?: UserPosition
-  ): Promise<Event[]> => {
-    const position = customPosition || userPosition || testPositionFallback
-    const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
-    
-    // Construire l'URL correctement selon que BASE_URL est vide (relative) ou absolue
-    const endpoint = API.ENDPOINTS.EVENTS;
-    const apiUrl = API.BASE_URL 
-      ? new URL(`${API.BASE_URL}${endpoint}`)
-      : new URL(endpoint, window.location.origin);
-    
-    apiUrl.searchParams.set('lat', position.latitude.toString())
-    apiUrl.searchParams.set('lon', position.longitude.toString())
-    apiUrl.searchParams.set('radius', radiusToUse.toString())
-    apiUrl.searchParams.set('start_date', startDate.toISOString().split('T')[0])
-    apiUrl.searchParams.set('end_date', endDate.toISOString().split('T')[0])
-    
-    // Ajouter le filtre de type si fourni
-    if (eventType && eventType !== 'tous') {
-      apiUrl.searchParams.set('type', eventType)
-    }
-    
-    const response = await fetch(apiUrl.toString())
-    if (!response.ok) {
-      throw new Error('Erreur lors de la récupération des événements')
-    }
-    
-    const data: Event[] = await response.json()
-    
-    if (append) {
-      // Ajouter les nouveaux événements à la liste existante
-      setEvents(prev => {
-        // Éviter les doublons basés sur l'ID
-        const existingIds = new Set(prev.map(e => e.id))
-        const newEvents = data.filter(e => !existingIds.has(e.id))
-        return [...prev, ...newEvents]
-      })
-    } else {
-      // Remplacer la liste complète
-      setEvents(data)
-    }
-    
-    return data
-  }
 
   // Fonction de recherche et filtrage
   const handleSearch = (
-    searchTerm: string, 
-    radius: number, 
-    eventType: string, 
+    searchTerm: string,
+    radius: number,
+    eventType: string,
     coordinates?: { latitude: number; longitude: number; city: string }
   ) => {
     setCurrentRadius(radius)
-    
+
     // Si des coordonnées sont fournies (géocodage réussi), mettre à jour la position et la ville
     if (coordinates) {
       setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
       setCity(coordinates.city)
     }
-    
+
     // Utiliser le rayon spécifié (plus besoin de 2000 km car on a les bonnes coordonnées)
     const searchRadius = radius
-    
+
     // Recharger les événements avec le nouveau rayon et type depuis le serveur
     // On réinitialise la période à 2 mois à partir d'aujourd'hui
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
-    
+
     setCurrentStartDate(start)
     setCurrentEndDate(end)
     setLoading(true)
-    
+
     // Utiliser les nouvelles coordonnées si disponibles, sinon la position actuelle
-    const positionToUse = coordinates 
+    const positionToUse = coordinates
       ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
       : (userPosition || testPositionFallback)
-    
-    // Passer le type d'événement et le rayon personnalisé à l'API avec les nouvelles coordonnées
-    loadEventsWithPosition(start, end, false, eventType, searchRadius, positionToUse)
+
+    // Passer le type d'événement, le rayon personnalisé et la position à l'API
+    loadEvents(start, end, false, eventType, searchRadius, positionToUse)
       .then((data: Event[]) => {
-        console.log(`📦 Frontend (recherche): ${data.length} événements reçus depuis l'API`)
-        
         let filtered = [...data]
 
         // Filtre par nom, ville ou code postal (côté client) si recherche textuelle
         if (searchTerm.trim()) {
           const searchLower = searchTerm.toLowerCase()
-          const beforeFilter = filtered.length
           filtered = filtered.filter(
             event =>
               event.name.toLowerCase().includes(searchLower) ||
               (event.city && event.city.toLowerCase().includes(searchLower)) ||
               (event.postalCode && event.postalCode.includes(searchTerm))
           )
-          console.log(`🔍 Frontend: Filtre texte "${searchTerm}": ${filtered.length} événements après filtrage (${beforeFilter} avant)`)
         }
 
         setFilteredEvents(filtered)
         const grouped = groupEventsByDay(filtered)
-        console.log(`📅 Frontend (recherche): ${grouped.length} groupes créés depuis ${filtered.length} événements`)
         setGroupedEvents(grouped)
         setLoading(false)
         setHasMoreEvents(data.length > 0)
@@ -346,7 +253,6 @@ export default function HomePage() {
       .catch(err => {
         setError(err.message)
         setLoading(false)
-        console.error('Erreur lors de la recherche:', err)
       })
   }
 
@@ -362,10 +268,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <SearchBar 
-        onSearch={handleSearch} 
+      <SearchBar
+        onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
-        events={events} 
+        events={events}
       />
 
       <div className="container mx-auto px-4 py-6">
@@ -436,7 +342,7 @@ export default function HomePage() {
                     // Déterminer si c'est aujourd'hui
                     const isToday = group.label === 'Aujourd\'hui'
                     const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
-                    
+
                     return (
                       <div key={group.date}>
                         <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
@@ -456,18 +362,17 @@ export default function HomePage() {
                     )
                   })}
                 </div>
-                
+
                 {/* Bouton "Voir Plus" */}
                 {hasMoreEvents && !loading && (
                   <div className="flex justify-center mt-8 mb-8">
                     <button
                       onClick={handleLoadMore}
                       disabled={loadingMore}
-                      className={`px-8 py-3 rounded-lg font-semibold transition-colors ${
-                        loadingMore
-                          ? 'bg-gray-400 text-white cursor-not-allowed'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
+                      className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
                     >
                       {loadingMore ? (
                         <span className="flex items-center gap-2">
@@ -485,7 +390,7 @@ export default function HomePage() {
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
                 <p className="text-gray-400 text-sm mt-2">
-                  {filteredEvents.length === 0 
+                  {filteredEvents.length === 0
                     ? 'Aucun événement ne correspond à vos critères de recherche.'
                     : 'Les événements trouvés ne peuvent pas être groupés par date.'}
                 </p>

@@ -27,7 +27,6 @@ module.exports = function() {
       });
     } catch (error) {
       console.error('❌ Erreur lors de l\'importation:', error.message);
-      console.error('Stack:', error.stack);
       return res.status(500).json({ 
         error: `Erreur lors de l'importation: ${error.message}`
       });
@@ -86,9 +85,6 @@ module.exports = function() {
   // SUPPRIMER CETTE ROUTE IMMÉDIATEMENT APRÈS L'EXÉCUTION pour des raisons de sécurité
   router.post('/temp-publish-all', async (req, res) => {
     try {
-      console.warn('⚠️ ATTENTION: Route temporaire non sécurisée utilisée - /admin/temp-publish-all');
-      console.warn('⚠️ Cette route doit être supprimée après usage pour des raisons de sécurité');
-      
       const eventsCollection = getEventsCollection();
       
       // Compter les événements avant la mise à jour
@@ -120,7 +116,6 @@ module.exports = function() {
       });
     } catch (error) {
       console.error('❌ Erreur lors de la publication des événements:', error);
-      console.error('Stack:', error.stack);
       return res.status(500).json({
         error: 'Erreur lors de la publication des événements',
         details: error.message
@@ -161,7 +156,6 @@ module.exports = function() {
       });
     } catch (error) {
       console.error('❌ Erreur lors de la publication des événements:', error);
-      console.error('Stack:', error.stack);
       return res.status(500).json({
         error: 'Erreur lors de la publication des événements',
         details: error.message

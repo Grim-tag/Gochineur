@@ -72,3 +72,4 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
 
 
 
+

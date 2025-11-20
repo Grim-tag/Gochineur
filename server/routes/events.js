@@ -13,12 +13,12 @@ module.exports = function() {
   // Route pour obtenir tous les événements (futurs uniquement) avec filtrage géographique et par période optionnel
   router.get('/', async (req, res) => {
     try {
-      // CRITIQUE: Vérifier que la collection est disponible
+      // Vérifier que la collection est disponible
       let eventsCollection;
       try {
         eventsCollection = getEventsCollection();
       } catch (collectionError) {
-        console.error(`❌ ERREUR: Impossible de récupérer la collection events:`, collectionError);
+        console.error('❌ Erreur: Impossible de récupérer la collection events:', collectionError);
         return res.status(500).json({ 
           error: 'Erreur de connexion à la base de données',
           details: collectionError.message 
@@ -27,12 +27,11 @@ module.exports = function() {
       
       // Vérifier que la collection existe et est accessible
       const collectionExists = await eventsCollection.countDocuments({}).catch(err => {
-        console.error(`❌ ERREUR lors du comptage des documents:`, err);
+        console.error('❌ Erreur lors du comptage des documents:', err);
         return -1;
       });
       
       if (collectionExists === -1) {
-        console.error(`❌ ERREUR: La collection events n'est pas accessible`);
         return res.status(500).json({ 
           error: 'Erreur d\'accès à la collection events',
           details: 'Impossible de compter les documents'
@@ -140,9 +139,9 @@ module.exports = function() {
         });
       }
       
-      // CRITIQUE: S'assurer que la réponse est bien un tableau, même s'il est vide
+      // S'assurer que la réponse est bien un tableau, même s'il est vide
       if (!Array.isArray(futureEvents)) {
-        console.error('❌ ERREUR: futureEvents n\'est pas un tableau!', typeof futureEvents);
+        console.error('❌ Erreur: futureEvents n\'est pas un tableau:', typeof futureEvents);
         return res.status(500).json({ error: 'Erreur: la réponse n\'est pas un tableau' });
       }
       

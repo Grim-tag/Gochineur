@@ -206,3 +206,4 @@ GoChineur - Application de découverte d'événements de vide-greniers
 
 **Note**: Assurez-vous de ne jamais commiter les fichiers `.env` contenant vos secrets !
 
+
