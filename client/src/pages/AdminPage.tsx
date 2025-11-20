@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
+import { API } from '../config/constants'
 
 interface User {
   id: string
@@ -40,7 +41,7 @@ export default function AdminPage() {
   useEffect(() => {
     // Vérifier l'authentification et le rôle
     // Utiliser /api/user/current pour cohérence avec le reste de l'application
-    fetch('http://localhost:5000/api/user/current', {
+    fetch(`${API.BASE_URL}/api/user/current`, {
       credentials: 'include'
     })
       .then(response => response.json())
@@ -49,14 +50,14 @@ export default function AdminPage() {
           navigate('/login')
           return
         }
-        
+
         const userRole = data.user.role || 'user'
         if (userRole !== 'admin' && userRole !== 'moderator') {
           // Rediriger vers l'accueil si l'utilisateur n'a pas les droits
           navigate('/')
           return
         }
-        
+
         setUser(data.user)
         setLoading(false)
         loadData()
@@ -71,9 +72,9 @@ export default function AdminPage() {
   const loadData = () => {
     setLoadingData(true)
     setError(null)
-    
+
     if (activeTab === 'users') {
-      fetch('http://localhost:5000/admin/api/users', {
+      fetch(`${API.BASE_URL}/admin/api/users`, {
         credentials: 'include'
       })
         .then(response => {
@@ -93,7 +94,7 @@ export default function AdminPage() {
     } else {
       // Construire l'URL avec le paramètre period si on est sur l'onglet événements
       const periodParam = activePeriod !== 'all' ? `?period=${activePeriod}` : ''
-      fetch(`http://localhost:5000/admin/api/events${periodParam}`, {
+      fetch(`${API.BASE_URL}/admin/api/events${periodParam}`, {
         credentials: 'include'
       })
         .then(response => {
@@ -125,7 +126,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/admin/api/users/${userId}/role`, {
+      const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}/role`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -153,7 +154,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/admin/api/users/${userId}`, {
+      const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}`, {
         method: 'DELETE',
         credentials: 'include'
       })
@@ -173,7 +174,7 @@ export default function AdminPage() {
 
   const handleValidateEvent = async (eventId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/admin/api/events/${eventId}/validate`, {
+      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}/validate`, {
         method: 'PUT',
         credentials: 'include'
       })
@@ -206,7 +207,7 @@ export default function AdminPage() {
     if (!editingEvent) return
 
     try {
-      const response = await fetch(`http://localhost:5000/admin/api/events/${editingEvent.id}`, {
+      const response = await fetch(`${API.BASE_URL}/admin/api/events/${editingEvent.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -236,7 +237,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/admin/api/events/${eventId}`, {
+      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}`, {
         method: 'DELETE',
         credentials: 'include'
       })
@@ -312,21 +313,19 @@ export default function AdminPage() {
           <div className="flex border-b">
             <button
               onClick={() => setActiveTab('events')}
-              className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-                activeTab === 'events'
+              className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'events'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               Événements ({events.length})
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`flex-1 px-6 py-4 font-semibold transition-colors ${
-                activeTab === 'users'
+              className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'users'
                   ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
                   : 'text-gray-600 hover:bg-gray-50'
-              }`}
+                }`}
             >
               Utilisateurs ({users.length})
             </button>
@@ -350,109 +349,105 @@ export default function AdminPage() {
               <div className="flex border-b">
                 <button
                   onClick={() => setActivePeriod('1')}
-                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${
-                    activePeriod === '1'
+                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '1'
                       ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   2 Mois en Cours
                 </button>
                 <button
                   onClick={() => setActivePeriod('2')}
-                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${
-                    activePeriod === '2'
+                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '2'
                       ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   Reste de l'Année 2025
                 </button>
                 <button
                   onClick={() => setActivePeriod('3')}
-                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${
-                    activePeriod === '3'
+                  className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '3'
                       ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
                       : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   Année Suivante 2026
                 </button>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lieu</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Soumis par</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {events.map((event) => (
-                    <tr key={event.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium">{event.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{event.type}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(event.date_debut).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{event.city}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          event.statut_validation === 'published' || event.statut_validation === 'Validé'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {event.statut_validation === 'published' || event.statut_validation === 'Validé' 
-                            ? 'Publié' 
-                            : event.statut_validation === 'pending_review' || event.statut_validation === 'En attente' || event.statut_validation === 'En Attente'
-                            ? 'En attente'
-                            : event.statut_validation || 'Non défini'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex gap-2">
-                          {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
-                            <button
-                              onClick={() => handleValidateEvent(event.id)}
-                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                            >
-                              Valider
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleEditEvent(event)}
-                            className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                          >
-                            Éditer
-                          </button>
-                          <button
-                            onClick={() => handleDeleteEvent(event.id, event.name)}
-                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                          >
-                            Supprimer
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lieu</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Soumis par</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {events.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  Aucun événement trouvé
-                </div>
-              )}
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {events.map((event) => (
+                      <tr key={event.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap font-medium">{event.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{event.type}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Date(event.date_debut).toLocaleDateString('fr-FR')}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">{event.city}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                            {event.statut_validation === 'published' || event.statut_validation === 'Validé'
+                              ? 'Publié'
+                              : event.statut_validation === 'pending_review' || event.statut_validation === 'En attente' || event.statut_validation === 'En Attente'
+                                ? 'En attente'
+                                : event.statut_validation || 'Non défini'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex gap-2">
+                            {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
+                              <button
+                                onClick={() => handleValidateEvent(event.id)}
+                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                              >
+                                Valider
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleEditEvent(event)}
+                              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                            >
+                              Éditer
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEvent(event.id, event.name)}
+                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {events.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    Aucun événement trouvé
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
           </>
         ) : (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -473,13 +468,12 @@ export default function AdminPage() {
                       <td className="px-6 py-4 whitespace-nowrap">{u.email}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{u.displayName || u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          u.role === 'admin'
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin'
                             ? 'bg-purple-100 text-purple-800'
                             : u.role === 'moderator'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
                           {u.role}
                         </span>
                       </td>
@@ -528,7 +522,7 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-4">Éditer l'événement</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
