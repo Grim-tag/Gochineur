@@ -69,7 +69,6 @@ module.exports = function (googleClientId, googleClientSecret) {
       console.log(`🔐 Tentative de sauvegarde de session pour: ${freshUser.email}, role: ${freshUser.role}`);
 
       // IMPORTANT: Utiliser req.login() de Passport pour sérialiser correctement l'utilisateur
-      // Cela force la création du cookie de session
       req.login(freshUser, (loginErr) => {
         if (loginErr) {
           console.error('❌ Erreur lors du login Passport:', loginErr);
@@ -81,33 +80,32 @@ module.exports = function (googleClientId, googleClientSecret) {
         console.log(`✅ Utilisateur connecté via Passport: ${freshUser.email}`);
         console.log(`🍪 Session ID: ${req.sessionID}`);
 
-        // FORCER l'envoi du cookie manuellement car express-session ne le fait pas automatiquement
-        const isProduction = process.env.NODE_ENV === 'production';
-        res.cookie('gochineur.sid', req.sessionID, {
-          httpOnly: true,
-          secure: isProduction,
-          sameSite: 'lax',
-          maxAge: 24 * 60 * 60 * 1000, // 24 heures
-          path: '/'
+        // FORCER la sauvegarde de la session AVANT la redirection
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error('❌ Erreur lors de la sauvegarde de la session:', saveErr);
+          } else {
+            console.log(`✅ Session sauvegardée dans MongoDB`);
+          }
+
+          // Déterminer l'URL du client selon l'environnement
+          const isProduction = process.env.NODE_ENV === 'production';
+          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+
+          // Redirection selon le pseudo et le rôle
+          if (!freshUser.displayName) {
+            console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
+            return res.redirect(`${mainClientUrl}/set-pseudo`);
+          }
+
+          if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+            console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
+            return res.redirect(`${mainClientUrl}/admin/dashboard`);
+          }
+
+          console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
+          return res.redirect(`${mainClientUrl}/`);
         });
-        console.log(`🍪 Cookie défini manuellement: gochineur.sid=${req.sessionID}`);
-
-        // Déterminer l'URL du client selon l'environnement
-        const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
-
-        // Redirection selon le pseudo et le rôle
-        if (!freshUser.displayName) {
-          console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
-          return res.redirect(`${mainClientUrl}/set-pseudo`);
-        }
-
-        if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
-          console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
-          return res.redirect(`${mainClientUrl}/admin/dashboard`);
-        }
-
-        console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
-        return res.redirect(`${mainClientUrl}/`);
       });
     } catch (error) {
       console.error('❌ Erreur lors du callback Google:', error);
