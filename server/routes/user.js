@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getDb } = require('../config/db');
+const { getDB } = require('../config/db');
 const { ObjectId } = require('mongodb');
 const { authenticateJWT } = require('../middleware/auth');
 const { extractTokenFromHeader, verifyToken } = require('../utils/jwt');
@@ -24,7 +24,7 @@ module.exports = function () {
                 return res.json({ authenticated: false, user: null });
             }
 
-            const db = getDb();
+            const db = getDB();
             const user = await db.collection('users').findOne({ _id: new ObjectId(decoded.id) });
 
             if (!user) {
@@ -62,7 +62,7 @@ module.exports = function () {
                 return res.status(400).json({ error: 'Le pseudo doit contenir au moins 2 caractères' });
             }
 
-            const db = getDb();
+            const db = getDB();
 
             // Vérifier si le pseudo est déjà pris (insensible à la casse)
             const existingUser = await db.collection('users').findOne({
