@@ -41,7 +41,8 @@ const allowedOrigins = [
   'http://localhost:5173', // Développement local (Vite dev server)
   'http://localhost:5000', // Production locale (même serveur)
   'https://gochineur.fr', // Production
-  'https://www.gochineur.fr' // Production avec www
+  'https://www.gochineur.fr', // Production avec www
+  'https://gochineur-backend.onrender.com' // URL temporaire Render
 ];
 
 app.use(cors({
