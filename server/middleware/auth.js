@@ -1,42 +1,62 @@
+const { verifyToken, extractTokenFromHeader } = require('../utils/jwt');
+
 /**
- * Middleware pour vérifier l'authentification et les rôles admin/moderator
+ * Middleware d'authentification JWT
+ * Vérifie que la requête contient un token JWT valide
  */
-function requireAdminOrModerator(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Authentification requise' });
+function authenticateJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = extractTokenFromHeader(authHeader);
+
+  if (!token) {
+    return res.status(401).json({ error: 'Accès non autorisé. Token manquant.' });
   }
-  
-  const userRole = req.user.role || 'user';
-  
-  if (userRole !== 'admin' && userRole !== 'moderator') {
-    return res.status(403).json({ error: 'Accès refusé. Rôle admin ou moderator requis.' });
+
+  const decoded = verifyToken(token);
+
+  if (!decoded) {
+    return res.status(403).json({ error: 'Accès interdit. Token invalide ou expiré.' });
   }
-  
+
+  // Attacher l'utilisateur décodé à la requête
+  req.user = decoded;
   next();
 }
 
 /**
- * Middleware pour vérifier le rôle admin uniquement
+ * Middleware pour vérifier le rôle administrateur
+ * Doit être utilisé APRES authenticateJWT
  */
 function requireAdmin(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Authentification requise' });
+  if (!req.user) {
+    return res.status(401).json({ error: 'Non authentifié' });
   }
-  
-  const userRole = req.user.role || 'user';
-  
-  if (userRole !== 'admin') {
-    return res.status(403).json({ error: 'Accès refusé. Rôle admin requis.' });
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Accès refusé. Droits d\'administrateur requis.' });
   }
-  
+
+  next();
+}
+
+/**
+ * Middleware pour vérifier le rôle administrateur ou modérateur
+ * Doit être utilisé APRES authenticateJWT
+ */
+function requireAdminOrModerator(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Non authentifié' });
+  }
+
+  if (req.user.role !== 'admin' && req.user.role !== 'moderator') {
+    return res.status(403).json({ error: 'Accès refusé. Droits d\'administrateur ou de modérateur requis.' });
+  }
+
   next();
 }
 
 module.exports = {
-  requireAdminOrModerator,
-  requireAdmin
+  authenticateJWT,
+  requireAdmin,
+  requireAdminOrModerator
 };
-
-
-
-

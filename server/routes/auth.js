@@ -14,7 +14,12 @@ module.exports = function (googleClientId, googleClientSecret) {
         error: 'Configuration Google OAuth manquante. Vérifiez les variables d\'environnement.'
       });
     }
-    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+    // session: false pour éviter d'utiliser express-session
+    // Note: Cela désactive la vérification du paramètre state par défaut qui requiert une session
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+      session: false
+    })(req, res, next);
   });
 
   // Callback Google OAuth
@@ -30,7 +35,10 @@ module.exports = function (googleClientId, googleClientSecret) {
     // Redirection d'échec vers l'accueil
     const failureUrl = `${mainClientUrl}/?error=auth_failed`;
 
-    passport.authenticate('google', { failureRedirect: failureUrl })(req, res, next);
+    passport.authenticate('google', {
+      failureRedirect: failureUrl,
+      session: false
+    })(req, res, next);
   }, async (req, res) => {
     try {
       const usersCollection = getUsersCollection();
@@ -65,48 +73,40 @@ module.exports = function (googleClientId, googleClientSecret) {
         req.user.role = 'user';
       }
 
-      // Sauvegarder la session explicitement pour s'assurer qu'elle est persistée
-      console.log(`🔐 Tentative de sauvegarde de session pour: ${freshUser.email}, role: ${freshUser.role}`);
+      // Générer un JWT pour l'utilisateur
+      console.log(`🔐 Génération du JWT pour: ${freshUser.email}, role: ${freshUser.role}`);
 
-      // IMPORTANT: Utiliser req.login() de Passport pour sérialiser correctement l'utilisateur
-      req.login(freshUser, (loginErr) => {
-        if (loginErr) {
-          console.error('❌ Erreur lors du login Passport:', loginErr);
-          const isProduction = process.env.NODE_ENV === 'production';
-          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
-          return res.redirect(`${mainClientUrl}/?error=login_error`);
+      const { generateToken } = require('../utils/jwt');
+
+      try {
+        const token = generateToken(freshUser);
+        console.log(`✅ JWT généré avec succès pour: ${freshUser.email}`);
+
+        // Déterminer l'URL du client selon l'environnement
+        const isProduction = process.env.NODE_ENV === 'production';
+        const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+
+        // Déterminer la destination finale selon le pseudo et le rôle
+        let finalDestination;
+        if (!freshUser.displayName) {
+          console.log(`➡️  Destination: /set-pseudo pour ${freshUser.email}`);
+          finalDestination = '/set-pseudo';
+        } else if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
+          console.log(`➡️  Destination: /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
+          finalDestination = '/admin/dashboard';
+        } else {
+          console.log(`➡️  Destination: / pour ${freshUser.email}`);
+          finalDestination = '/';
         }
 
-        console.log(`✅ Utilisateur connecté via Passport: ${freshUser.email}`);
-        console.log(`🍪 Session ID: ${req.sessionID}`);
-
-        // FORCER la sauvegarde de la session AVANT la redirection
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error('❌ Erreur lors de la sauvegarde de la session:', saveErr);
-          } else {
-            console.log(`✅ Session sauvegardée dans MongoDB`);
-          }
-
-          // Déterminer l'URL du client selon l'environnement
-          const isProduction = process.env.NODE_ENV === 'production';
-          const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
-
-          // Redirection selon le pseudo et le rôle
-          if (!freshUser.displayName) {
-            console.log(`➡️  Redirection vers /set-pseudo pour ${freshUser.email}`);
-            return res.redirect(`${mainClientUrl}/set-pseudo`);
-          }
-
-          if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
-            console.log(`➡️  Redirection vers /admin/dashboard pour ${freshUser.email} (${freshUser.role})`);
-            return res.redirect(`${mainClientUrl}/admin/dashboard`);
-          }
-
-          console.log(`➡️  Redirection vers / pour ${freshUser.email}`);
-          return res.redirect(`${mainClientUrl}/`);
-        });
-      });
+        // Rediriger vers la page de callback OAuth avec le token et la destination
+        return res.redirect(`${mainClientUrl}/oauth/callback?token=${token}&destination=${encodeURIComponent(finalDestination)}`);
+      } catch (jwtError) {
+        console.error('❌ Erreur lors de la génération du JWT:', jwtError);
+        const isProduction = process.env.NODE_ENV === 'production';
+        const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
+        return res.redirect(`${mainClientUrl}/?error=jwt_error`);
+      }
     } catch (error) {
       console.error('❌ Erreur lors du callback Google:', error);
 
@@ -118,33 +118,11 @@ module.exports = function (googleClientId, googleClientSecret) {
     }
   });
 
-  // Route de déconnexion
+  // Route de déconnexion (stateless)
   router.get('/logout', (req, res) => {
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Erreur lors de la déconnexion' });
-      }
-      res.json({ success: true, message: 'Déconnexion réussie' });
-    });
-  });
-
-  // Route temporaire pour détruire toutes les sessions (nettoyage agressif)
-  router.get('/logout-all', (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('❌ Erreur lors de la destruction de la session:', err);
-        return res.status(500).json({
-          error: 'Erreur lors de la destruction de la session',
-          message: err.message
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Toutes les sessions ont été détruites. Vous pouvez maintenant vous reconnecter.',
-        note: 'Cette route est temporaire et devrait être supprimée en production.'
-      });
-    });
+    // Avec JWT, la déconnexion se fait côté client en supprimant le token
+    // Cette route est juste là pour confirmer
+    res.json({ success: true, message: 'Déconnexion réussie (supprimez le token côté client)' });
   });
 
 

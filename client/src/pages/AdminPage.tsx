@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { API } from '../config/constants'
+import { getToken, removeToken } from '../services/auth'
 
 interface User {
   id: string
@@ -38,15 +39,37 @@ export default function AdminPage() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [editForm, setEditForm] = useState<Partial<Event>>({})
 
+  // Helper pour les headers d'authentification
+  const getAuthHeaders = () => {
+    const token = getToken()
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    }
+  }
+
   useEffect(() => {
     // Vérifier l'authentification et le rôle
-    // Utiliser /api/user/current pour cohérence avec le reste de l'application
+    const token = getToken()
+    if (!token) {
+      navigate('/login')
+      return
+    }
+
     fetch(`${API.BASE_URL}/api/user/current`, {
-      credentials: 'include'
+      headers: getAuthHeaders()
     })
-      .then(response => response.json())
+      .then(response => {
+        if (response.status === 401) {
+          removeToken()
+          navigate('/login')
+          throw new Error('Session expirée')
+        }
+        return response.json()
+      })
       .then(data => {
         if (!data.authenticated || !data.user) {
+          removeToken()
           navigate('/login')
           return
         }
@@ -75,7 +98,7 @@ export default function AdminPage() {
 
     if (activeTab === 'users') {
       fetch(`${API.BASE_URL}/admin/api/users`, {
-        credentials: 'include'
+        headers: getAuthHeaders()
       })
         .then(response => {
           if (!response.ok) {
@@ -95,7 +118,7 @@ export default function AdminPage() {
       // Construire l'URL avec le paramètre period si on est sur l'onglet événements
       const periodParam = activePeriod !== 'all' ? `?period=${activePeriod}` : ''
       fetch(`${API.BASE_URL}/admin/api/events${periodParam}`, {
-        credentials: 'include'
+        headers: getAuthHeaders()
       })
         .then(response => {
           if (!response.ok) {
@@ -128,10 +151,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}/role`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
+        headers: getAuthHeaders(),
         body: JSON.stringify({ role: newRole })
       })
 
@@ -156,7 +176,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers: getAuthHeaders()
       })
 
       const data = await response.json()
@@ -176,7 +196,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}/validate`, {
         method: 'PUT',
-        credentials: 'include'
+        headers: getAuthHeaders()
       })
 
       const data = await response.json()
@@ -210,9 +230,9 @@ export default function AdminPage() {
       const response = await fetch(`${API.BASE_URL}/admin/api/events/${editingEvent.id}`, {
         method: 'PUT',
         headers: {
+          ...getAuthHeaders(),
           'Content-Type': 'application/json'
         },
-        credentials: 'include',
         body: JSON.stringify(editForm)
       })
 
@@ -239,7 +259,7 @@ export default function AdminPage() {
     try {
       const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers: getAuthHeaders()
       })
 
       const data = await response.json()
@@ -314,8 +334,8 @@ export default function AdminPage() {
             <button
               onClick={() => setActiveTab('events')}
               className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'events'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
               Événements ({events.length})
@@ -323,8 +343,8 @@ export default function AdminPage() {
             <button
               onClick={() => setActiveTab('users')}
               className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'users'
-                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
               Utilisateurs ({users.length})
@@ -350,8 +370,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setActivePeriod('1')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '1'
-                      ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   2 Mois en Cours
@@ -359,8 +379,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setActivePeriod('2')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '2'
-                      ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   Reste de l'Année 2025
@@ -368,8 +388,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setActivePeriod('3')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '3'
-                      ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                      : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
+                    : 'text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   Année Suivante 2026
@@ -403,8 +423,8 @@ export default function AdminPage() {
                         <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-yellow-100 text-yellow-800'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
                             }`}>
                             {event.statut_validation === 'published' || event.statut_validation === 'Validé'
                               ? 'Publié'
@@ -469,10 +489,10 @@ export default function AdminPage() {
                       <td className="px-6 py-4 whitespace-nowrap">{u.displayName || u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin'
-                            ? 'bg-purple-100 text-purple-800'
-                            : u.role === 'moderator'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
+                          ? 'bg-purple-100 text-purple-800'
+                          : u.role === 'moderator'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
                           }`}>
                           {u.role}
                         </span>

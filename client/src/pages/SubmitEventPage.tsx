@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { checkAuth, redirectToGoogleAuth } from '../utils/authUtils'
+import { submitEvent } from '../services/api'
 
 interface FormData {
   // Étape 1
@@ -35,7 +36,7 @@ export default function SubmitEventPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  
+
   const [formData, setFormData] = useState<FormData>({
     role: '',
     type: '',
@@ -91,7 +92,7 @@ export default function SubmitEventPage() {
           }
         }
       )
-      
+
       if (response.ok) {
         const data = await response.json()
         if (data.length > 0) {
@@ -114,7 +115,7 @@ export default function SubmitEventPage() {
 
   const handleAddressChange = async (address: string) => {
     handleInputChange('address', address)
-    
+
     // Si l'adresse est complète (avec ville et code postal), géocoder automatiquement
     if (formData.city && formData.postalCode && address) {
       const coords = await geocodeAddress(address, formData.city, formData.postalCode)
@@ -130,7 +131,7 @@ export default function SubmitEventPage() {
 
   const validateStep = (step: number): boolean => {
     setError(null)
-    
+
     if (step === 1) {
       if (!formData.role || !formData.type) {
         setError('Veuillez sélectionner votre rôle et le type d\'événement.')
@@ -151,7 +152,7 @@ export default function SubmitEventPage() {
         return false
       }
     }
-    
+
     return true
   }
 
@@ -168,40 +169,26 @@ export default function SubmitEventPage() {
 
   const handleSubmit = async () => {
     if (!validateStep(3)) return
-    
+
     setLoading(true)
     setError(null)
-    
-    try {
-      const response = await fetch('http://localhost:5000/api/events/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData)
-      })
-      
-      const data = await response.json()
 
-      if (!response.ok) {
-        // Si c'est une erreur de doublon ou de pseudo manquant, gérer spécifiquement
-        if (data.duplicate) {
-          setError(data.error || 'Cet événement existe déjà.')
-          return
-        }
-        if (data.redirectTo) {
-          navigate(data.redirectTo)
-          return
-        }
-        throw new Error(data.error || 'Erreur lors de la soumission')
+    try {
+      // Convert string coordinates to numbers for the API
+      const eventData = {
+        ...formData,
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude)
       }
-      
+
+      await submitEvent(eventData)
+
       setSuccess(true)
       setTimeout(() => {
         navigate('/')
       }, 3000)
     } catch (err: any) {
+      // If the error message suggests a duplicate, we could handle it, but displaying the message is usually enough.
       setError(err.message || 'Erreur lors de la soumission de l\'événement')
     } finally {
       setLoading(false)
@@ -298,7 +285,7 @@ export default function SubmitEventPage() {
         {currentStep === 1 && (
           <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Rôle et Catégorie</h2>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Quel est votre rôle ? <span className="text-red-500">*</span>
@@ -347,7 +334,7 @@ export default function SubmitEventPage() {
         {currentStep === 2 && (
           <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Lieu et Date</h2>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Adresse <span className="text-red-500">*</span>
@@ -480,7 +467,7 @@ export default function SubmitEventPage() {
         {currentStep === 3 && (
           <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Détails de l'événement</h2>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Titre de l'événement <span className="text-red-500">*</span>
@@ -595,15 +582,14 @@ export default function SubmitEventPage() {
           <button
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-              currentStep === 1
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-6 py-3 rounded-lg font-semibold transition-colors ${currentStep === 1
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Précédent
           </button>
-          
+
           {currentStep < 3 ? (
             <button
               onClick={handleNext}
@@ -615,11 +601,10 @@ export default function SubmitEventPage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                loading
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-green-600 text-white hover:bg-green-700'
-              }`}
+              className={`px-6 py-3 rounded-lg font-semibold transition-colors ${loading
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
             >
               {loading ? 'Envoi en cours...' : 'Soumettre l\'événement'}
             </button>

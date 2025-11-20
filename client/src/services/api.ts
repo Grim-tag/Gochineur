@@ -3,7 +3,24 @@
  */
 
 import { API } from '../config/constants';
+import { getToken } from './auth';
 import type { Event } from '../types';
+
+/**
+ * Crée les headers avec le token JWT si disponible
+ */
+function getAuthHeaders(): HeadersInit {
+  const token = getToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json'
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
 
 interface FetchEventsParams {
   lat?: number;
@@ -21,7 +38,7 @@ export async function fetchEvents(params: FetchEventsParams): Promise<Event[]> {
   // Construire l'URL correctement selon que BASE_URL est vide (relative) ou absolue
   let url: URL;
   const endpoint = API.ENDPOINTS.EVENTS;
-  
+
   if (API.BASE_URL) {
     // URL absolue
     url = new URL(`${API.BASE_URL}${endpoint}`);
@@ -29,7 +46,7 @@ export async function fetchEvents(params: FetchEventsParams): Promise<Event[]> {
     // URL relative - utiliser window.location.origin comme base
     url = new URL(endpoint, window.location.origin);
   }
-  
+
   if (params.lat !== undefined) {
     url.searchParams.set('lat', params.lat.toString());
   }
@@ -50,7 +67,9 @@ export async function fetchEvents(params: FetchEventsParams): Promise<Event[]> {
   }
 
   const response = await fetch(url.toString(), {
-    credentials: 'include'
+    headers: {
+      'Content-Type': 'application/json'
+    }
   });
 
   if (!response.ok) {
@@ -73,13 +92,10 @@ export async function fetchEvents(params: FetchEventsParams): Promise<Event[]> {
 export async function submitEvent(eventData: Partial<Event>): Promise<Event> {
   const endpoint = `${API.ENDPOINTS.EVENTS}/submit`;
   const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
-  
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
+    headers: getAuthHeaders(),
     body: JSON.stringify(eventData)
   });
 
@@ -97,9 +113,9 @@ export async function submitEvent(eventData: Partial<Event>): Promise<Event> {
 export async function getCurrentUser() {
   const endpoint = `${API.ENDPOINTS.USER}/current`;
   const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
-  
+
   const response = await fetch(url, {
-    credentials: 'include'
+    headers: getAuthHeaders()
   });
 
   if (!response.ok) {
@@ -115,13 +131,10 @@ export async function getCurrentUser() {
 export async function updateDisplayName(displayName: string) {
   const endpoint = `${API.ENDPOINTS.USER}/set-pseudo`;
   const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
-  
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
+    headers: getAuthHeaders(),
     body: JSON.stringify({ displayName })
   });
 

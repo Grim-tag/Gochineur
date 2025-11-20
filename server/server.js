@@ -9,7 +9,6 @@ const cors = require('cors');
 const passport = require('passport');
 
 // Import des configurations
-const { configureSession, initializeSessionStore } = require('./config/session');
 const { configurePassport } = require('./config/passport');
 const { connectDB } = require('./config/db');
 
@@ -80,19 +79,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configuration de la session
-app.use(configureSession(SESSION_SECRET));
-
-// Initialisation de Passport
-app.use(passport.initialize());
-app.use(passport.session());
-
 // Configuration de Passport avec Google OAuth
 configurePassport(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL, MASTER_ADMIN_EMAIL);
 
 // Routes d'authentification
 const authRouter = authRoutes(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
 app.use('/auth', authRouter);
+
+// Initialisation de Passport
+app.use(passport.initialize());
 
 // Routes API utilisateur
 const userRoutes = require('./routes/user');
@@ -222,9 +217,6 @@ if (process.env.NODE_ENV === 'production') {
 
 // Initialiser la connexion MongoDB au démarrage
 connectDB().then(async () => {
-  // Initialiser le store de session MongoDB si en production
-  await initializeSessionStore();
-
   // Démarrage du serveur
   app.listen(PORT, () => {
     console.log(`🚀 Serveur GoChineur démarré sur le port ${PORT}`);

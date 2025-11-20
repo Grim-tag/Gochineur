@@ -5,6 +5,7 @@ import SubmitEventPage from './pages/SubmitEventPage'
 import LoginPage from './pages/LoginPage'
 import SetPseudoPage from './pages/SetPseudoPage'
 import AdminPage from './pages/AdminPage'
+import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import './index.css'
 
 function App() {
@@ -17,11 +18,10 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-pseudo" element={<SetPseudoPage />} />
         <Route path="/admin/dashboard" element={<AdminPage />} />
+        <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
       </Routes>
     </BrowserRouter>
   )
 }
 
 export default App
-
-
