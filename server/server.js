@@ -164,7 +164,6 @@ app.use((err, req, res, next) => {
 
 // Servir les fichiers statiques du frontend en production
 // IMPORTANT: Doit être après toutes les routes API mais avant le 404
-const path = require('path');
 const fs = require('fs');
 
 if (process.env.NODE_ENV === 'production') {
