@@ -9,7 +9,7 @@ const { EVENTS, EVENT_STATUS, GEOLOCATION } = require('../config/constants');
 /**
  * Routes publiques pour les événements
  */
-module.exports = function() {
+module.exports = function () {
   // Route pour obtenir tous les événements (futurs uniquement) avec filtrage géographique et par période optionnel
   router.get('/', async (req, res) => {
     try {
@@ -19,33 +19,33 @@ module.exports = function() {
         eventsCollection = getEventsCollection();
       } catch (collectionError) {
         console.error('❌ Erreur: Impossible de récupérer la collection events:', collectionError);
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: 'Erreur de connexion à la base de données',
-          details: collectionError.message 
+          details: collectionError.message
         });
       }
-      
+
       // Vérifier que la collection existe et est accessible
       const collectionExists = await eventsCollection.countDocuments({}).catch(err => {
         console.error('❌ Erreur lors du comptage des documents:', err);
         return -1;
       });
-      
+
       if (collectionExists === -1) {
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: 'Erreur d\'accès à la collection events',
           details: 'Impossible de compter les documents'
         });
       }
-      
+
       // Date d'aujourd'hui pour filtrer les événements passés
       const todayISO = getTodayISO();
-      
+
       // Paramètres de filtrage géographique (optionnels)
       let userLat = req.query.lat ? parseFloat(req.query.lat) : null;
       let userLon = req.query.lon ? parseFloat(req.query.lon) : null;
       const radius = req.query.radius ? parseFloat(req.query.radius) : EVENTS.DEFAULT_RADIUS;
-      
+
       // Validation des coordonnées
       if (userLat !== null && (isNaN(userLat) || userLat < -90 || userLat > 90)) {
         userLat = null;
@@ -53,14 +53,14 @@ module.exports = function() {
       if (userLon !== null && (isNaN(userLon) || userLon < -180 || userLon > 180)) {
         userLon = null;
       }
-      
+
       // Paramètres de filtrage par période (optionnels)
       const startDateParam = req.query.start_date;
       const endDateParam = req.query.end_date;
       const eventTypeParam = req.query.type; // Filtre par type d'événement
       let startDate = null;
       let endDate = null;
-      
+
       if (startDateParam) {
         startDate = new Date(startDateParam);
         startDate.setHours(0, 0, 0, 0);
@@ -69,20 +69,20 @@ module.exports = function() {
         endDate = new Date(endDateParam);
         endDate.setHours(23, 59, 59, 999);
       }
-      
-      
+
+
       // Construction de la requête MongoDB avec filtres de base
       const query = {};
-      
+
       // Filtre de statut : uniquement les événements publiés
       query.statut_validation = { $in: EVENT_STATUS.PUBLISHED };
-      
+
       // Filtre de date : utiliser les paramètres start_date et end_date du frontend
       // CRITIQUE: Exclure les événements passés (date_debut < aujourd'hui)
       // MongoDB peut stocker les dates comme strings (YYYY-MM-DD) ou comme Date objects
       // On utilise une comparaison de strings pour être compatible avec les deux formats
       const dateFilter = {};
-      
+
       // Toujours exclure les événements passés (date_debut >= aujourd'hui)
       // Utiliser la date la plus récente entre startDate et today
       let minDate = todayISO;
@@ -91,45 +91,53 @@ module.exports = function() {
         // Utiliser la date la plus récente (aujourd'hui ou startDate)
         minDate = startDateISO < todayISO ? todayISO : startDateISO;
       }
-      
+
       // MongoDB compare les strings lexicographiquement, ce qui fonctionne pour YYYY-MM-DD
       dateFilter.$gte = minDate;
-      
+
       if (endDate) {
         const endDateISO = endDate.toISOString().split('T')[0];
         // Pour la date de fin, on compare avec <= endDate, donc on utilise $lte
         // Mais on doit s'assurer que les dates avec heure sont incluses
         dateFilter.$lte = endDateISO + 'T23:59:59.999Z';
       }
-      
+
       query.date_debut = dateFilter;
-      
+
       // Filtre de type d'événement si fourni
       if (eventTypeParam && eventTypeParam !== 'tous') {
         query.type = eventTypeParam;
       }
-      
-      
+
+
       // Récupérer les événements depuis MongoDB avec les filtres de base
-      let futureEvents = await eventsCollection.find(query).limit(EVENTS.DEFAULT_LIMIT).toArray();
-      
+      // Si une recherche géographique est active, on augmente la limite pour être sûr de trouver les événements proches
+      // car le filtrage se fait en mémoire (pour gérer les types mixtes string/number des coordonnées)
+      const isGeoSearch = userLat !== null && userLon !== null && !isNaN(userLat) && !isNaN(userLon);
+      const limit = isGeoSearch ? 10000 : EVENTS.DEFAULT_LIMIT;
+
+      let futureEvents = await eventsCollection.find(query)
+        .sort({ date_debut: 1 }) // Trier par date croissante
+        .limit(limit)
+        .toArray();
+
       if (userLat !== null && userLon !== null && !isNaN(userLat) && !isNaN(userLon)) {
         // Calculer les distances pour tous les événements
         futureEvents.forEach(event => {
           // CRITIQUE: Les coordonnées peuvent être stockées comme nombres ou chaînes dans MongoDB
           const lat = typeof event.latitude === 'number' ? event.latitude : parseFloat(event.latitude);
           const lon = typeof event.longitude === 'number' ? event.longitude : parseFloat(event.longitude);
-          
+
           // Validation stricte des coordonnées
           if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0 &&
-              lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+            lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
             event.distance = Math.round(calculateDistance(userLat, userLon, lat, lon) * 10) / 10;
           } else {
             // Événement sans coordonnées valides
             event.distance = null;
           }
         });
-        
+
         // Filtrer par rayon de recherche
         futureEvents = futureEvents.filter(event => {
           if (!event.distance || event.distance === null) {
@@ -138,13 +146,13 @@ module.exports = function() {
           return event.distance <= radius;
         });
       }
-      
+
       // S'assurer que la réponse est bien un tableau, même s'il est vide
       if (!Array.isArray(futureEvents)) {
         console.error('❌ Erreur: futureEvents n\'est pas un tableau:', typeof futureEvents);
         return res.status(500).json({ error: 'Erreur: la réponse n\'est pas un tableau' });
       }
-      
+
       res.json(futureEvents);
     } catch (error) {
       console.error('Erreur lors de la lecture des événements:', error);
@@ -158,7 +166,7 @@ module.exports = function() {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ error: 'Authentification requise. Veuillez vous connecter avec Google.' });
     }
-    
+
     try {
       const {
         role, type, address, city, postalCode, latitude, longitude,
@@ -169,7 +177,7 @@ module.exports = function() {
 
       // Validation des champs obligatoires
       if (!name || !type || !date_debut || !city || !address || !latitude || !longitude) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Champs obligatoires manquants.',
           required: ['name', 'type', 'date_debut', 'city', 'address', 'latitude', 'longitude']
         });
@@ -216,7 +224,7 @@ module.exports = function() {
 
       // Vérifier que l'utilisateur a un pseudo (displayName)
       if (!req.user.displayName) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Pseudo requis. Veuillez définir votre pseudo avant de soumettre un événement.',
           redirectTo: '/set-pseudo'
         });
@@ -232,7 +240,7 @@ module.exports = function() {
       // Vérification anti-doublon avec MongoDB
       const exists = await eventExists(eventToCheck, eventsCollection);
       if (exists) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           error: 'Cet événement semble déjà exister. Si vous souhaitez le mettre à jour, veuillez contacter l\'administration.',
           duplicate: true
         });
