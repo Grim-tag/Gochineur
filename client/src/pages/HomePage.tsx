@@ -128,7 +128,7 @@ export default function HomePage() {
       let targetLat: number | null = null
       let targetLon: number | null = null
       let targetName = ''
-      let targetRadius = EVENTS.DEFAULT_RADIUS
+      let targetRadius: number = EVENTS.DEFAULT_RADIUS
 
       if (departmentCode) {
         const dept = geoData.departments.find(d => d.code === departmentCode)
