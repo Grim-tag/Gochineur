@@ -6,7 +6,7 @@ const geoData = require('../config/geo-data.json');
  * Routes pour les données géographiques
  */
 module.exports = function () {
-    // Route pour obtenir toutes les données géographiques (départements et villes)
+    // GET /api/geo/data - Retourne toutes les données géographiques
     router.get('/data', (req, res) => {
         try {
             res.json({
@@ -15,11 +15,23 @@ module.exports = function () {
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des données géo:', error);
-            res.status(500).json({ error: 'Erreur serveur' });
+            res.status(500).json({ success: false, error: error.message });
         }
     });
 
-    // Route pour obtenir uniquement les villes
+    // GET /api/geo/regions - Retourne uniquement les régions
+    router.get('/regions', (req, res) => {
+        try {
+            res.json({
+                success: true,
+                regions: geoData.regions
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // GET /api/geo/cities - Retourne uniquement les villes
     router.get('/cities', (req, res) => {
         try {
             res.json({
@@ -28,11 +40,11 @@ module.exports = function () {
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des villes:', error);
-            res.status(500).json({ error: 'Erreur serveur' });
+            res.status(500).json({ success: false, error: error.message });
         }
     });
 
-    // Route pour obtenir uniquement les départements
+    // GET /api/geo/departments - Retourne uniquement les départements
     router.get('/departments', (req, res) => {
         try {
             res.json({
@@ -41,7 +53,7 @@ module.exports = function () {
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des départements:', error);
-            res.status(500).json({ error: 'Erreur serveur' });
+            res.status(500).json({ success: false, error: error.message });
         }
     });
 

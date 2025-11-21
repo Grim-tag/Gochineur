@@ -17,6 +17,7 @@ export default function App() {
         <div className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/vide-grenier/region/:regionSlug" element={<HomePage />} />
             <Route path="/vide-grenier/:departmentCode" element={<HomePage />} />
             <Route path="/brocantes/:citySlug" element={<HomePage />} />
             <Route path="/mon-compte" element={<MyAccountPage />} />
