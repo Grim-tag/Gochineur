@@ -355,6 +355,31 @@ export default function AdminPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Actions globales */}
+        <div className="flex justify-end mb-6">
+          <button
+            onClick={async () => {
+              if (!confirm('Êtes-vous sûr de vouloir lancer l\'importation ? Cela peut prendre plusieurs minutes.')) return;
+
+              try {
+                setLoadingData(true);
+                const response = await fetch(`${API.BASE_URL}/api/admin/import-data`, {
+                  method: 'POST',
+                  headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                alert(data.message);
+                loadData();
+              } catch (err: any) {
+                alert('Erreur lors de l\'importation: ' + err.message);
+                setLoadingData(false);
+              }
+            }}
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+          >
+            📥 Lancer l'importation (6 mois)
+          </button>
+        </div>
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-md mb-6">
           <div className="flex border-b">
