@@ -115,18 +115,34 @@ module.exports = function () {
                 return res.status(400).json({ success: false, error: 'City must be in France' });
             }
 
-            // Trouver le département le plus proche
+            // Trouver le département via le code postal (plus précis que la proximité)
             let closestDept = null;
-            let minDistance = Infinity;
-            geoData.departments.forEach(dept => {
-                const distance = Math.sqrt(
-                    Math.pow(dept.lat - lat, 2) + Math.pow(dept.lon - lon, 2)
-                );
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestDept = dept.code;
+            const postalCode = geoCheck.data?.address?.postcode;
+
+            if (postalCode) {
+                // Extraire les 2 premiers chiffres du code postal
+                const deptCode = postalCode.replace(/\s/g, '').substring(0, 2);
+                const dept = geoData.departments.find(d => d.code === deptCode);
+                if (dept) {
+                    closestDept = deptCode;
+                    console.log(`Département trouvé via code postal ${postalCode}: ${deptCode}`);
                 }
-            });
+            }
+
+            // Fallback: proximité géographique si pas de code postal
+            if (!closestDept) {
+                console.log('Code postal non disponible, utilisation de la proximité géographique');
+                let minDistance = Infinity;
+                geoData.departments.forEach(dept => {
+                    const distance = Math.sqrt(
+                        Math.pow(dept.lat - lat, 2) + Math.pow(dept.lon - lon, 2)
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestDept = dept.code;
+                    }
+                });
+            }
 
             if (!closestDept) {
                 return res.status(400).json({ success: false, error: 'Department not found' });

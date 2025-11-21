@@ -42,6 +42,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
   }, [])
 
   const [geocoding, setGeocoding] = useState(false)
+  const [geolocating, setGeolocating] = useState(false)
 
   const handleSearch = async () => {
     // Si le champ est vide, on propose de réinitialiser (retour géolocalisation)
@@ -131,6 +132,83 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
     }
   }
 
+  const handleGeolocate = async () => {
+    setGeolocating(true)
+
+    if (!navigator.geolocation) {
+      alert('La géolocalisation n\'est pas supportée par votre navigateur')
+      setGeolocating(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords
+
+          // Reverse geocode pour trouver la ville
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            { headers: { 'User-Agent': 'GoChineur/1.0' } }
+          )
+          const data = await response.json()
+
+          const cityName = data.address?.city || data.address?.town || data.address?.village || 'Votre position'
+
+          // Essayer de trouver la ville dans geoData
+          if (geoData) {
+            const citySlug = cityName.toLowerCase()
+              .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '')
+
+            let cityData = geoData.cities?.find((c: any) =>
+              c.name.toLowerCase() === cityName.toLowerCase() || c.slug === citySlug
+            )
+
+            // Si pas trouvée, l'ajouter via l'API
+            if (!cityData) {
+              const addCityRes = await fetch(`${window.location.origin}/api/geo/add-city`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: cityName, lat: latitude, lon: longitude })
+              })
+              const addCityData = await addCityRes.json()
+              if (addCityData.success) {
+                cityData = addCityData.city
+              }
+            }
+
+            if (cityData) {
+              const dept = geoData.departments?.find((d: any) => d.code === cityData.department)
+              if (dept) {
+                const deptSlug = dept.name.toLowerCase()
+                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-z0-9-]/g, '')
+                navigate(`/brocantes/${deptSlug}/${cityData.slug}`)
+                setGeolocating(false)
+                return
+              }
+            }
+          }
+
+          // Fallback: appeler onSearch avec les coordonnées
+          onSearch('', radius, eventType, { latitude, longitude, city: cityName })
+          setGeolocating(false)
+        } catch (error) {
+          console.error('Erreur reverse geocoding:', error)
+          setGeolocating(false)
+        }
+      },
+      (error) => {
+        console.error('Erreur géolocalisation:', error)
+        alert('Impossible d\'obtenir votre position')
+        setGeolocating(false)
+      }
+    )
+  }
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setSearchTerm('')
@@ -214,18 +292,27 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
 
         {/* Barre de recherche */}
         <div className="flex gap-2 mb-4">
+          <button
+            onClick={handleGeolocate}
+            disabled={geolocating}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            title="Me géolocaliser"
+          >
+            {geolocating ? '📍...' : '📍 Autour de moi'}
+          </button>
           <input
             type="text"
-            placeholder="Rechercher par nom, ville ou code postal..."
+            placeholder="Rechercher une ville, code postal..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={geocoding}
           />
           <button
             onClick={handleSearch}
             disabled={geocoding}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {geocoding ? 'Recherche...' : 'Rechercher'}
           </button>
