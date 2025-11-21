@@ -84,7 +84,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
           console.log('City not found in geo-data:', searchTerm, 'adding to database...')
 
           try {
-            const addCityRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/geo/add-city`, {
+            const addCityRes = await fetch(`${import.meta.env.VITE_API_URL || window.location.origin}/api/geo/add-city`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
