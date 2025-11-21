@@ -7,51 +7,51 @@ function normalizeEventType(type) {
   if (!type || typeof type !== 'string') {
     return 'Autre';
   }
-  
+
   // Convertir en minuscules et supprimer les espaces multiples
   const normalized = type.toLowerCase().trim().replace(/\s+/g, ' ');
-  
+
   // Variations de "Vide-Grenier"
   if (normalized.includes('vide-grenier') || normalized.includes('vide grenier') || normalized === 'videgrenier') {
     return 'Vide-Grenier';
   }
-  
+
   // Variations de "Brocante"
   if (normalized.includes('brocante')) {
     return 'Brocante';
   }
-  
+
   // Variations de "Puces et Antiquités"
-  if (normalized.includes('puces') || normalized.includes('antiquités') || normalized.includes('antiquites') || 
-      normalized.includes('antiquaire') || normalized.includes('marche aux puces') || normalized.includes('marché aux puces')) {
+  if (normalized.includes('puces') || normalized.includes('antiquités') || normalized.includes('antiquites') ||
+    normalized.includes('antiquaire') || normalized.includes('marche aux puces') || normalized.includes('marché aux puces')) {
     return 'Puces et Antiquités';
   }
-  
+
   // Variations de "Bourse"
   if (normalized.includes('bourse')) {
     return 'Bourse';
   }
-  
+
   // Variations de "Vide Maison"
   if (normalized.includes('vide maison') || normalized.includes('vide-maison')) {
     return 'Vide Maison';
   }
-  
+
   // Variations de "Troc"
   if (normalized.includes('troc')) {
     return 'Troc';
   }
-  
+
   // Variations de "Braderie" (assimilée à Brocante)
   if (normalized.includes('braderie')) {
     return 'Brocante';
   }
-  
+
   // Variations de "Antiquaire" (assimilée à Puces et Antiquités)
   if (normalized.includes('antiquaire')) {
     return 'Puces et Antiquités';
   }
-  
+
   // Par défaut, retourner "Autre" (mais ces événements seront rejetés par le filtre strict)
   return 'Autre';
 }
@@ -62,12 +62,12 @@ function normalizeEventType(type) {
 function transformDataTourismeEventFromFile(apidaeEvent) {
   // Extraction de l'identifiant Apidae
   const idApidae = apidaeEvent['@id'] || `DT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   // Nom : rdfs:label.fr[0]
-  const name = apidaeEvent['rdfs:label']?.['fr']?.[0] || 
-               apidaeEvent['rdfs:label']?.['fr'] || 
-               'Événement sans nom';
-  
+  const name = apidaeEvent['rdfs:label']?.['fr']?.[0] ||
+    apidaeEvent['rdfs:label']?.['fr'] ||
+    'Événement sans nom';
+
   // Description : hasDescription[0].shortDescription.fr[0] ou rdfs:comment.fr[0]
   let description = '';
   if (apidaeEvent['hasDescription']?.[0]?.['shortDescription']?.['fr']?.[0]) {
@@ -75,15 +75,15 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
   } else if (apidaeEvent['rdfs:comment']?.['fr']?.[0]) {
     description = apidaeEvent['rdfs:comment']['fr'][0];
   }
-  
+
   // Type d'événement - Détection depuis le nom et la description
   let type = 'autre';
   const searchText = `${name} ${description}`.toLowerCase();
-  
+
   // Vérification des types dans @type
   const eventTypes = apidaeEvent['@type'] || [];
   const typeStr = Array.isArray(eventTypes) ? eventTypes.join(' ').toLowerCase() : String(eventTypes).toLowerCase();
-  
+
   // Détection du type (avec ajout de troc, braderie, antiquaire)
   if (searchText.includes('vide-grenier') || searchText.includes('vide grenier') || typeStr.includes('vide-grenier')) {
     type = 'Vide-Grenier';
@@ -97,16 +97,16 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
     type = 'Vide Maison';
   } else if (searchText.includes('troc') || typeStr.includes('troc')) {
     type = 'Troc';
-  } else if (searchText.includes('puces') || searchText.includes('antiquités') || searchText.includes('antiquites') || 
-             searchText.includes('antiquaire') || typeStr.includes('puces') || typeStr.includes('antiquités') || typeStr.includes('antiquaire')) {
+  } else if (searchText.includes('puces') || searchText.includes('antiquités') || searchText.includes('antiquites') ||
+    searchText.includes('antiquaire') || typeStr.includes('puces') || typeStr.includes('antiquités') || typeStr.includes('antiquaire')) {
     type = 'Puces et Antiquités';
   } else if (searchText.includes('marché aux puces') || searchText.includes('marche aux puces')) {
     type = 'Puces et Antiquités';
   }
-  
+
   // Normaliser le type détecté
   type = normalizeEventType(type);
-  
+
   // Validation ULTRA-STRICTE : ignorer TOUS les événements qui ne sont PAS des événements de "chine"
   // Liste exhaustive des mots-clés pertinents (selon spécifications)
   const chineKeywords = [
@@ -116,31 +116,38 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
     'puces', 'antiquités', 'antiquites', 'antiquaire', 'marché aux puces', 'marche aux puces',
     'bourse',
     'vide-maison', 'vide maison', 'videmaison',
-    'braderie'
+    'braderie',
+    'foire à tout', 'foire a tout',
+    'réderie', 'rederie',
+    'bric-à-brac', 'bric a brac', 'bricabrac',
+    'déballage', 'deballage',
+    'vide-dressing', 'vide dressing',
+    'vide-poussette', 'vide poussette'
   ];
-  
-  // Vérifier si l'événement contient au moins un mot-clé pertinent dans le titre ou la description
-  const hasChineKeyword = chineKeywords.some(keyword => searchText.includes(keyword));
-  
+
+  // Vérifier si l'événement contient au moins un mot-clé pertinent dans le titre, la description OU le type
+  const fullSearchText = `${searchText} ${typeStr}`;
+  const hasChineKeyword = chineKeywords.some(keyword => fullSearchText.includes(keyword));
+
   // REJETER TOUS les événements qui n'ont pas au moins un mot-clé pertinent
   // Peu importe le type détecté, si aucun mot-clé pertinent n'est trouvé, rejeter
   if (!hasChineKeyword) {
     return null; // Événement non pertinent, rejeter immédiatement
   }
-  
+
   // Si le type est "Autre" mais qu'un mot-clé pertinent existe, le garder mais normaliser
   // (la normalisation se fera plus tard)
-  
+
   // Coordonnées GPS : isLocatedAt[0].schema:geo.schema:latitude et schema:longitude
   // CRITIQUE: Convertir explicitement en nombres et valider
   let latitude = null;
   let longitude = null;
-  
+
   if (apidaeEvent['isLocatedAt']?.[0]?.['schema:geo']) {
     const geo = apidaeEvent['isLocatedAt'][0]['schema:geo'];
     const latValue = parseFloat(geo['schema:latitude']);
     const lonValue = parseFloat(geo['schema:longitude']);
-    
+
     // Validation stricte : doit être un nombre valide dans les plages acceptables
     if (!isNaN(latValue) && latValue >= -90 && latValue <= 90) {
       latitude = latValue;
@@ -149,28 +156,28 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
       longitude = lonValue;
     }
   }
-  
+
   // Adresse : isLocatedAt[0].schema:address[0]
   let city = '';
   let postalCode = '';
   let address = '';
-  
+
   if (apidaeEvent['isLocatedAt']?.[0]?.['schema:address']?.[0]) {
     const addr = apidaeEvent['isLocatedAt'][0]['schema:address'][0];
     city = addr['schema:addressLocality'] || '';
     postalCode = addr['schema:postalCode'] || '';
-    const streetAddress = Array.isArray(addr['schema:streetAddress']) 
-      ? addr['schema:streetAddress'][0] 
+    const streetAddress = Array.isArray(addr['schema:streetAddress'])
+      ? addr['schema:streetAddress'][0]
       : (addr['schema:streetAddress'] || '');
     address = streetAddress ? `${streetAddress}, ${postalCode} ${city}`.trim() : `${postalCode} ${city}`.trim();
   }
-  
+
   // Dates : schema:startDate et schema:endDate (tableaux) ou takesPlaceAt[].startDate/endDate
   let date_debut = null;
   let date_fin = null;
   let date = null;
   let startTime = null;
-  
+
   // Priorité : takesPlaceAt pour les dates avec heures
   if (apidaeEvent['takesPlaceAt'] && Array.isArray(apidaeEvent['takesPlaceAt']) && apidaeEvent['takesPlaceAt'].length > 0) {
     const firstPeriod = apidaeEvent['takesPlaceAt'][0];
@@ -186,18 +193,18 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
     date_debut = apidaeEvent['schema:startDate'][0];
     date = date_debut;
   }
-  
+
   if (apidaeEvent['schema:endDate'] && Array.isArray(apidaeEvent['schema:endDate']) && apidaeEvent['schema:endDate'].length > 0) {
     date_fin = apidaeEvent['schema:endDate'][0];
   } else if (date_debut && !date_fin) {
     date_fin = date_debut;
   }
-  
+
   // Correctif UTC : Si l'heure de début est minuit UTC (T00:00:00Z) ou manquante, mettre 6h00 locale
   if (date_debut) {
     try {
       let dateObj = new Date(date_debut + 'T00:00:00Z');
-      
+
       if (startTime) {
         const [hours, minutes, seconds] = startTime.split(':');
         if (parseInt(hours) === 0 && parseInt(minutes) === 0 && (!seconds || parseInt(seconds) === 0)) {
@@ -208,32 +215,32 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
       } else {
         dateObj.setHours(6, 0, 0, 0);
       }
-      
+
       date_debut = dateObj.toISOString();
       date = date_debut.split('T')[0];
     } catch (e) {
       console.warn(`Erreur de parsing de date pour l'événement ${idApidae}: ${date_debut}`, e.message);
     }
   }
-  
+
   // Date de fin avec heure de fin si disponible
   if (date_fin) {
     try {
       let dateObj = new Date(date_fin);
-      
+
       if (apidaeEvent['takesPlaceAt']?.[0]?.['endTime']) {
         const [hours, minutes, seconds] = apidaeEvent['takesPlaceAt'][0]['endTime'].split(':');
         dateObj.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, parseInt(seconds) || 59, 999);
       } else {
         dateObj.setHours(23, 59, 59, 999);
       }
-      
+
       date_fin = dateObj.toISOString();
     } catch (e) {
       console.warn(`Erreur de parsing de date de fin pour l'événement ${idApidae}: ${date_fin}`);
     }
   }
-  
+
   // Validation des données essentielles
   if (!latitude || !longitude) {
     return null;
@@ -244,11 +251,11 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
   if (!name || name === 'Événement sans nom') {
     return null;
   }
-  
+
   // CRITIQUE: S'assurer que latitude et longitude sont des nombres (pas des chaînes)
   const latNumber = typeof latitude === 'number' ? latitude : parseFloat(latitude);
   const lonNumber = typeof longitude === 'number' ? longitude : parseFloat(longitude);
-  
+
   return {
     id: idApidae,
     id_source: idApidae,
@@ -295,13 +302,13 @@ function transformOEDEvent(oedFeature) {
     // Extraction des propriétés OED
     const properties = oedFeature.properties || {};
     const geometry = oedFeature.geometry || {};
-    
+
     // Nom de l'événement
     const name = properties.name || properties.title || properties.what || 'Événement sans nom';
-    
+
     // Description
     const description = properties.description || properties.text || '';
-    
+
     // Coordonnées GPS depuis geometry.coordinates (GeoJSON: [longitude, latitude])
     // CRITIQUE: Convertir explicitement en nombres et valider
     let latitude = null;
@@ -309,7 +316,7 @@ function transformOEDEvent(oedFeature) {
     if (geometry.type === 'Point' && Array.isArray(geometry.coordinates) && geometry.coordinates.length >= 2) {
       const lonValue = parseFloat(geometry.coordinates[0]);
       const latValue = parseFloat(geometry.coordinates[1]);
-      
+
       // Validation stricte : doit être un nombre valide dans les plages acceptables
       if (!isNaN(latValue) && latValue >= -90 && latValue <= 90) {
         latitude = latValue;
@@ -318,12 +325,12 @@ function transformOEDEvent(oedFeature) {
         longitude = lonValue;
       }
     }
-    
+
     // Dates
     let date_debut = null;
     let date_fin = null;
     let date = null;
-    
+
     if (properties.when) {
       // Format OED: "when" peut être une date ISO ou un objet avec start/stop
       if (typeof properties.when === 'string') {
@@ -333,7 +340,7 @@ function transformOEDEvent(oedFeature) {
         date_debut = properties.when.start;
         date = date_debut.split('T')[0];
       }
-      
+
       if (properties.when.stop || properties.when.end) {
         date_fin = properties.when.stop || properties.when.end;
       } else if (date_debut) {
@@ -344,12 +351,12 @@ function transformOEDEvent(oedFeature) {
       date = date_debut.split('T')[0];
       date_fin = properties.stop || properties.end || date_debut;
     }
-    
+
     // Adresse et localisation
     let city = '';
     let postalCode = '';
     let address = '';
-    
+
     if (properties.address) {
       if (typeof properties.address === 'string') {
         address = properties.address;
@@ -360,7 +367,7 @@ function transformOEDEvent(oedFeature) {
         address = street ? `${street}, ${postalCode} ${city}`.trim() : `${postalCode} ${city}`.trim();
       }
     }
-    
+
     // Type d'événement depuis "what" (avec ajout de troc, braderie, antiquaire)
     let type = 'Autre';
     if (properties.what) {
@@ -383,10 +390,10 @@ function transformOEDEvent(oedFeature) {
         type = 'Puces et Antiquités';
       }
     }
-    
+
     // Normaliser le type
     type = normalizeEventType(type);
-    
+
     // Validation ULTRA-STRICTE : ignorer TOUS les événements qui ne sont PAS des événements de "chine"
     const searchText = `${name} ${description} ${properties.what || ''}`.toLowerCase();
     // Liste exhaustive des mots-clés pertinents (selon spécifications)
@@ -399,16 +406,16 @@ function transformOEDEvent(oedFeature) {
       'vide-maison', 'vide maison', 'videmaison',
       'braderie'
     ];
-    
+
     // Vérifier si l'événement contient au moins un mot-clé pertinent dans le titre ou la description
     const hasChineKeyword = chineKeywords.some(keyword => searchText.includes(keyword));
-    
+
     // REJETER TOUS les événements qui n'ont pas au moins un mot-clé pertinent
     // Peu importe le type détecté, si aucun mot-clé pertinent n'est trouvé, rejeter
     if (!hasChineKeyword) {
       return null; // Événement non pertinent, rejeter immédiatement
     }
-    
+
     // Validation des données essentielles
     if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
       return null;
@@ -419,14 +426,14 @@ function transformOEDEvent(oedFeature) {
     if (!name || name === 'Événement sans nom') {
       return null;
     }
-    
+
     // Génération d'un ID unique pour l'OED
     const oedId = oedFeature.id || `OED_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
+
     // CRITIQUE: S'assurer que latitude et longitude sont des nombres (pas des chaînes)
     const latNumber = typeof latitude === 'number' ? latitude : parseFloat(latitude);
     const lonNumber = typeof longitude === 'number' ? longitude : parseFloat(longitude);
-    
+
     return {
       id: oedId,
       id_source: oedId,

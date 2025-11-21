@@ -18,20 +18,23 @@ async function fetchOEDEvents(startDate, endDate, limit = 10000) {
 
     // Paramètre what : tous les mots-clés liés aux événements de "chine"
     // Paramètre what : tous les mots-clés liés aux événements de "chine"
-    const keywords = [
-      'brocante',
-      'puces',
-      'vide-greniers',
-      'vide-grenier',
-      'vide-maison',
-      'bourse',
-      'braderie',
-      'marché aux puces',
-      'troc',
-      'antiquités',
-      'antiquaire'
-    ];
-    url.searchParams.set('what', keywords.join('|'));
+    // NOTE: On ne filtre plus par 'what' car l'API OED utilise des catégories génériques (ex: traffic.obstacle)
+    // et le paramètre 'q' (recherche texte) semble ignoré.
+    // Stratégie : On récupère TOUT (dans la limite) et on filtre localement via transformOEDEvent.
+    // const keywords = [
+    //   'brocante',
+    //   'puces',
+    //   'vide-greniers',
+    //   'vide-grenier',
+    //   'vide-maison',
+    //   'bourse',
+    //   'braderie',
+    //   'marché aux puces',
+    //   'troc',
+    //   'antiquités',
+    //   'antiquaire'
+    // ];
+    // url.searchParams.set('what', keywords.join('|'));
 
     // PAS de paramètre near : récupération de tous les événements de France entière
 
