@@ -66,7 +66,7 @@ export default function SearchBar({ onSearch, onRadiusChange }: SearchBarProps) 
       onSearch(searchTerm, radius, eventType)
     }
   }
-  
+
   // Appeler la recherche automatiquement quand le type change
   const handleTypeChange = (newType: string) => {
     setEventType(newType)
@@ -76,19 +76,19 @@ export default function SearchBar({ onSearch, onRadiusChange }: SearchBarProps) 
   // Gestion du clic sur le bouton "Ajouter un événement"
   const handleAddEventClick = (e: React.MouseEvent) => {
     e.preventDefault()
-    
+
     if (!user) {
       // Utilisateur non connecté : rediriger vers la connexion Google
       redirectToGoogleAuth()
       return
     }
-    
+
     if (!user.displayName) {
       // Utilisateur connecté mais sans pseudo : rediriger vers la page de pseudo
       navigate('/set-pseudo?returnTo=/soumettre')
       return
     }
-    
+
     // Utilisateur connecté avec pseudo : rediriger vers le formulaire
     navigate('/soumettre')
   }
@@ -97,29 +97,45 @@ export default function SearchBar({ onSearch, onRadiusChange }: SearchBarProps) 
     <div className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         {/* Header avec logo et liens */}
-        <div className="flex justify-between items-center mb-4">
-          <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-            🛍️ GoChineur
-          </Link>
-          <div className="flex gap-2 items-center">
+        {/* Header avec logo et liens */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+          <div className="w-full md:w-1/3 flex justify-center md:justify-start">
+            <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+              🛍️ GoChineur
+            </Link>
+          </div>
+
+          <div className="w-full md:w-1/3 flex justify-center">
             <button
               onClick={handleAddEventClick}
               disabled={authLoading}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-105 duration-200 font-semibold"
             >
               <span>➕ Ajouter un événement</span>
             </button>
-            <Link
-              to="/ma-liste"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <span>Voir mon circuit</span>
-              {circuitCount > 0 && (
-                <span className="bg-white text-blue-600 rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
-                  {circuitCount}
-                </span>
-              )}
-            </Link>
+          </div>
+
+          <div className="w-full md:w-1/3 flex justify-center md:justify-end gap-2">
+            {!user ? (
+              <button
+                onClick={redirectToGoogleAuth}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <span>Se connecter</span>
+              </button>
+            ) : (
+              <Link
+                to="/mon-compte"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <span>👤 Mon compte</span>
+                {circuitCount > 0 && (
+                  <span className="bg-white text-blue-600 rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
+                    {circuitCount}
+                  </span>
+                )}
+              </Link>
+            )}
           </div>
         </div>
 

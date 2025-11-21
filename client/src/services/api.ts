@@ -146,4 +146,42 @@ export async function updateDisplayName(displayName: string) {
   return response.json();
 }
 
+/**
+ * Récupère les événements créés par l'utilisateur connecté
+ */
+export async function fetchMyEvents(): Promise<Event[]> {
+  const endpoint = `${API.ENDPOINTS.EVENTS}/my-events`;
+  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(url, {
+    headers: getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+  }
+
+  const data: Event[] = await response.json();
+  return data;
+}
+
+/**
+ * Supprime le compte de l'utilisateur
+ */
+export async function deleteAccount(): Promise<void> {
+  const endpoint = `${API.ENDPOINTS.USER}/me`;
+  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(url, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Erreur HTTP ${response.status}`);
+  }
+}
+
 

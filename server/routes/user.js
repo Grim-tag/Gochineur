@@ -108,5 +108,28 @@ module.exports = function () {
         }
     });
 
+    // Route pour supprimer son compte
+    router.delete('/me', authenticateJWT, async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const db = getDB();
+
+            // Supprimer l'utilisateur
+            const result = await db.collection('users').deleteOne({ id: userId });
+
+            if (result.deletedCount === 0) {
+                return res.status(404).json({ error: 'Utilisateur non trouvé' });
+            }
+
+            // Note: On ne supprime PAS les événements créés par l'utilisateur, comme demandé.
+            // Ils restent visibles publiquement.
+
+            res.json({ success: true, message: 'Compte supprimé avec succès' });
+        } catch (error) {
+            console.error('Erreur lors de la suppression du compte:', error);
+            res.status(500).json({ error: 'Erreur serveur lors de la suppression du compte' });
+        }
+    });
+
     return router;
 };

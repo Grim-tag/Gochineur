@@ -5,6 +5,7 @@ const { calculateDistance, normalizeEventType } = require('../utils/dataTransfor
 const { generateEventHash, eventExists } = require('../utils/eventHash');
 const { getTodayISO, formatDateISO } = require('../utils/dateUtils');
 const { EVENTS, EVENT_STATUS, GEOLOCATION } = require('../config/constants');
+const { authenticateJWT } = require('../middleware/auth');
 
 /**
  * Routes publiques pour les événements
@@ -156,6 +157,23 @@ module.exports = function () {
       res.json(futureEvents);
     } catch (error) {
       console.error('Erreur lors de la lecture des événements:', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+    }
+  });
+
+  // Route pour récupérer les événements de l'utilisateur connecté
+  router.get('/my-events', authenticateJWT, async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+      const userId = req.user.id;
+
+      const myEvents = await eventsCollection.find({ user_id: userId })
+        .sort({ date_creation: -1 }) // Plus récents d'abord
+        .toArray();
+
+      res.json(myEvents);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des événements utilisateur:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });

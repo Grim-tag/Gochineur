@@ -3,6 +3,7 @@
  */
 
 import { getCurrentUser } from '../services/api'
+import { removeToken } from '../services/auth'
 import { API } from '../config/constants'
 
 export interface User {
@@ -39,11 +40,18 @@ export async function checkAuth(): Promise<AuthStatus> {
  * Redirige vers la connexion Google
  */
 export function redirectToGoogleAuth() {
-  const authUrl = API.BASE_URL 
+  const authUrl = API.BASE_URL
     ? `${API.BASE_URL}${API.ENDPOINTS.AUTH}/google`
     : `${API.ENDPOINTS.AUTH}/google`
-  
+
   window.location.href = authUrl
+}
+
+/**
+ * Déconnecte l'utilisateur
+ */
+export function logout() {
+  removeToken()
 }
 
 
