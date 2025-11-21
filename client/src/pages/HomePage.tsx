@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
@@ -22,7 +22,6 @@ interface GeoData {
 
 export default function HomePage() {
   const { departmentCode, citySlug } = useParams<{ departmentCode?: string; citySlug?: string }>()
-  const location = useLocation()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
