@@ -118,17 +118,16 @@ export default function HomePage() {
       let targetRadius: number = EVENTS.DEFAULT_RADIUS
       let deptCodeStr = ''
 
-      if (regionSlug) {
-        const region = geoData.regions.find(r => r.slug === regionSlug)
-        if (region) {
-          targetLat = region.lat
-          targetLon = region.lon
-          targetName = region.name
-          targetRadius = 100 // Rayon très large pour une région
-          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, false)
-
+      if (citySlug) {
+        const cityData = geoData.cities.find(c => c.slug === citySlug)
+        if (cityData) {
+          targetLat = cityData.lat
+          targetLon = cityData.lon
+          targetName = cityData.name
+          targetRadius = 30 // Rayon standard pour une ville
+          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
           const metaDesc = document.querySelector('meta[name="description"]')
-          if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
+          if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
         }
       } else if (departmentCode || departmentSlug) {
         let dept = null
@@ -150,16 +149,17 @@ export default function HomePage() {
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Trouvez tous les vide-greniers, brocantes et bourses aux collections dans le département ${dept.name} (${dept.code}). Agenda complet et à jour.`)
         }
-      } else if (citySlug) {
-        const cityData = geoData.cities.find(c => c.slug === citySlug)
-        if (cityData) {
-          targetLat = cityData.lat
-          targetLon = cityData.lon
-          targetName = cityData.name
-          targetRadius = 30 // Rayon standard pour une ville
-          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
+      } else if (regionSlug) {
+        const region = geoData.regions.find(r => r.slug === regionSlug)
+        if (region) {
+          targetLat = region.lat
+          targetLon = region.lon
+          targetName = region.name
+          targetRadius = 100 // Rayon très large pour une région
+          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, false)
+
           const metaDesc = document.querySelector('meta[name="description"]')
-          if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
+          if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
         }
       }
 
