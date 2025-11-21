@@ -102,8 +102,16 @@ app.use('/api/user', userRoutes());
 // Routes API publiques
 app.use('/api/events', eventsRoutes());
 
+// Routes de données géographiques
+const geoRoutes = require('./routes/geo');
+app.use('/api/geo', geoRoutes());
+
 // Routes d'administration
 app.use('/api/admin', adminRoutes());
+
+// Routes Sitemap
+const sitemapRoutes = require('./routes/sitemap');
+app.use('/', sitemapRoutes());
 
 // Route de santé
 app.get('/api/health', (req, res) => {

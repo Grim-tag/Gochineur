@@ -1,0 +1,1146 @@
+{
+    "departments": [
+        {
+            "code": "01",
+            "name": "Ain",
+            "lat": 46.1,
+            "lon": 5.2
+        },
+        {
+            "code": "02",
+            "name": "Aisne",
+            "lat": 49.6,
+            "lon": 3.6
+        },
+        {
+            "code": "03",
+            "name": "Allier",
+            "lat": 46.4,
+            "lon": 3.2
+        },
+        {
+            "code": "04",
+            "name": "Alpes-de-Haute-Provence",
+            "lat": 44.1,
+            "lon": 6.2
+        },
+        {
+            "code": "05",
+            "name": "Hautes-Alpes",
+            "lat": 44.7,
+            "lon": 6.3
+        },
+        {
+            "code": "06",
+            "name": "Alpes-Maritimes",
+            "lat": 43.9,
+            "lon": 7.1
+        },
+        {
+            "code": "07",
+            "name": "Ardèche",
+            "lat": 44.7,
+            "lon": 4.4
+        },
+        {
+            "code": "08",
+            "name": "Ardennes",
+            "lat": 49.6,
+            "lon": 4.6
+        },
+        {
+            "code": "09",
+            "name": "Ariège",
+            "lat": 42.9,
+            "lon": 1.5
+        },
+        {
+            "code": "10",
+            "name": "Aube",
+            "lat": 48.3,
+            "lon": 4.1
+        },
+        {
+            "code": "11",
+            "name": "Aude",
+            "lat": 43.1,
+            "lon": 2.5
+        },
+        {
+            "code": "12",
+            "name": "Aveyron",
+            "lat": 44.3,
+            "lon": 2.7
+        },
+        {
+            "code": "13",
+            "name": "Bouches-du-Rhône",
+            "lat": 43.5,
+            "lon": 5.1
+        },
+        {
+            "code": "14",
+            "name": "Calvados",
+            "lat": 49.0,
+            "lon": -0.3
+        },
+        {
+            "code": "15",
+            "name": "Cantal",
+            "lat": 45.1,
+            "lon": 2.7
+        },
+        {
+            "code": "16",
+            "name": "Charente",
+            "lat": 45.7,
+            "lon": 0.2
+        },
+        {
+            "code": "17",
+            "name": "Charente-Maritime",
+            "lat": 45.8,
+            "lon": -0.7
+        },
+        {
+            "code": "18",
+            "name": "Cher",
+            "lat": 47.0,
+            "lon": 2.4
+        },
+        {
+            "code": "19",
+            "name": "Corrèze",
+            "lat": 45.3,
+            "lon": 1.8
+        },
+        {
+            "code": "21",
+            "name": "Côte-d'Or",
+            "lat": 47.4,
+            "lon": 4.8
+        },
+        {
+            "code": "22",
+            "name": "Côtes-d'Armor",
+            "lat": 48.4,
+            "lon": -2.8
+        },
+        {
+            "code": "23",
+            "name": "Creuse",
+            "lat": 46.1,
+            "lon": 2.0
+        },
+        {
+            "code": "24",
+            "name": "Dordogne",
+            "lat": 45.1,
+            "lon": 0.7
+        },
+        {
+            "code": "25",
+            "name": "Doubs",
+            "lat": 47.1,
+            "lon": 6.3
+        },
+        {
+            "code": "26",
+            "name": "Drôme",
+            "lat": 44.7,
+            "lon": 5.1
+        },
+        {
+            "code": "27",
+            "name": "Eure",
+            "lat": 49.1,
+            "lon": 1.0
+        },
+        {
+            "code": "28",
+            "name": "Eure-et-Loir",
+            "lat": 48.4,
+            "lon": 1.5
+        },
+        {
+            "code": "29",
+            "name": "Finistère",
+            "lat": 48.2,
+            "lon": -4.0
+        },
+        {
+            "code": "2A",
+            "name": "Corse-du-Sud",
+            "lat": 41.8,
+            "lon": 9.0
+        },
+        {
+            "code": "2B",
+            "name": "Haute-Corse",
+            "lat": 42.4,
+            "lon": 9.2
+        },
+        {
+            "code": "30",
+            "name": "Gard",
+            "lat": 44.0,
+            "lon": 4.2
+        },
+        {
+            "code": "31",
+            "name": "Haute-Garonne",
+            "lat": 43.4,
+            "lon": 1.3
+        },
+        {
+            "code": "32",
+            "name": "Gers",
+            "lat": 43.6,
+            "lon": 0.6
+        },
+        {
+            "code": "33",
+            "name": "Gironde",
+            "lat": 44.8,
+            "lon": -0.6
+        },
+        {
+            "code": "34",
+            "name": "Hérault",
+            "lat": 43.6,
+            "lon": 3.4
+        },
+        {
+            "code": "35",
+            "name": "Ille-et-Vilaine",
+            "lat": 48.2,
+            "lon": -1.6
+        },
+        {
+            "code": "36",
+            "name": "Indre",
+            "lat": 46.8,
+            "lon": 1.6
+        },
+        {
+            "code": "37",
+            "name": "Indre-et-Loire",
+            "lat": 47.3,
+            "lon": 0.7
+        },
+        {
+            "code": "38",
+            "name": "Isère",
+            "lat": 45.4,
+            "lon": 5.4
+        },
+        {
+            "code": "39",
+            "name": "Jura",
+            "lat": 46.7,
+            "lon": 5.7
+        },
+        {
+            "code": "40",
+            "name": "Landes",
+            "lat": 43.9,
+            "lon": -0.8
+        },
+        {
+            "code": "41",
+            "name": "Loir-et-Cher",
+            "lat": 47.6,
+            "lon": 1.4
+        },
+        {
+            "code": "42",
+            "name": "Loire",
+            "lat": 45.7,
+            "lon": 4.2
+        },
+        {
+            "code": "43",
+            "name": "Haute-Loire",
+            "lat": 45.1,
+            "lon": 3.8
+        },
+        {
+            "code": "44",
+            "name": "Loire-Atlantique",
+            "lat": 47.4,
+            "lon": -1.7
+        },
+        {
+            "code": "45",
+            "name": "Loiret",
+            "lat": 47.9,
+            "lon": 2.2
+        },
+        {
+            "code": "46",
+            "name": "Lot",
+            "lat": 44.6,
+            "lon": 1.6
+        },
+        {
+            "code": "47",
+            "name": "Lot-et-Garonne",
+            "lat": 44.4,
+            "lon": 0.4
+        },
+        {
+            "code": "48",
+            "name": "Lozère",
+            "lat": 44.5,
+            "lon": 3.5
+        },
+        {
+            "code": "49",
+            "name": "Maine-et-Loire",
+            "lat": 47.4,
+            "lon": -0.5
+        },
+        {
+            "code": "50",
+            "name": "Manche",
+            "lat": 49.0,
+            "lon": -1.3
+        },
+        {
+            "code": "51",
+            "name": "Marne",
+            "lat": 49.0,
+            "lon": 4.2
+        },
+        {
+            "code": "52",
+            "name": "Haute-Marne",
+            "lat": 48.1,
+            "lon": 5.2
+        },
+        {
+            "code": "53",
+            "name": "Mayenne",
+            "lat": 48.1,
+            "lon": -0.7
+        },
+        {
+            "code": "54",
+            "name": "Meurthe-et-Moselle",
+            "lat": 48.7,
+            "lon": 6.1
+        },
+        {
+            "code": "55",
+            "name": "Meuse",
+            "lat": 49.0,
+            "lon": 5.4
+        },
+        {
+            "code": "56",
+            "name": "Morbihan",
+            "lat": 47.8,
+            "lon": -2.8
+        },
+        {
+            "code": "57",
+            "name": "Moselle",
+            "lat": 49.0,
+            "lon": 6.5
+        },
+        {
+            "code": "58",
+            "name": "Nièvre",
+            "lat": 47.1,
+            "lon": 3.5
+        },
+        {
+            "code": "59",
+            "name": "Nord",
+            "lat": 50.5,
+            "lon": 3.3
+        },
+        {
+            "code": "60",
+            "name": "Oise",
+            "lat": 49.4,
+            "lon": 2.4
+        },
+        {
+            "code": "61",
+            "name": "Orne",
+            "lat": 48.6,
+            "lon": 0.1
+        },
+        {
+            "code": "62",
+            "name": "Pas-de-Calais",
+            "lat": 50.5,
+            "lon": 2.3
+        },
+        {
+            "code": "63",
+            "name": "Puy-de-Dôme",
+            "lat": 45.7,
+            "lon": 3.1
+        },
+        {
+            "code": "64",
+            "name": "Pyrénées-Atlantiques",
+            "lat": 43.3,
+            "lon": -0.8
+        },
+        {
+            "code": "65",
+            "name": "Hautes-Pyrénées",
+            "lat": 43.1,
+            "lon": 0.1
+        },
+        {
+            "code": "66",
+            "name": "Pyrénées-Orientales",
+            "lat": 42.6,
+            "lon": 2.6
+        },
+        {
+            "code": "67",
+            "name": "Bas-Rhin",
+            "lat": 48.6,
+            "lon": 7.6
+        },
+        {
+            "code": "68",
+            "name": "Haut-Rhin",
+            "lat": 47.9,
+            "lon": 7.3
+        },
+        {
+            "code": "69",
+            "name": "Rhône",
+            "lat": 45.8,
+            "lon": 4.7
+        },
+        {
+            "code": "70",
+            "name": "Haute-Saône",
+            "lat": 47.6,
+            "lon": 6.1
+        },
+        {
+            "code": "71",
+            "name": "Saône-et-Loire",
+            "lat": 46.6,
+            "lon": 4.5
+        },
+        {
+            "code": "72",
+            "name": "Sarthe",
+            "lat": 48.0,
+            "lon": 0.2
+        },
+        {
+            "code": "73",
+            "name": "Savoie",
+            "lat": 45.5,
+            "lon": 6.4
+        },
+        {
+            "code": "74",
+            "name": "Haute-Savoie",
+            "lat": 46.0,
+            "lon": 6.4
+        },
+        {
+            "code": "75",
+            "name": "Paris",
+            "lat": 48.8566,
+            "lon": 2.3522
+        },
+        {
+            "code": "76",
+            "name": "Seine-Maritime",
+            "lat": 49.6,
+            "lon": 1.0
+        },
+        {
+            "code": "77",
+            "name": "Seine-et-Marne",
+            "lat": 48.6,
+            "lon": 2.9
+        },
+        {
+            "code": "78",
+            "name": "Yvelines",
+            "lat": 48.8,
+            "lon": 1.9
+        },
+        {
+            "code": "79",
+            "name": "Deux-Sèvres",
+            "lat": 46.5,
+            "lon": -0.3
+        },
+        {
+            "code": "80",
+            "name": "Somme",
+            "lat": 49.9,
+            "lon": 2.3
+        },
+        {
+            "code": "81",
+            "name": "Tarn",
+            "lat": 43.8,
+            "lon": 2.1
+        },
+        {
+            "code": "82",
+            "name": "Tarn-et-Garonne",
+            "lat": 44.1,
+            "lon": 1.3
+        },
+        {
+            "code": "83",
+            "name": "Var",
+            "lat": 43.4,
+            "lon": 6.2
+        },
+        {
+            "code": "84",
+            "name": "Vaucluse",
+            "lat": 44.0,
+            "lon": 5.1
+        },
+        {
+            "code": "85",
+            "name": "Vendée",
+            "lat": 46.7,
+            "lon": -1.2
+        },
+        {
+            "code": "86",
+            "name": "Vienne",
+            "lat": 46.6,
+            "lon": 0.4
+        },
+        {
+            "code": "87",
+            "name": "Haute-Vienne",
+            "lat": 45.8,
+            "lon": 1.2
+        },
+        {
+            "code": "88",
+            "name": "Vosges",
+            "lat": 48.2,
+            "lon": 6.4
+        },
+        {
+            "code": "89",
+            "name": "Yonne",
+            "lat": 47.8,
+            "lon": 3.5
+        },
+        {
+            "code": "90",
+            "name": "Territoire de Belfort",
+            "lat": 47.6,
+            "lon": 6.9
+        },
+        {
+            "code": "91",
+            "name": "Essonne",
+            "lat": 48.5,
+            "lon": 2.2
+        },
+        {
+            "code": "92",
+            "name": "Hauts-de-Seine",
+            "lat": 48.8,
+            "lon": 2.2
+        },
+        {
+            "code": "93",
+            "name": "Seine-Saint-Denis",
+            "lat": 48.9,
+            "lon": 2.5
+        },
+        {
+            "code": "94",
+            "name": "Val-de-Marne",
+            "lat": 48.8,
+            "lon": 2.5
+        },
+        {
+            "code": "95",
+            "name": "Val-d'Oise",
+            "lat": 49.1,
+            "lon": 2.1
+        }
+    ],
+    "cities": [
+        {
+            "name": "Paris",
+            "slug": "paris",
+            "lat": 48.8566,
+            "lon": 2.3522
+        },
+        {
+            "name": "Marseille",
+            "slug": "marseille",
+            "lat": 43.2965,
+            "lon": 5.3698
+        },
+        {
+            "name": "Lyon",
+            "slug": "lyon",
+            "lat": 45.7640,
+            "lon": 4.8357
+        },
+        {
+            "name": "Toulouse",
+            "slug": "toulouse",
+            "lat": 43.6047,
+            "lon": 1.4442
+        },
+        {
+            "name": "Nice",
+            "slug": "nice",
+            "lat": 43.7102,
+            "lon": 7.2620
+        },
+        {
+            "name": "Nantes",
+            "slug": "nantes",
+            "lat": 47.2184,
+            "lon": -1.5536
+        },
+        {
+            "name": "Strasbourg",
+            "slug": "strasbourg",
+            "lat": 48.5734,
+            "lon": 7.7521
+        },
+        {
+            "name": "Montpellier",
+            "slug": "montpellier",
+            "lat": 43.6108,
+            "lon": 3.8767
+        },
+        {
+            "name": "Bordeaux",
+            "slug": "bordeaux",
+            "lat": 44.8378,
+            "lon": -0.5792
+        },
+        {
+            "name": "Lille",
+            "slug": "lille",
+            "lat": 50.6292,
+            "lon": 3.0573
+        },
+        {
+            "name": "Rennes",
+            "slug": "rennes",
+            "lat": 48.1173,
+            "lon": -1.6778
+        },
+        {
+            "name": "Reims",
+            "slug": "reims",
+            "lat": 49.2583,
+            "lon": 4.0317
+        },
+        {
+            "name": "Le Havre",
+            "slug": "le-havre",
+            "lat": 49.4944,
+            "lon": 0.1079
+        },
+        {
+            "name": "Saint-Étienne",
+            "slug": "saint-etienne",
+            "lat": 45.4397,
+            "lon": 4.3872
+        },
+        {
+            "name": "Toulon",
+            "slug": "toulon",
+            "lat": 43.1242,
+            "lon": 5.9280
+        },
+        {
+            "name": "Grenoble",
+            "slug": "grenoble",
+            "lat": 45.1885,
+            "lon": 5.7245
+        },
+        {
+            "name": "Dijon",
+            "slug": "dijon",
+            "lat": 47.3220,
+            "lon": 5.0415
+        },
+        {
+            "name": "Angers",
+            "slug": "angers",
+            "lat": 47.4784,
+            "lon": -0.5632
+        },
+        {
+            "name": "Nîmes",
+            "slug": "nimes",
+            "lat": 43.8367,
+            "lon": 4.3601
+        },
+        {
+            "name": "Villeurbanne",
+            "slug": "villeurbanne",
+            "lat": 45.7719,
+            "lon": 4.8902
+        },
+        {
+            "name": "Saint-Denis",
+            "slug": "saint-denis",
+            "lat": 48.9362,
+            "lon": 2.3574
+        },
+        {
+            "name": "Le Mans",
+            "slug": "le-mans",
+            "lat": 48.0061,
+            "lon": 0.1996
+        },
+        {
+            "name": "Aix-en-Provence",
+            "slug": "aix-en-provence",
+            "lat": 43.5297,
+            "lon": 5.4474
+        },
+        {
+            "name": "Clermont-Ferrand",
+            "slug": "clermont-ferrand",
+            "lat": 45.7772,
+            "lon": 3.0870
+        },
+        {
+            "name": "Brest",
+            "slug": "brest",
+            "lat": 48.3904,
+            "lon": -4.4861
+        },
+        {
+            "name": "Limoges",
+            "slug": "limoges",
+            "lat": 45.8336,
+            "lon": 1.2611
+        },
+        {
+            "name": "Tours",
+            "slug": "tours",
+            "lat": 47.3941,
+            "lon": 0.6848
+        },
+        {
+            "name": "Amiens",
+            "slug": "amiens",
+            "lat": 49.8940,
+            "lon": 2.2958
+        },
+        {
+            "name": "Perpignan",
+            "slug": "perpignan",
+            "lat": 42.6887,
+            "lon": 2.8948
+        },
+        {
+            "name": "Metz",
+            "slug": "metz",
+            "lat": 49.1193,
+            "lon": 6.1757
+        },
+        {
+            "name": "Besançon",
+            "slug": "besancon",
+            "lat": 47.2378,
+            "lon": 6.0241
+        },
+        {
+            "name": "Boulogne-Billancourt",
+            "slug": "boulogne-billancourt",
+            "lat": 48.8397,
+            "lon": 2.2399
+        },
+        {
+            "name": "Orléans",
+            "slug": "orleans",
+            "lat": 47.9030,
+            "lon": 1.9093
+        },
+        {
+            "name": "Mulhouse",
+            "slug": "mulhouse",
+            "lat": 47.7508,
+            "lon": 7.3359
+        },
+        {
+            "name": "Rouen",
+            "slug": "rouen",
+            "lat": 49.4432,
+            "lon": 1.0999
+        },
+        {
+            "name": "Caen",
+            "slug": "caen",
+            "lat": 49.1829,
+            "lon": -0.3707
+        },
+        {
+            "name": "Nancy",
+            "slug": "nancy",
+            "lat": 48.6921,
+            "lon": 6.1844
+        },
+        {
+            "name": "Saint-Paul",
+            "slug": "saint-paul",
+            "lat": -21.0096,
+            "lon": 55.2707
+        },
+        {
+            "name": "Montreuil",
+            "slug": "montreuil",
+            "lat": 48.8638,
+            "lon": 2.4484
+        },
+        {
+            "name": "Argenteuil",
+            "slug": "argenteuil",
+            "lat": 48.9479,
+            "lon": 2.2488
+        },
+        {
+            "name": "Roubaix",
+            "slug": "roubaix",
+            "lat": 50.6927,
+            "lon": 3.1778
+        },
+        {
+            "name": "Dunkerque",
+            "slug": "dunkerque",
+            "lat": 51.0343,
+            "lon": 2.3768
+        },
+        {
+            "name": "Tourcoing",
+            "slug": "tourcoing",
+            "lat": 50.7239,
+            "lon": 3.1612
+        },
+        {
+            "name": "Nanterre",
+            "slug": "nanterre",
+            "lat": 48.8924,
+            "lon": 2.2071
+        },
+        {
+            "name": "Avignon",
+            "slug": "avignon",
+            "lat": 43.9493,
+            "lon": 4.8055
+        },
+        {
+            "name": "Vitry-sur-Seine",
+            "slug": "vitry-sur-seine",
+            "lat": 48.7876,
+            "lon": 2.3928
+        },
+        {
+            "name": "Créteil",
+            "slug": "creteil",
+            "lat": 48.7771,
+            "lon": 2.4531
+        },
+        {
+            "name": "Poitiers",
+            "slug": "poitiers",
+            "lat": 46.5802,
+            "lon": 0.3404
+        },
+        {
+            "name": "Aubervilliers",
+            "slug": "aubervilliers",
+            "lat": 48.9146,
+            "lon": 2.3822
+        },
+        {
+            "name": "Asnières-sur-Seine",
+            "slug": "asnieres-sur-seine",
+            "lat": 48.9107,
+            "lon": 2.2891
+        },
+        {
+            "name": "Colombes",
+            "slug": "colombes",
+            "lat": 48.9227,
+            "lon": 2.2544
+        },
+        {
+            "name": "Versailles",
+            "slug": "versailles",
+            "lat": 48.8049,
+            "lon": 2.1204
+        },
+        {
+            "name": "Aulnay-sous-Bois",
+            "slug": "aulnay-sous-bois",
+            "lat": 48.9386,
+            "lon": 2.4906
+        },
+        {
+            "name": "Courbevoie",
+            "slug": "courbevoie",
+            "lat": 48.8966,
+            "lon": 2.2567
+        },
+        {
+            "name": "La Rochelle",
+            "slug": "la-rochelle",
+            "lat": 46.1603,
+            "lon": -1.1511
+        },
+        {
+            "name": "Rueil-Malmaison",
+            "slug": "rueil-malmaison",
+            "lat": 48.8776,
+            "lon": 2.1802
+        },
+        {
+            "name": "Champigny-sur-Marne",
+            "slug": "champigny-sur-marne",
+            "lat": 48.8171,
+            "lon": 2.5147
+        },
+        {
+            "name": "Pau",
+            "slug": "pau",
+            "lat": 43.2951,
+            "lon": -0.3708
+        },
+        {
+            "name": "Mérignac",
+            "slug": "merignac",
+            "lat": 44.8378,
+            "lon": -0.6474
+        },
+        {
+            "name": "Saint-Maur-des-Fossés",
+            "slug": "saint-maur-des-fosses",
+            "lat": 48.8003,
+            "lon": 2.4853
+        },
+        {
+            "name": "Antibes",
+            "slug": "antibes",
+            "lat": 43.5804,
+            "lon": 7.1251
+        },
+        {
+            "name": "Calais",
+            "slug": "calais",
+            "lat": 50.9513,
+            "lon": 1.8587
+        },
+        {
+            "name": "Cannes",
+            "slug": "cannes",
+            "lat": 43.5528,
+            "lon": 7.0174
+        },
+        {
+            "name": "Béziers",
+            "slug": "beziers",
+            "lat": 43.3442,
+            "lon": 3.2158
+        },
+        {
+            "name": "Colmar",
+            "slug": "colmar",
+            "lat": 48.0794,
+            "lon": 7.3585
+        },
+        {
+            "name": "Saint-Nazaire",
+            "slug": "saint-nazaire",
+            "lat": 47.2736,
+            "lon": -2.2137
+        },
+        {
+            "name": "Bourges",
+            "slug": "bourges",
+            "lat": 47.0810,
+            "lon": 2.3988
+        },
+        {
+            "name": "Drancy",
+            "slug": "drancy",
+            "lat": 48.9259,
+            "lon": 2.4458
+        },
+        {
+            "name": "Mérignac",
+            "slug": "merignac",
+            "lat": 44.8378,
+            "lon": -0.6474
+        },
+        {
+            "name": "Ajaccio",
+            "slug": "ajaccio",
+            "lat": 41.9192,
+            "lon": 8.7386
+        },
+        {
+            "name": "Issy-les-Moulineaux",
+            "slug": "issy-les-moulineaux",
+            "lat": 48.8234,
+            "lon": 2.2713
+        },
+        {
+            "name": "Levallois-Perret",
+            "slug": "levallois-perret",
+            "lat": 48.8932,
+            "lon": 2.2879
+        },
+        {
+            "name": "La Seyne-sur-Mer",
+            "slug": "la-seyne-sur-mer",
+            "lat": 43.1077,
+            "lon": 5.8828
+        },
+        {
+            "name": "Quimper",
+            "slug": "quimper",
+            "lat": 47.9975,
+            "lon": -4.0979
+        },
+        {
+            "name": "Noisy-le-Grand",
+            "slug": "noisy-le-grand",
+            "lat": 48.8449,
+            "lon": 2.5528
+        },
+        {
+            "name": "Villeneuve-d'Ascq",
+            "slug": "villeneuve-d-ascq",
+            "lat": 50.6233,
+            "lon": 3.1443
+        },
+        {
+            "name": "Neuilly-sur-Seine",
+            "slug": "neuilly-sur-seine",
+            "lat": 48.8846,
+            "lon": 2.2696
+        },
+        {
+            "name": "Valence",
+            "slug": "valence",
+            "lat": 44.9334,
+            "lon": 4.8924
+        },
+        {
+            "name": "Antony",
+            "slug": "antony",
+            "lat": 48.7538,
+            "lon": 2.2975
+        },
+        {
+            "name": "Cergy",
+            "slug": "cergy",
+            "lat": 49.0389,
+            "lon": 2.0776
+        },
+        {
+            "name": "Vénissieux",
+            "slug": "venissieux",
+            "lat": 45.6977,
+            "lon": 4.8868
+        },
+        {
+            "name": "Pessac",
+            "slug": "pessac",
+            "lat": 44.8067,
+            "lon": -0.6311
+        },
+        {
+            "name": "Troyes",
+            "slug": "troyes",
+            "lat": 48.2997,
+            "lon": 4.0792
+        },
+        {
+            "name": "Chambéry",
+            "slug": "chambery",
+            "lat": 45.5646,
+            "lon": 5.9178
+        },
+        {
+            "name": "Ivry-sur-Seine",
+            "slug": "ivry-sur-seine",
+            "lat": 48.8156,
+            "lon": 2.3849
+        },
+        {
+            "name": "Clichy",
+            "slug": "clichy",
+            "lat": 48.9044,
+            "lon": 2.3064
+        },
+        {
+            "name": "Montauban",
+            "slug": "montauban",
+            "lat": 44.0176,
+            "lon": 1.3550
+        },
+        {
+            "name": "Niort",
+            "slug": "niort",
+            "lat": 46.3237,
+            "lon": -0.4648
+        },
+        {
+            "name": "Villejuif",
+            "slug": "villejuif",
+            "lat": 48.7918,
+            "lon": 2.3636
+        },
+        {
+            "name": "Lorient",
+            "slug": "lorient",
+            "lat": 47.7483,
+            "lon": -3.3702
+        },
+        {
+            "name": "Sarcelles",
+            "slug": "sarcelles",
+            "lat": 48.9956,
+            "lon": 2.3807
+        },
+        {
+            "name": "Hyères",
+            "slug": "hyeres",
+            "lat": 43.1206,
+            "lon": 6.1286
+        },
+        {
+            "name": "Saint-Quentin",
+            "slug": "saint-quentin",
+            "lat": 49.8471,
+            "lon": 3.2874
+        },
+        {
+            "name": "Bayonne",
+            "slug": "bayonne",
+            "lat": 43.4929,
+            "lon": -1.4748
+        }
+    ]
+}

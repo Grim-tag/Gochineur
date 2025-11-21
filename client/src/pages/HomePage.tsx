@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import type { Event } from '../types'
@@ -6,14 +7,20 @@ import { groupEventsByDay, type GroupedEvents } from '../utils/appUtils'
 import { reverseGeocode } from '../utils/appUtils'
 import { calculatePeriodDates } from '../utils/dateUtils'
 import { fetchEvents } from '../services/api'
-import { EVENTS, GEOLOCATION } from '../config/constants'
+import { EVENTS, GEOLOCATION, API } from '../config/constants'
 
 interface UserPosition {
   latitude: number
   longitude: number
 }
 
+interface GeoData {
+  departments: { code: string; name: string; lat: number; lon: number }[]
+  cities: { name: string; slug: string; lat: number; lon: number }[]
+}
+
 export default function HomePage() {
+  const { departmentCode, citySlug } = useParams<{ departmentCode?: string; citySlug?: string }>()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
@@ -29,6 +36,7 @@ export default function HomePage() {
   const [_currentStartDate, setCurrentStartDate] = useState<Date | null>(null)
   const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
+  const [seoTitle, setSeoTitle] = useState<string>('Vide-greniers et brocantes autour de moi')
 
   // Coordonnées de test (Landes/Pays Basque Sud)
   const testPositionFallback: UserPosition = {
@@ -36,8 +44,28 @@ export default function HomePage() {
     longitude: GEOLOCATION.DEFAULT_LON
   }
 
-  // Géolocalisation de l'utilisateur avec fallback sur position de test
+  // Charger les données géographiques (départements et villes)
+  const [geoData, setGeoData] = useState<GeoData | null>(null)
+
   useEffect(() => {
+    fetch(`${API.BASE_URL}/api/geo/data`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setGeoData(data.data)
+        }
+      })
+      .catch(err => console.error('Erreur chargement geo data:', err))
+  }, [])
+
+  // Géolocalisation de l'utilisateur avec fallback sur position de test
+  // MODIFIÉ : Ne se déclenche que si PAS de paramètres d'URL
+  useEffect(() => {
+    if (departmentCode || citySlug) {
+      setLocationLoading(false)
+      return
+    }
+
     const loadPosition = async () => {
       let position: UserPosition
 
@@ -51,7 +79,11 @@ export default function HomePage() {
             setUserPosition(position)
             setLocationLoading(false)
             // Géocodage inverse pour obtenir le nom de la ville
-            reverseGeocode(position.latitude, position.longitude).then(setCity)
+            reverseGeocode(position.latitude, position.longitude).then(cityName => {
+              setCity(cityName)
+              setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
+              document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
+            })
           },
           () => {
             position = testPositionFallback
@@ -59,7 +91,11 @@ export default function HomePage() {
             setLocationError('Position non disponible. Utilisation de la position de test comme point de référence.')
             setLocationLoading(false)
             // Géocodage inverse pour la position de test
-            reverseGeocode(position.latitude, position.longitude).then(setCity)
+            reverseGeocode(position.latitude, position.longitude).then(cityName => {
+              setCity(cityName)
+              setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
+              document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
+            })
           },
           {
             enableHighAccuracy: true,
@@ -73,12 +109,83 @@ export default function HomePage() {
         setLocationError('La géolocalisation n\'est pas supportée. Utilisation de la position de test comme point de référence.')
         setLocationLoading(false)
         // Géocodage inverse pour la position de test
-        reverseGeocode(position.latitude, position.longitude).then(setCity)
+        reverseGeocode(position.latitude, position.longitude).then(cityName => {
+          setCity(cityName)
+          setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
+          document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
+        })
       }
     }
 
     loadPosition()
-  }, [])
+  }, [departmentCode, citySlug])
+
+  // Gérer les paramètres d'URL pour le SEO (Département ou Ville)
+  useEffect(() => {
+    if (!geoData) return
+
+    const handleUrlParams = async () => {
+      let targetLat: number | null = null
+      let targetLon: number | null = null
+      let targetName = ''
+      let targetRadius = EVENTS.DEFAULT_RADIUS
+
+      if (departmentCode) {
+        const dept = geoData.departments.find(d => d.code === departmentCode)
+        if (dept) {
+          targetLat = dept.lat
+          targetLon = dept.lon
+          targetName = `${dept.name} (${dept.code})`
+          targetRadius = 50 // Rayon plus large pour un département
+          setSeoTitle(`Agenda complet des Vide-greniers et Bourses dans le ${dept.name} (${dept.code})`)
+          document.title = `Vide-greniers ${dept.name} (${dept.code}) - Agenda Brocantes - GoChineur`
+          // Description meta dynamique (idéalement via Helmet, ici via DOM direct pour SPA simple)
+          const metaDesc = document.querySelector('meta[name="description"]')
+          if (metaDesc) metaDesc.setAttribute('content', `Trouvez tous les vide-greniers, brocantes et bourses aux collections dans le département ${dept.name} (${dept.code}). Agenda complet et à jour.`)
+        }
+      } else if (citySlug) {
+        const cityData = geoData.cities.find(c => c.slug === citySlug)
+        if (cityData) {
+          targetLat = cityData.lat
+          targetLon = cityData.lon
+          targetName = cityData.name
+          targetRadius = 30 // Rayon standard pour une ville
+          setSeoTitle(`Agenda des vide-greniers et brocantes à ${cityData.name}`)
+          document.title = `Vide-greniers à ${cityData.name} - Agenda Brocantes - GoChineur`
+          const metaDesc = document.querySelector('meta[name="description"]')
+          if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
+        }
+      }
+
+      if (targetLat && targetLon) {
+        setUserPosition({ latitude: targetLat, longitude: targetLon })
+        setCity(targetName)
+        setCurrentRadius(targetRadius)
+
+        // Charger les événements pour cette position
+        const today = new Date()
+        const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
+        setCurrentStartDate(start)
+        setCurrentEndDate(end)
+        setLoading(true)
+
+        loadEvents(start, end, false, undefined, targetRadius, { latitude: targetLat, longitude: targetLon })
+          .then((data: Event[]) => {
+            setFilteredEvents(data)
+            const grouped = groupEventsByDay(data)
+            setGroupedEvents(grouped)
+            setLoading(false)
+            setHasMoreEvents(data.length > 0)
+          })
+          .catch(err => {
+            setError(err.message)
+            setLoading(false)
+          })
+      }
+    }
+
+    handleUrlParams()
+  }, [departmentCode, citySlug, geoData])
 
   // Fonction pour charger les événements avec une période donnée
   const loadEvents = async (
@@ -114,8 +221,10 @@ export default function HomePage() {
     return data
   }
 
-  // Charger les événements initiaux (2 premiers mois)
+  // Charger les événements initiaux (2 premiers mois) - UNIQUEMENT SI PAS DE PARAMS URL
   useEffect(() => {
+    if (departmentCode || citySlug) return // Laissé à l'effet handleUrlParams
+
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
 
@@ -139,7 +248,7 @@ export default function HomePage() {
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, []) // Charger une seule fois au montage du composant
+  }, [departmentCode, citySlug]) // Dépendances ajoutées pour éviter double chargement
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -209,6 +318,7 @@ export default function HomePage() {
     if (coordinates) {
       setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
       setCity(coordinates.city)
+      setSeoTitle(`Vide-greniers et brocantes à ${coordinates.city}`)
     }
 
     // Utiliser le rayon spécifié (plus besoin de 2000 km car on a les bonnes coordonnées)
@@ -290,9 +400,9 @@ export default function HomePage() {
         )}
 
         {/* Titre H1 principal pour le SEO */}
-        {!locationLoading && userPosition && city && (
+        {!locationLoading && (
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            Vide-greniers, brocantes et bourses - {city} ({currentRadius} km)
+            {seoTitle} {city && !seoTitle.includes(city) ? `(${currentRadius} km)` : ''}
           </h1>
         )}
 

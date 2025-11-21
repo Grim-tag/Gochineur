@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /soumettre
+Disallow: /set-pseudo
+Disallow: /api/
+
+Sitemap: https://gochineur.fr/sitemap.xml
