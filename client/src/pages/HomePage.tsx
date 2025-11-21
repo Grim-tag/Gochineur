@@ -56,11 +56,18 @@ export default function HomePage() {
   const [geoData, setGeoData] = useState<GeoData | null>(null)
 
   useEffect(() => {
-    fetch(`${API.BASE_URL}/api/geo/data`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setGeoData(data.data)
+    Promise.all([
+      fetch(`${API.BASE_URL}/api/geo/data`).then(res => res.json()),
+      fetch(`${API.BASE_URL}/api/geo/cities-db`).then(res => res.json())
+    ])
+      .then(([geoDataRes, citiesRes]) => {
+        if (geoDataRes.success) {
+          const data = geoDataRes.data
+          // Fusionner les villes de geo-data.json avec celles de MongoDB
+          if (citiesRes.success && citiesRes.cities) {
+            data.cities = [...data.cities, ...citiesRes.cities]
+          }
+          setGeoData(data)
         }
       })
       .catch(err => console.error('Erreur chargement geo data:', err))

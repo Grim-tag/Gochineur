@@ -80,8 +80,40 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
             return
           }
         } else {
-          // Ville non trouvée dans geo-data
-          console.log('City not found in geo-data:', searchTerm, 'calling onSearch without URL change')
+          // Ville non trouvée dans geo-data - l'ajouter dynamiquement
+          console.log('City not found in geo-data:', searchTerm, 'adding to database...')
+
+          try {
+            const addCityRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/geo/add-city`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: geocodeResult.city,
+                lat: geocodeResult.latitude,
+                lon: geocodeResult.longitude
+              })
+            })
+
+            const addCityData = await addCityRes.json()
+
+            if (addCityData.success && addCityData.city) {
+              const city = addCityData.city
+              const dept = geoData.departments?.find((d: any) => d.code === city.department)
+
+              if (dept) {
+                const deptSlug = dept.name.toLowerCase()
+                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-z0-9-]/g, '')
+
+                console.log('City added successfully, navigating to:', `/brocantes/${deptSlug}/${city.slug}`)
+                navigate(`/brocantes/${deptSlug}/${city.slug}`)
+                return
+              }
+            }
+          } catch (error) {
+            console.error('Error adding city:', error)
+          }
         }
 
         // Appeler onSearch avec les coordonnées géocodées
