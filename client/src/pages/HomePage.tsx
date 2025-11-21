@@ -67,17 +67,22 @@ export default function HomePage() {
   }, [])
 
   // Helper pour mettre à jour le titre SEO
-  const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string) => {
-    const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's' // Pluralisation basique
-    let title = `${typeLabel} en ${locationName}`
+  const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string, isCity: boolean = false) => {
+    const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's'
+    let title = ''
 
-    if (deptCode) {
-      title = `${typeLabel} - ${locationName} (${deptCode})`
-    }
-
-    // Ajout du rayon si pertinent (pas pour les départements entiers où le rayon est large par défaut)
-    if (!deptCode) {
-      title += ` (${radius} km)`
+    if (isCity) {
+      // Pour les villes : "Vide-greniers à Paris (25 km)"
+      title = `${typeLabel} à ${locationName}`
+      if (!deptCode) {
+        title += ` (${radius} km)`
+      }
+    } else if (deptCode) {
+      // Pour les départements : "Vide-greniers Landes (33)"
+      title = `${typeLabel} ${locationName} (${deptCode})`
+    } else {
+      // Pour les régions ou autres : "Vide-greniers Nouvelle-Aquitaine"
+      title = `${typeLabel} ${locationName}`
     }
 
     setSeoTitle(title)
@@ -95,12 +100,12 @@ export default function HomePage() {
       // Si un nom de ville est fourni (via reverse geocode ou autre), on l'utilise
       if (cityName) {
         setCity(cityName)
-        updateSeoTitle(cityName, currentEventType, currentRadius)
+        updateSeoTitle(cityName, currentEventType, currentRadius, undefined, true)
       } else {
         // Sinon on fait un reverse geocode
         reverseGeocode(pos.latitude, pos.longitude).then(name => {
           setCity(name)
-          updateSeoTitle(name, currentEventType, currentRadius)
+          updateSeoTitle(name, currentEventType, currentRadius, undefined, true)
         })
       }
     }
@@ -162,7 +167,7 @@ export default function HomePage() {
           targetLon = region.lon
           targetName = region.name
           targetRadius = 100 // Rayon très large pour une région
-          updateSeoTitle(targetName, currentEventType, targetRadius)
+          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, false)
 
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
@@ -182,7 +187,7 @@ export default function HomePage() {
           targetName = dept.name
           deptCodeStr = dept.code
           targetRadius = 50 // Rayon plus large pour un département
-          updateSeoTitle(targetName, currentEventType, targetRadius, deptCodeStr)
+          updateSeoTitle(targetName, currentEventType, targetRadius, deptCodeStr, false)
           // Description meta dynamique (idéalement via Helmet, ici via DOM direct pour SPA simple)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Trouvez tous les vide-greniers, brocantes et bourses aux collections dans le département ${dept.name} (${dept.code}). Agenda complet et à jour.`)
@@ -194,7 +199,7 @@ export default function HomePage() {
           targetLon = cityData.lon
           targetName = cityData.name
           targetRadius = 30 // Rayon standard pour une ville
-          updateSeoTitle(targetName, currentEventType, targetRadius)
+          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
         }
@@ -388,7 +393,7 @@ export default function HomePage() {
     if (coordinates) {
       setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
       setCity(coordinates.city)
-      updateSeoTitle(coordinates.city, eventType, radius)
+      updateSeoTitle(coordinates.city, eventType, radius, undefined, true)
     } else if (searchTerm === '' && !coordinates) {
       // Si recherche vide, on reset potentiellement si c'était l'intention
       // Mais ici on garde la position actuelle si on change juste le type ou le rayon
