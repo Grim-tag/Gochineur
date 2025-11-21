@@ -103,7 +103,7 @@ app.use('/api/user', userRoutes());
 app.use('/api/events', eventsRoutes());
 
 // Routes d'administration
-app.use('/admin', adminRoutes());
+app.use('/api/admin', adminRoutes());
 
 // Route de santé
 app.get('/api/health', (req, res) => {
@@ -193,11 +193,7 @@ if (process.env.NODE_ENV === 'production') {
       return next(); // Passer au middleware suivant (404)
     }
 
-    // Ne pas intercepter les routes admin API backend (/admin/api/...)
-    // Mais servir les routes admin React (/admin/dashboard, etc.)
-    if (req.path.startsWith('/admin/api')) {
-      return next(); // Passer au middleware suivant (404)
-    }
+
 
     // Si c'est une requête GET et que la réponse n'a pas encore été envoyée
     if (req.method === 'GET' && !res.headersSent) {

@@ -100,7 +100,7 @@ export default function AdminPage() {
     setError(null)
 
     if (activeTab === 'users') {
-      fetch(`${API.BASE_URL}/admin/api/users`, {
+      fetch(`${API.BASE_URL}/api/admin/users`, {
         headers: getAuthHeaders()
       })
         .then(response => {
@@ -120,7 +120,7 @@ export default function AdminPage() {
     } else {
       // Construire l'URL avec le paramètre period si on est sur l'onglet événements
       const periodParam = activePeriod !== 'all' ? `?period=${activePeriod}` : ''
-      fetch(`${API.BASE_URL}/admin/api/events${periodParam}`, {
+      fetch(`${API.BASE_URL}/api/admin/events${periodParam}`, {
         headers: getAuthHeaders()
       })
         .then(response => {
@@ -152,7 +152,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}/role`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({ role: newRole })
@@ -177,7 +177,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/users/${userId}`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       })
@@ -197,7 +197,7 @@ export default function AdminPage() {
 
   const handleValidateEvent = async (eventId: string) => {
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}/validate`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/events/${eventId}/validate`, {
         method: 'PUT',
         headers: getAuthHeaders()
       })
@@ -221,7 +221,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}/reject`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/events/${eventId}/reject`, {
         method: 'PUT',
         headers: getAuthHeaders()
       })
@@ -254,7 +254,7 @@ export default function AdminPage() {
     if (!editingEvent) return
 
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/events/${editingEvent.id}`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/events/${editingEvent.id}`, {
         method: 'PUT',
         headers: {
           ...getAuthHeaders(),
@@ -284,7 +284,7 @@ export default function AdminPage() {
     }
 
     try {
-      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}`, {
+      const response = await fetch(`${API.BASE_URL}/api/admin/events/${eventId}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       })

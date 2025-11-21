@@ -233,7 +233,7 @@ module.exports = function () {
   // ==================== ROUTES ADMIN API ====================
 
   // Route pour obtenir tous les utilisateurs
-  router.get('/api/users', requireAdminOrModerator, async (req, res) => {
+  router.get('/users', requireAdminOrModerator, async (req, res) => {
     try {
       const usersCollection = getUsersCollection();
 
@@ -256,7 +256,7 @@ module.exports = function () {
   });
 
   // Route pour modifier le rôle d'un utilisateur
-  router.put('/api/users/:userId/role', requireAdmin, async (req, res) => {
+  router.put('/users/:userId/role', requireAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
       const { role } = req.body;
@@ -298,7 +298,7 @@ module.exports = function () {
   });
 
   // Route pour supprimer un utilisateur (RGPD - Droit à l'oubli)
-  router.delete('/api/users/:userId', requireAdmin, async (req, res) => {
+  router.delete('/users/:userId', requireAdmin, async (req, res) => {
     try {
       const { userId } = req.params;
 
@@ -337,7 +337,7 @@ module.exports = function () {
   });
 
   // Route pour obtenir tous les événements avec détails pour l'admin
-  router.get('/api/events', requireAdminOrModerator, async (req, res) => {
+  router.get('/events', requireAdminOrModerator, async (req, res) => {
     try {
       const eventsCollection = getEventsCollection();
 
@@ -440,7 +440,7 @@ module.exports = function () {
   });
 
   // Route pour valider un événement (changer le statut)
-  router.put('/api/events/:eventId/validate', requireAdminOrModerator, async (req, res) => {
+  router.put('/events/:eventId/validate', requireAdminOrModerator, async (req, res) => {
     try {
       const { eventId } = req.params;
       const eventsCollection = getEventsCollection();
@@ -502,7 +502,7 @@ module.exports = function () {
   });
 
   // Route pour refuser un événement
-  router.put('/api/events/:eventId/reject', requireAdminOrModerator, async (req, res) => {
+  router.put('/events/:eventId/reject', requireAdminOrModerator, async (req, res) => {
     try {
       const { eventId } = req.params;
       const eventsCollection = getEventsCollection();
@@ -536,7 +536,7 @@ module.exports = function () {
   });
 
   // Route pour mettre à jour un événement
-  router.put('/api/events/:eventId', requireAdminOrModerator, async (req, res) => {
+  router.put('/events/:eventId', requireAdminOrModerator, async (req, res) => {
     try {
       const { eventId } = req.params;
       const updates = req.body;
@@ -579,7 +579,7 @@ module.exports = function () {
   });
 
   // Route pour supprimer un événement
-  router.delete('/api/events/:eventId', requireAdminOrModerator, async (req, res) => {
+  router.delete('/events/:eventId', requireAdminOrModerator, async (req, res) => {
     try {
       const { eventId } = req.params;
       const eventsCollection = getEventsCollection();
