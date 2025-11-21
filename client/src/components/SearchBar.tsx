@@ -79,6 +79,9 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
             navigate(targetUrl)
             return
           }
+        } else {
+          // Ville non trouvée dans geo-data
+          console.log('City not found in geo-data:', searchTerm, 'calling onSearch without URL change')
         }
 
         // Appeler onSearch avec les coordonnées géocodées
