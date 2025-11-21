@@ -35,7 +35,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
-  const [locationError, setLocationError] = useState<string | null>(null)
   const [locationLoading, setLocationLoading] = useState(true)
   const [city, setCity] = useState<string>('')
   const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
@@ -312,32 +311,6 @@ export default function HomePage() {
     }
   }
 
-  // Réinitialiser à la géolocalisation
-  const handleReset = () => {
-    setCity('')
-    setCurrentEventType('tous')
-    setCurrentRadius(EVENTS.DEFAULT_RADIUS)
-    loadUserPosition()
-
-    // Recharger les événements par défaut
-    const today = new Date()
-    const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
-    setCurrentStartDate(start)
-    setCurrentEndDate(end)
-    setLoading(true)
-
-    // On attend que loadUserPosition mette à jour userPosition, mais comme c'est asynchrone,
-    // on relance loadEvents dans le callback de geolocation ou via un useEffect.
-    // Ici, loadUserPosition va déclencher un refresh via ses propres setters si besoin,
-    // mais pour être sûr, on peut recharger avec "undefined" position qui forcera l'usage du state ou fallback
-    loadEvents(start, end, false, 'tous', EVENTS.DEFAULT_RADIUS)
-      .then((data) => {
-        setFilteredEvents(data)
-        setGroupedEvents(groupEventsByDay(data))
-        setLoading(false)
-      })
-  }
-
   // Fonction de recherche et filtrage
   const handleSearch = (
     searchTerm: string,
@@ -482,11 +455,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {!locationLoading && locationError && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-            <p className="text-yellow-700 text-sm">⚠️ {locationError}</p>
-          </div>
-        )}
+
 
         {/* Titre H1 principal pour le SEO */}
         {!locationLoading && (
