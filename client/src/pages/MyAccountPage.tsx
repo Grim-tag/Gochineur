@@ -224,43 +224,6 @@ export default function MyAccountPage() {
 
             <div className="container mx-auto px-4 space-y-8">
 
-                {/* Section Mes Événements */}
-                <section>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        📅 Mes Événements Ajoutés
-                    </h2>
-                    {loadingMyEvents ? (
-                        <p className="text-gray-500">Chargement de vos événements...</p>
-                    ) : myEvents.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myEvents.map(event => (
-                                <div key={event.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-lg text-gray-800">{event.name}</h3>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${event.statut_validation === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                                            }`}>
-                                            {event.statut_validation === 'published' ? 'Publié' : 'En attente'}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 mt-1">{event.city} ({event.postalCode})</p>
-                                    <p className="text-sm text-gray-500 mt-2">
-                                        {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <p className="text-gray-500">Vous n'avez pas encore ajouté d'événements.</p>
-                            <Link to="/soumettre" className="text-blue-600 hover:underline mt-2 inline-block">
-                                Ajouter un événement
-                            </Link>
-                        </div>
-                    )}
-                </section>
-
-                <hr className="border-gray-200" />
-
                 {/* Section Mon Circuit */}
                 <section>
                     <div className="flex justify-between items-center mb-4">
@@ -372,6 +335,43 @@ export default function MyAccountPage() {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                </section>
+
+                <hr className="border-gray-200" />
+
+                {/* Section Mes Événements */}
+                <section>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        📅 Mes Événements Ajoutés
+                    </h2>
+                    {loadingMyEvents ? (
+                        <p className="text-gray-500">Chargement de vos événements...</p>
+                    ) : myEvents.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {myEvents.map(event => (
+                                <div key={event.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-bold text-lg text-gray-800">{event.name}</h3>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${event.statut_validation === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                            {event.statut_validation === 'published' ? 'Publié' : 'En attente'}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">{event.city} ({event.postalCode})</p>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-lg shadow p-6 text-center">
+                            <p className="text-gray-500">Vous n'avez pas encore ajouté d'événements.</p>
+                            <Link to="/soumettre" className="text-blue-600 hover:underline mt-2 inline-block">
+                                Ajouter un événement
+                            </Link>
                         </div>
                     )}
                 </section>
