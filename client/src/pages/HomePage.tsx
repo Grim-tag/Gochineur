@@ -42,7 +42,7 @@ export default function HomePage() {
   const [_currentStartDate, setCurrentStartDate] = useState<Date | null>(null)
   const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
-  const [seoTitle, setSeoTitle] = useState<string>('Vide-greniers et brocantes autour de moi')
+  const [seoTitle, setSeoTitle] = useState<string>('Vide-greniers et brocantes l\'agenda des chineurs')
 
   // Coordonnées de test (Landes/Pays Basque Sud)
   const testPositionFallback: UserPosition = {
