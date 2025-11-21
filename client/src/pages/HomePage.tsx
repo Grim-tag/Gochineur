@@ -22,7 +22,12 @@ interface GeoData {
 }
 
 export default function HomePage() {
-  const { departmentCode, citySlug, regionSlug } = useParams<{ departmentCode?: string; citySlug?: string; regionSlug?: string }>()
+  const { departmentCode, citySlug, regionSlug, departmentSlug } = useParams<{
+    departmentCode?: string;
+    citySlug?: string;
+    regionSlug?: string;
+    departmentSlug?: string;
+  }>()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
@@ -129,14 +134,14 @@ export default function HomePage() {
   // Géolocalisation de l'utilisateur avec fallback sur position de test
   // MODIFIÉ : Ne se déclenche que si PAS de paramètres d'URL
   useEffect(() => {
-    if (departmentCode || citySlug || regionSlug) {
+    if (departmentCode || citySlug || regionSlug || departmentSlug) {
       setLocationLoading(false)
       return
     }
 
     // Si on est sur la home racine, on lance la géolocalisation
     loadUserPosition()
-  }, [departmentCode, citySlug, regionSlug])
+  }, [departmentCode, citySlug, regionSlug, departmentSlug])
 
 
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
@@ -162,8 +167,15 @@ export default function HomePage() {
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
         }
-      } else if (departmentCode) {
-        const dept = geoData.departments.find(d => d.code === departmentCode)
+      } else if (departmentCode || departmentSlug) {
+        let dept = null
+        if (departmentCode) {
+          dept = geoData.departments.find(d => d.code === departmentCode)
+        } else if (departmentSlug) {
+          dept = geoData.departments.find(d =>
+            d.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === departmentSlug
+          )
+        }
         if (dept) {
           targetLat = dept.lat
           targetLon = dept.lon
@@ -216,7 +228,7 @@ export default function HomePage() {
     }
 
     handleUrlParams()
-  }, [departmentCode, citySlug, regionSlug, geoData])
+  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData])
 
   // Fonction pour charger les événements avec une période donnée
   const loadEvents = async (
@@ -255,7 +267,7 @@ export default function HomePage() {
 
   // Charger les événements initiaux (2 premiers mois) - UNIQUEMENT SI PAS DE PARAMS URL
   useEffect(() => {
-    if (departmentCode || citySlug || regionSlug) return // Laissé à l'effet handleUrlParams
+    if (departmentCode || citySlug || regionSlug || departmentSlug) return // Laissé à l'effet handleUrlParams
 
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
@@ -280,7 +292,7 @@ export default function HomePage() {
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, [departmentCode, citySlug, regionSlug, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
+  }, [departmentCode, citySlug, regionSlug, departmentSlug, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -444,8 +456,8 @@ export default function HomePage() {
   }
 
   // Construction du fil d'ariane
-  const breadcrumbsItems: { label: string; path?: string }[] = [
-    { label: 'Accueil', path: '/' }
+  const breadcrumbsItems: { label: string; path?: string; onClick?: () => void }[] = [
+    { label: 'Accueil', path: '/', onClick: handleReset }
   ]
 
   if (regionSlug && geoData) {
@@ -491,6 +503,7 @@ export default function HomePage() {
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
         onReset={handleReset}
+        geoData={geoData}
         events={events}
       />
 

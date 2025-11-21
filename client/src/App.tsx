@@ -19,6 +19,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/vide-grenier/region/:regionSlug" element={<HomePage />} />
             <Route path="/vide-grenier/:departmentCode" element={<HomePage />} />
+            <Route path="/brocantes/:departmentSlug/:citySlug" element={<HomePage />} />
             <Route path="/brocantes/:citySlug" element={<HomePage />} />
             <Route path="/mon-compte" element={<MyAccountPage />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />

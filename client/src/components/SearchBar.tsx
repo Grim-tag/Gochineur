@@ -9,9 +9,10 @@ interface SearchBarProps {
   onRadiusChange?: (radius: number) => void
   onReset?: () => void
   events: Event[]
+  geoData?: any
 }
 
-export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchBarProps) {
+export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }: SearchBarProps) {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [radius, setRadius] = useState(25)
@@ -47,6 +48,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchB
     if (!searchTerm.trim()) {
       if (onReset) {
         onReset()
+        navigate('/')
       } else {
         onSearch(searchTerm, radius, eventType)
       }
@@ -57,7 +59,26 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchB
     setGeocoding(true)
     try {
       const geocodeResult = await forwardGeocode(searchTerm.trim())
-      if (geocodeResult) {
+      if (geocodeResult && geoData) {
+        // Trouver la ville dans geo-data pour obtenir le slug
+        const citySlug = searchTerm.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+        const cityData = geoData.cities?.find((c: any) =>
+          c.name.toLowerCase() === searchTerm.trim().toLowerCase() ||
+          c.slug === citySlug
+        )
+
+        if (cityData) {
+          // Trouver le département
+          const dept = geoData.departments?.find((d: any) => d.code === cityData.department)
+          if (dept) {
+            // Créer le slug du département (ex: "landes" pour "40")
+            const deptSlug = dept.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+            // Naviguer vers /brocantes/landes/saint-martin-de-hinx
+            navigate(`/brocantes/${deptSlug}/${cityData.slug}`)
+            return
+          }
+        }
+
         // Appeler onSearch avec les coordonnées géocodées
         onSearch(searchTerm, radius, eventType, geocodeResult)
       } else {
@@ -71,6 +92,15 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchB
     } finally {
       setGeocoding(false)
     }
+  }
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setSearchTerm('')
+    if (onReset) {
+      onReset()
+    }
+    navigate('/')
   }
 
   // Appeler la recherche automatiquement quand le type change
@@ -106,9 +136,9 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchB
         {/* Header avec logo et liens */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
           <div className="w-full md:w-1/3 flex justify-center md:justify-start">
-            <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+            <a href="/" onClick={handleLogoClick} className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
               🛍️ GoChineur
-            </Link>
+            </a>
           </div>
 
           <div className="w-full md:w-1/3 flex justify-center">
