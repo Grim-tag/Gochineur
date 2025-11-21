@@ -52,6 +52,7 @@ export function redirectToGoogleAuth() {
  */
 export function logout() {
   removeToken()
+  localStorage.removeItem('gochineur-circuit')
 }
 
 

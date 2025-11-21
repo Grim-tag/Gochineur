@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 import { calculateDistance, generateChronologicalCircuitUrl, generateEventNavigationUrl } from '../utils/appUtils'
 import { fetchEvents, fetchMyEvents, deleteAccount } from '../services/api'
 import { checkAuth, logout, type User } from '../utils/authUtils'
+import Breadcrumbs from '../components/Breadcrumbs'
 
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -193,10 +194,27 @@ export default function MyAccountPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-12">
+            {/* Header Global */}
+            <div className="bg-white shadow-sm border-b border-gray-200">
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                    <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2">
+                        🛍️ GoChineur
+                    </Link>
+                    <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+                        ← Retour à l'accueil
+                    </Link>
+                </div>
+            </div>
+
             {/* Header Compte */}
             <div className="bg-white shadow mb-6">
                 <div className="container mx-auto px-4 py-6">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <Breadcrumbs items={[
+                        { label: 'Accueil', path: '/' },
+                        { label: 'Mon Compte' }
+                    ]} />
+
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-800">Mon Compte</h1>
                             <div className="mt-2 text-gray-600">
