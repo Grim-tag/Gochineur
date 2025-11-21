@@ -40,7 +40,9 @@ module.exports = function () {
                 name: user.name,
                 displayName: user.displayName,
                 photo: user.photo,
-                role: user.role || 'user'
+                role: user.role || 'user',
+                validatedEventsCount: user.validatedEventsCount || 0,
+                isExpert: user.isExpert || false
             };
 
             res.json({

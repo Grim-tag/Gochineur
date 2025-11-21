@@ -444,7 +444,20 @@ module.exports = function () {
     try {
       const { eventId } = req.params;
       const eventsCollection = getEventsCollection();
+      const usersCollection = getUsersCollection();
 
+      // 1. Récupérer l'événement pour obtenir l'ID de l'utilisateur
+      const event = await eventsCollection.findOne({ id: eventId });
+      if (!event) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+
+      // Si l'événement est déjà validé, ne rien faire de plus (pour éviter de compter deux fois)
+      if (event.statut_validation === 'published') {
+        return res.json({ success: true, message: 'Événement déjà validé', event });
+      }
+
+      // 2. Mettre à jour l'événement
       const result = await eventsCollection.updateOne(
         { id: eventId },
         {
@@ -452,6 +465,55 @@ module.exports = function () {
             statut_validation: 'published',
             validatedAt: new Date().toISOString(),
             validatedBy: req.user.id
+          }
+        }
+      );
+
+      // 3. Si l'événement a un auteur (user_id), mettre à jour ses statistiques
+      if (event.user_id) {
+        // Incrémenter le compteur d'événements validés
+        await usersCollection.updateOne(
+          { id: event.user_id },
+          { $inc: { validatedEventsCount: 1 } }
+        );
+
+        // Vérifier si l'utilisateur devient expert (>= 10 événements validés)
+        const user = await usersCollection.findOne({ id: event.user_id });
+        if (user && user.validatedEventsCount >= 10 && !user.isExpert) {
+          await usersCollection.updateOne(
+            { id: event.user_id },
+            { $set: { isExpert: true } }
+          );
+          console.log(`🎉 L'utilisateur ${user.displayName} (${user.id}) est devenu Chineur Expert !`);
+        }
+      }
+
+      const updatedEvent = await eventsCollection.findOne({ id: eventId });
+
+      res.json({
+        success: true,
+        message: 'Événement validé avec succès',
+        event: updatedEvent
+      });
+    } catch (error) {
+      console.error('Erreur lors de la validation de l\'événement:', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+    }
+  });
+
+  // Route pour refuser un événement
+  router.put('/api/events/:eventId/reject', requireAdminOrModerator, async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      const eventsCollection = getEventsCollection();
+
+      const result = await eventsCollection.updateOne(
+        { id: eventId },
+        {
+          $set: {
+            statut_validation: 'rejected',
+            rejectedAt: new Date().toISOString(),
+            rejectedBy: req.user.id
           }
         }
       );
@@ -464,11 +526,11 @@ module.exports = function () {
 
       res.json({
         success: true,
-        message: 'Événement validé avec succès',
+        message: 'Événement refusé',
         event: updatedEvent
       });
     } catch (error) {
-      console.error('Erreur lors de la validation de l\'événement:', error);
+      console.error('Erreur lors du refus de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });

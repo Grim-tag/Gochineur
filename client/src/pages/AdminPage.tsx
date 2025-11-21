@@ -12,6 +12,8 @@ interface User {
   role: string
   createdAt: string
   updatedAt: string
+  validatedEventsCount?: number
+  isExpert?: boolean
 }
 
 interface Event {
@@ -209,6 +211,30 @@ export default function AdminPage() {
       loadData()
     } catch (err: any) {
       alert(err.message || 'Erreur lors de la validation')
+    }
+  }
+
+  const handleRejectEvent = async (eventId: string) => {
+    if (!confirm('Êtes-vous sûr de vouloir refuser cet événement ?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`${API.BASE_URL}/admin/api/events/${eventId}/reject`, {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erreur lors du refus')
+      }
+
+      // Recharger les événements
+      loadData()
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors du refus')
     }
   }
 
@@ -435,12 +461,18 @@ export default function AdminPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex gap-2">
-                            {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
+                            <button
+                              onClick={() => handleValidateEvent(event.id)}
+                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                            >
+                              Valider
+                            </button>
+                            {(event.statut_validation !== 'rejected' && event.statut_validation !== 'Refusé') && (
                               <button
-                                onClick={() => handleValidateEvent(event.id)}
-                                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                onClick={() => handleRejectEvent(event.id)}
+                                className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
                               >
-                                Valider
+                                Refuser
                               </button>
                             )}
                             <button
@@ -496,6 +528,18 @@ export default function AdminPage() {
                           }`}>
                           {u.role}
                         </span>
+                        {/* @ts-ignore */}
+                        {u.isExpert && (
+                          <span className="ml-2 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                            🏆 Expert
+                          </span>
+                        )}
+                        {/* @ts-ignore */}
+                        {u.validatedEventsCount > 0 && (
+                          <span className="ml-2 text-xs text-gray-500">
+                            ({u.validatedEventsCount} validés)
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {new Date(u.createdAt).toLocaleDateString('fr-FR')}

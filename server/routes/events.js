@@ -295,11 +295,19 @@ module.exports = function () {
         eventHash: eventHash // Ajouter le hash pour la détection de doublons
       };
 
+      // Si l'utilisateur est un expert, l'événement est automatiquement publié
+      if (req.user.isExpert) {
+        newEvent.statut_validation = 'published';
+        newEvent.publishedAt = new Date().toISOString();
+      }
+
       await eventsCollection.insertOne(newEvent);
 
       res.status(201).json({
         success: true,
-        message: 'Événement soumis avec succès. Il est en attente de validation.',
+        message: req.user.isExpert
+          ? 'Événement publié instantanément (Mode Expert) !'
+          : 'Événement soumis avec succès. Il est en attente de validation.',
         event: {
           id: newEvent.id,
           name: newEvent.name,
