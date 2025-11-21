@@ -396,7 +396,19 @@ function transformOEDEvent(oedFeature) {
 
     // Validation ULTRA-STRICTE : ignorer TOUS les événements qui ne sont PAS des événements de "chine"
     const searchText = `${name} ${description} ${properties.what || ''}`.toLowerCase();
-    // Liste exhaustive des mots-clés pertinents (selon spécifications)
+
+    // REJET EXPLICITE des déchets OED connus (traffic, culture générique sans titre, etc.)
+    if (name.startsWith('traffic.') || name.startsWith('culture.') ||
+      (properties.what && (properties.what.startsWith('traffic.') || properties.what.startsWith('culture.')))) {
+      // Sauf si le titre contient explicitement un mot-clé fort
+      const strongKeywords = ['brocante', 'vide-grenier', 'vide grenier', 'puces', 'foire à tout'];
+      const hasStrongKeyword = strongKeywords.some(k => name.toLowerCase().includes(k));
+      if (!hasStrongKeyword) {
+        return null;
+      }
+    }
+
+    // Liste exhaustive des mots-clés pertinents (Mise à jour avec les termes régionaux)
     const chineKeywords = [
       'vide-grenier', 'vide grenier', 'videgrenier',
       'brocante',
@@ -404,14 +416,19 @@ function transformOEDEvent(oedFeature) {
       'puces', 'antiquités', 'antiquites', 'antiquaire', 'marché aux puces', 'marche aux puces',
       'bourse',
       'vide-maison', 'vide maison', 'videmaison',
-      'braderie'
+      'braderie',
+      'foire à tout', 'foire a tout',
+      'réderie', 'rederie',
+      'bric-à-brac', 'bric a brac', 'bricabrac',
+      'déballage', 'deballage',
+      'vide-dressing', 'vide dressing',
+      'vide-poussette', 'vide poussette'
     ];
 
     // Vérifier si l'événement contient au moins un mot-clé pertinent dans le titre ou la description
     const hasChineKeyword = chineKeywords.some(keyword => searchText.includes(keyword));
 
     // REJETER TOUS les événements qui n'ont pas au moins un mot-clé pertinent
-    // Peu importe le type détecté, si aucun mot-clé pertinent n'est trouvé, rejeter
     if (!hasChineKeyword) {
       return null; // Événement non pertinent, rejeter immédiatement
     }
