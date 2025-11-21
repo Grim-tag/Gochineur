@@ -99,6 +99,16 @@ app.use(passport.initialize());
 const userRoutes = require('./routes/user');
 app.use('/api/user', userRoutes());
 
+// Initialisation du planificateur de tâches (Cron)
+const { initScheduler } = require('./services/scheduler');
+// Ne lancer le scheduler qu'en production ou si explicitement demandé
+// pour éviter de lancer des imports lourds en dev à chaque redémarrage
+if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true') {
+  initScheduler();
+} else {
+  console.log('ℹ️  Scheduler désactivé (NODE_ENV != production). Pour l\'activer, définir ENABLE_CRON=true');
+}
+
 // Routes API publiques
 app.use('/api/events', eventsRoutes());
 
