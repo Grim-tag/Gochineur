@@ -26,7 +26,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/set-pseudo" element={<SetPseudoPage />} />
             <Route path="/admin/dashboard" element={<AdminPage />} />
-            <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
+            <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
           </Routes>
         </div>
         <Footer />
