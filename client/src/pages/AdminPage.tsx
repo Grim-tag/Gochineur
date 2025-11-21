@@ -351,10 +351,10 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Chargement...</p>
         </div>
       </div>
     )
@@ -362,13 +362,13 @@ export default function AdminPage() {
 
   if (error && !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Accès refusé</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="bg-background-paper rounded-lg shadow-lg p-8 max-w-md text-center border border-gray-700">
+          <h1 className="text-2xl font-bold text-red-500 mb-4">Accès refusé</h1>
+          <p className="text-text-secondary mb-6">{error}</p>
           <Link
             to="/"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block"
+            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors inline-block"
           >
             Retour à l'accueil
           </Link>
@@ -378,21 +378,21 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white shadow-md">
+      <div className="bg-background-paper shadow-md border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
+            <Link to="/" className="text-2xl font-bold text-primary hover:text-primary-hover transition-colors">
               🛍️ GoChineur - Administration
             </Link>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                Connecté en tant que <strong>{user?.displayName || user?.name}</strong> ({user?.role})
+              <span className="text-sm text-text-secondary">
+                Connecté en tant que <strong className="text-text-primary">{user?.displayName || user?.name}</strong> ({user?.role})
               </span>
               <Link
                 to="/"
-                className="text-gray-600 hover:text-gray-800 transition-colors"
+                className="text-text-secondary hover:text-text-primary transition-colors"
               >
                 ← Retour
               </Link>
@@ -422,19 +422,19 @@ export default function AdminPage() {
                 setLoadingData(false);
               }
             }}
-            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-lg shadow-purple-900/20"
           >
             📥 Lancer l'importation (6 mois)
           </button>
         </div>
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-6">
-          <div className="flex border-b">
+        <div className="bg-background-paper rounded-lg shadow-md mb-6 border border-gray-700">
+          <div className="flex border-b border-gray-700">
             <button
               onClick={() => setActiveTab('events')}
               className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'events'
-                ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-background-lighter text-primary border-b-2 border-primary'
+                : 'text-text-secondary hover:bg-background-lighter/50'
                 }`}
             >
               Événements ({events.length})
@@ -442,8 +442,8 @@ export default function AdminPage() {
             <button
               onClick={() => setActiveTab('users')}
               className={`flex-1 px-6 py-4 font-semibold transition-colors ${activeTab === 'users'
-                ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-background-lighter text-primary border-b-2 border-primary'
+                : 'text-text-secondary hover:bg-background-lighter/50'
                 }`}
             >
               Utilisateurs ({users.length})
@@ -452,25 +452,25 @@ export default function AdminPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600">{error}</p>
+          <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 mb-6">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {loadingData ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : activeTab === 'events' ? (
           <>
             {/* Onglets de période */}
-            <div className="bg-white rounded-lg shadow-md mb-6">
-              <div className="flex border-b">
+            <div className="bg-background-paper rounded-lg shadow-md mb-6 border border-gray-700">
+              <div className="flex border-b border-gray-700">
                 <button
                   onClick={() => setActivePeriod('1')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '1'
-                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-background-lighter text-green-400 border-b-2 border-green-500'
+                    : 'text-text-secondary hover:bg-background-lighter/50'
                     }`}
                 >
                   2 Mois en Cours
@@ -478,8 +478,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setActivePeriod('2')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '2'
-                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-background-lighter text-green-400 border-b-2 border-green-500'
+                    : 'text-text-secondary hover:bg-background-lighter/50'
                     }`}
                 >
                   Reste de l'Année 2025
@@ -487,8 +487,8 @@ export default function AdminPage() {
                 <button
                   onClick={() => setActivePeriod('3')}
                   className={`flex-1 px-6 py-3 font-semibold transition-colors ${activePeriod === '3'
-                    ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-background-lighter text-green-400 border-b-2 border-green-500'
+                    : 'text-text-secondary hover:bg-background-lighter/50'
                     }`}
                 >
                   Année Suivante 2026
@@ -498,14 +498,14 @@ export default function AdminPage() {
 
 
             {/* Filtres de statut */}
-            <div className="bg-white rounded-lg shadow-md mb-6 p-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Filtrer par statut</h3>
+            <div className="bg-background-paper rounded-lg shadow-md mb-6 p-4 border border-gray-700">
+              <h3 className="text-sm font-semibold text-text-muted uppercase mb-3">Filtrer par statut</h3>
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setFilterStatus('all')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'all'
-                    ? 'bg-gray-800 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-background-lighter text-white border border-gray-600'
+                    : 'bg-background text-text-secondary hover:bg-background-lighter border border-gray-800'
                     }`}
                 >
                   Tous
@@ -513,13 +513,13 @@ export default function AdminPage() {
                 <button
                   onClick={() => setFilterStatus('pending')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'pending'
-                    ? 'bg-yellow-500 text-white'
-                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                    ? 'bg-yellow-600 text-white'
+                    : 'bg-yellow-900/20 text-yellow-500 hover:bg-yellow-900/40 border border-yellow-900/30'
                     }`}
                 >
                   ⏳ En attente
                   {events.filter(e => ['pending_review', 'En attente', 'En Attente', undefined].includes(e.statut_validation)).length > 0 && (
-                    <span className="bg-white text-yellow-600 text-xs px-2 py-0.5 rounded-full font-bold">
+                    <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
                       {events.filter(e => ['pending_review', 'En attente', 'En Attente', undefined].includes(e.statut_validation)).length}
                     </span>
                   )}
@@ -528,7 +528,7 @@ export default function AdminPage() {
                   onClick={() => setFilterStatus('published')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'published'
                     ? 'bg-green-600 text-white'
-                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                    : 'bg-green-900/20 text-green-500 hover:bg-green-900/40 border border-green-900/30'
                     }`}
                 >
                   ✅ Publiés
@@ -537,7 +537,7 @@ export default function AdminPage() {
                   onClick={() => setFilterStatus('rejected')}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'rejected'
                     ? 'bg-red-600 text-white'
-                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                    : 'bg-red-900/20 text-red-500 hover:bg-red-900/40 border border-red-900/30'
                     }`}
                 >
                   ❌ Refusés
@@ -547,41 +547,41 @@ export default function AdminPage() {
 
             {/* Bulk Actions Toolbar */}
             {selectedEvents.length > 0 && (
-              <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-4 border border-gray-200 z-50 animate-fade-in-up">
-                <span className="font-semibold text-gray-700">{selectedEvents.length} sélectionné(s)</span>
-                <div className="h-6 w-px bg-gray-300"></div>
+              <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-background-paper shadow-xl rounded-full px-6 py-3 flex items-center gap-4 border border-gray-600 z-50 animate-fade-in-up">
+                <span className="font-semibold text-text-primary">{selectedEvents.length} sélectionné(s)</span>
+                <div className="h-6 w-px bg-gray-600"></div>
                 <button
                   onClick={handleBulkValidate}
-                  className="text-green-600 hover:text-green-800 font-medium flex items-center gap-1"
+                  className="text-green-400 hover:text-green-300 font-medium flex items-center gap-1"
                 >
                   ✅ Valider
                 </button>
                 <button
                   onClick={handleBulkReject}
-                  className="text-orange-600 hover:text-orange-800 font-medium flex items-center gap-1"
+                  className="text-orange-400 hover:text-orange-300 font-medium flex items-center gap-1"
                 >
                   🚫 Refuser
                 </button>
                 <button
                   onClick={handleBulkDelete}
-                  className="text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                  className="text-red-400 hover:text-red-300 font-medium flex items-center gap-1"
                 >
                   🗑️ Supprimer
                 </button>
-                <div className="h-6 w-px bg-gray-300"></div>
+                <div className="h-6 w-px bg-gray-600"></div>
                 <button
                   onClick={() => setSelectedEvents([])}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-text-muted hover:text-text-secondary"
                 >
                   Annuler
                 </button>
               </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-background-paper rounded-lg shadow-md overflow-hidden border border-gray-700">
               <div className="overflow-x-auto">
                 <table className="w-full table-auto">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-background-lighter">
                     <tr>
                       <th className="px-4 py-3 w-10">
                         <input
@@ -607,18 +607,18 @@ export default function AdminPage() {
                             if (filterStatus === 'rejected') return ['rejected', 'Refusé'].includes(event.statut_validation)
                             return true
                           }).length}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-gray-600 bg-background text-primary focus:ring-primary"
                         />
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/4">Nom</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Type</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Lieu</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Statut</th>
-                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-48">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase w-1/4">Nom</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase w-1/6">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase w-24">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase w-1/6">Lieu</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase w-24">Statut</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-text-secondary uppercase w-48">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-700">
                     {events
                       .filter(event => {
                         if (filterStatus === 'all') return true
@@ -628,7 +628,7 @@ export default function AdminPage() {
                         return true
                       })
                       .map((event) => (
-                        <tr key={event.id} className={`hover:bg-gray-50 ${selectedEvents.includes(event.id) ? 'bg-blue-50' : ''}`}>
+                        <tr key={event.id} className={`hover:bg-background-lighter/50 transition-colors ${selectedEvents.includes(event.id) ? 'bg-primary/10' : ''}`}>
                           <td className="px-4 py-3">
                             <input
                               type="checkbox"
@@ -640,21 +640,21 @@ export default function AdminPage() {
                                   setSelectedEvents(selectedEvents.filter(id => id !== event.id))
                                 }
                               }}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="rounded border-gray-600 bg-background text-primary focus:ring-primary"
                             />
                           </td>
-                          <td className="px-4 py-3 font-medium text-sm truncate max-w-[200px]" title={event.name}>{event.name}</td>
-                          <td className="px-4 py-3 text-sm whitespace-nowrap">{event.type}</td>
-                          <td className="px-4 py-3 text-sm whitespace-nowrap">
+                          <td className="px-4 py-3 font-medium text-sm text-text-primary truncate max-w-[200px]" title={event.name}>{event.name}</td>
+                          <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">{event.type}</td>
+                          <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap">
                             {new Date(event.date_debut).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
                           </td>
-                          <td className="px-4 py-3 text-sm truncate max-w-[150px]" title={event.city}>{event.city}</td>
+                          <td className="px-4 py-3 text-sm text-text-secondary truncate max-w-[150px]" title={event.city}>{event.city}</td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
-                              ? 'bg-green-100 text-green-800'
+                              ? 'bg-green-900/30 text-green-400 border border-green-900/50'
                               : event.statut_validation === 'rejected' || event.statut_validation === 'Refusé'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
+                                ? 'bg-red-900/30 text-red-400 border border-red-900/50'
+                                : 'bg-yellow-900/30 text-yellow-400 border border-yellow-900/50'
                               }`}>
                               {event.statut_validation === 'published' || event.statut_validation === 'Validé'
                                 ? 'Publié'
@@ -668,7 +668,7 @@ export default function AdminPage() {
                               {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
                                 <button
                                   onClick={() => handleValidateEvent(event.id)}
-                                  className="text-green-600 hover:bg-green-50 p-1.5 rounded"
+                                  className="text-green-400 hover:bg-green-900/20 p-1.5 rounded transition-colors"
                                   title="Valider"
                                 >
                                   ✅
@@ -677,7 +677,7 @@ export default function AdminPage() {
                               {(event.statut_validation !== 'rejected' && event.statut_validation !== 'Refusé') && (
                                 <button
                                   onClick={() => handleRejectEvent(event.id)}
-                                  className="text-orange-600 hover:bg-orange-50 p-1.5 rounded"
+                                  className="text-orange-400 hover:bg-orange-900/20 p-1.5 rounded transition-colors"
                                   title="Refuser"
                                 >
                                   🚫
@@ -685,14 +685,14 @@ export default function AdminPage() {
                               )}
                               <button
                                 onClick={() => handleEditEvent(event)}
-                                className="text-blue-600 hover:bg-blue-50 p-1.5 rounded"
+                                className="text-blue-400 hover:bg-blue-900/20 p-1.5 rounded transition-colors"
                                 title="Éditer"
                               >
                                 ✏️
                               </button>
                               <button
                                 onClick={() => handleDeleteEvent(event.id, event.name)}
-                                className="text-red-600 hover:bg-red-50 p-1.5 rounded"
+                                className="text-red-400 hover:bg-red-900/20 p-1.5 rounded transition-colors"
                                 title="Supprimer"
                               >
                                 🗑️
@@ -704,7 +704,7 @@ export default function AdminPage() {
                   </tbody>
                 </table>
                 {events.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
+                  <div className="text-center py-12 text-text-muted">
                     Aucun événement trouvé
                   </div>
                 )}
@@ -712,46 +712,46 @@ export default function AdminPage() {
             </div>
           </>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-background-paper rounded-lg shadow-md overflow-hidden border border-gray-700">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-background-lighter">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pseudo</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rôle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Créé le</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Pseudo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Rôle</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Créé le</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-700">
                   {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">{u.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{u.displayName || u.name}</td>
+                    <tr key={u.id} className="hover:bg-background-lighter/50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-text-primary">{u.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-text-primary">{u.displayName || u.name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.role === 'admin'
-                          ? 'bg-purple-100 text-purple-800'
+                          ? 'bg-purple-900/30 text-purple-400 border border-purple-900/50'
                           : u.role === 'moderator'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-blue-900/30 text-blue-400 border border-blue-900/50'
+                            : 'bg-gray-700 text-gray-300'
                           }`}>
                           {u.role}
                         </span>
                         {/* @ts-ignore */}
                         {u.isExpert && (
-                          <span className="ml-2 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                          <span className="ml-2 px-2 py-1 rounded-full text-xs font-semibold bg-amber-900/30 text-amber-400 border border-amber-900/50">
                             🏆 Expert
                           </span>
                         )}
                         {/* @ts-ignore */}
                         {u.validatedEventsCount > 0 && (
-                          <span className="ml-2 text-xs text-gray-500">
+                          <span className="ml-2 text-xs text-text-muted">
                             ({u.validatedEventsCount} validés)
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap text-text-secondary">
                         {new Date(u.createdAt).toLocaleDateString('fr-FR')}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -761,7 +761,7 @@ export default function AdminPage() {
                               <select
                                 value={u.role}
                                 onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                                className="border border-gray-600 rounded px-2 py-1 text-sm bg-background text-text-primary focus:ring-primary focus:border-primary"
                               >
                                 <option value="user">user</option>
                                 <option value="moderator">moderator</option>
@@ -769,7 +769,7 @@ export default function AdminPage() {
                               </select>
                               <button
                                 onClick={() => handleDeleteUser(u.id, u.email)}
-                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors"
                               >
                                 Supprimer (RGPD)
                               </button>
@@ -782,7 +782,7 @@ export default function AdminPage() {
                 </tbody>
               </table>
               {users.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-text-muted">
                   Aucun utilisateur trouvé
                 </div>
               )}
@@ -794,31 +794,31 @@ export default function AdminPage() {
       {/* Modal d'édition */}
       {
         editingEvent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-4">Éditer l'événement</h2>
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="bg-background-paper rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-gray-700">
+              <h2 className="text-2xl font-bold mb-4 text-text-primary">Éditer l'événement</h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Nom de l'événement
                   </label>
                   <input
                     type="text"
                     value={editForm.name || ''}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Type
                   </label>
                   <select
                     value={editForm.type || ''}
                     onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
                   >
                     <option value="Vide-Grenier">Vide-Grenier</option>
                     <option value="Brocante">Brocante</option>
@@ -830,38 +830,38 @@ export default function AdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Date de début
                   </label>
                   <input
                     type="date"
                     value={editForm.date_debut ? editForm.date_debut.split('T')[0] : ''}
                     onChange={(e) => setEditForm({ ...editForm, date_debut: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Ville
                   </label>
                   <input
                     type="text"
                     value={editForm.city || ''}
                     onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     Adresse
                   </label>
                   <input
                     type="text"
                     value={editForm.address || ''}
                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
                   />
                 </div>
               </div>
@@ -869,7 +869,7 @@ export default function AdminPage() {
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={handleSaveEdit}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors"
                 >
                   Enregistrer
                 </button>
@@ -878,7 +878,7 @@ export default function AdminPage() {
                     setEditingEvent(null)
                     setEditForm({})
                   }}
-                  className="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors"
+                  className="flex-1 bg-background-lighter text-text-primary px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Annuler
                 </button>
