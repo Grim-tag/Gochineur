@@ -34,6 +34,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'users' | 'events'>('events')
   const [activePeriod, setActivePeriod] = useState<'1' | '2' | '3' | 'all'>('1') // Onglet de période par défaut
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'published' | 'rejected'>('all')
   const [users, setUsers] = useState<User[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [loadingData, setLoadingData] = useState(false)
@@ -423,6 +424,55 @@ export default function AdminPage() {
               </div>
             </div>
 
+
+            {/* Filtres de statut */}
+            <div className="bg-white rounded-lg shadow-md mb-6 p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Filtrer par statut</h3>
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'all'
+                    ? 'bg-gray-800 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                >
+                  Tous
+                </button>
+                <button
+                  onClick={() => setFilterStatus('pending')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${filterStatus === 'pending'
+                    ? 'bg-yellow-500 text-white'
+                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                    }`}
+                >
+                  ⏳ En attente
+                  {events.filter(e => ['pending_review', 'En attente', 'En Attente', undefined].includes(e.statut_validation)).length > 0 && (
+                    <span className="bg-white text-yellow-600 text-xs px-2 py-0.5 rounded-full font-bold">
+                      {events.filter(e => ['pending_review', 'En attente', 'En Attente', undefined].includes(e.statut_validation)).length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setFilterStatus('published')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'published'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                    }`}
+                >
+                  ✅ Publiés
+                </button>
+                <button
+                  onClick={() => setFilterStatus('rejected')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${filterStatus === 'rejected'
+                    ? 'bg-red-600 text-white'
+                    : 'bg-red-50 text-red-700 hover:bg-red-100'
+                    }`}
+                >
+                  ❌ Refusés
+                </button>
+              </div>
+            </div>
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -438,59 +488,73 @@ export default function AdminPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {events.map((event) => (
-                      <tr key={event.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap font-medium">{event.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{event.type}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {new Date(event.date_debut).toLocaleDateString('fr-FR')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">{event.city}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                            {event.statut_validation === 'published' || event.statut_validation === 'Validé'
-                              ? 'Publié'
-                              : event.statut_validation === 'pending_review' || event.statut_validation === 'En attente' || event.statut_validation === 'En Attente'
-                                ? 'En attente'
-                                : event.statut_validation || 'Non défini'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleValidateEvent(event.id)}
-                              className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                            >
-                              Valider
-                            </button>
-                            {(event.statut_validation !== 'rejected' && event.statut_validation !== 'Refusé') && (
+                    {events
+                      .filter(event => {
+                        if (filterStatus === 'all') return true
+                        if (filterStatus === 'pending') return ['pending_review', 'En attente', 'En Attente', undefined].includes(event.statut_validation)
+                        if (filterStatus === 'published') return ['published', 'Validé'].includes(event.statut_validation)
+                        if (filterStatus === 'rejected') return ['rejected', 'Refusé'].includes(event.statut_validation)
+                        return true
+                      })
+                      .map((event) => (
+                        <tr key={event.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap font-medium">{event.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{event.type}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {new Date(event.date_debut).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">{event.city}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
+                              ? 'bg-green-100 text-green-800'
+                              : event.statut_validation === 'rejected' || event.statut_validation === 'Refusé'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                              {event.statut_validation === 'published' || event.statut_validation === 'Validé'
+                                ? 'Publié'
+                                : event.statut_validation === 'pending_review' || event.statut_validation === 'En attente' || event.statut_validation === 'En Attente'
+                                  ? 'En attente'
+                                  : event.statut_validation === 'rejected' || event.statut_validation === 'Refusé'
+                                    ? 'Refusé'
+                                    : event.statut_validation || 'Non défini'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex gap-2">
+                              {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
+                                <button
+                                  onClick={() => handleValidateEvent(event.id)}
+                                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                >
+                                  Valider
+                                </button>
+                              )}
+                              {(event.statut_validation !== 'rejected' && event.statut_validation !== 'Refusé') && (
+                                <button
+                                  onClick={() => handleRejectEvent(event.id)}
+                                  className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                                >
+                                  Refuser
+                                </button>
+                              )}
                               <button
-                                onClick={() => handleRejectEvent(event.id)}
-                                className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                                onClick={() => handleEditEvent(event)}
+                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
                               >
-                                Refuser
+                                Éditer
                               </button>
-                            )}
-                            <button
-                              onClick={() => handleEditEvent(event)}
-                              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
-                            >
-                              Éditer
-                            </button>
-                            <button
-                              onClick={() => handleDeleteEvent(event.id, event.name)}
-                              className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                            >
-                              Supprimer
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                              <button
+                                onClick={() => handleDeleteEvent(event.id, event.name)}
+                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                              >
+                                Supprimer
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
                 {events.length === 0 && (
@@ -582,100 +646,102 @@ export default function AdminPage() {
       </div>
 
       {/* Modal d'édition */}
-      {editingEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">Éditer l'événement</h2>
+      {
+        editingEvent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-4">Éditer l'événement</h2>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom de l'événement
-                </label>
-                <input
-                  type="text"
-                  value={editForm.name || ''}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nom de l'événement
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name || ''}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type
+                  </label>
+                  <select
+                    value={editForm.type || ''}
+                    onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Vide-Grenier">Vide-Grenier</option>
+                    <option value="Brocante">Brocante</option>
+                    <option value="Puces et Antiquités">Puces et Antiquités</option>
+                    <option value="Bourse">Bourse</option>
+                    <option value="Vide Maison">Vide Maison</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Date de début
+                  </label>
+                  <input
+                    type="date"
+                    value={editForm.date_debut ? editForm.date_debut.split('T')[0] : ''}
+                    onChange={(e) => setEditForm({ ...editForm, date_debut: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ville
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.city || ''}
+                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Adresse
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.address || ''}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type
-                </label>
-                <select
-                  value={editForm.type || ''}
-                  onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <option value="Vide-Grenier">Vide-Grenier</option>
-                  <option value="Brocante">Brocante</option>
-                  <option value="Puces et Antiquités">Puces et Antiquités</option>
-                  <option value="Bourse">Bourse</option>
-                  <option value="Vide Maison">Vide Maison</option>
-                  <option value="Autre">Autre</option>
-                </select>
+                  Enregistrer
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingEvent(null)
+                    setEditForm({})
+                  }}
+                  className="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Annuler
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date de début
-                </label>
-                <input
-                  type="date"
-                  value={editForm.date_debut ? editForm.date_debut.split('T')[0] : ''}
-                  onChange={(e) => setEditForm({ ...editForm, date_debut: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ville
-                </label>
-                <input
-                  type="text"
-                  value={editForm.city || ''}
-                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Adresse
-                </label>
-                <input
-                  type="text"
-                  value={editForm.address || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleSaveEdit}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Enregistrer
-              </button>
-              <button
-                onClick={() => {
-                  setEditingEvent(null)
-                  setEditForm({})
-                }}
-                className="flex-1 bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors"
-              >
-                Annuler
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   )
 }
 
