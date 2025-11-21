@@ -195,6 +195,10 @@ export default function AdminPage() {
     }
   }
 
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([])
+
+  // ... (keep existing handlers but modify them)
+
   const handleValidateEvent = async (eventId: string) => {
     try {
       const response = await fetch(`${API.BASE_URL}/api/admin/events/${eventId}/validate`, {
@@ -202,38 +206,26 @@ export default function AdminPage() {
         headers: getAuthHeaders()
       })
 
-      const data = await response.json()
+      if (!response.ok) throw new Error('Erreur lors de la validation')
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la validation')
-      }
-
-      // Recharger les événements
-      loadData()
+      // Mise à jour locale sans rechargement
+      setEvents(events.map(e => e.id === eventId ? { ...e, statut_validation: 'published' } : e))
     } catch (err: any) {
       alert(err.message || 'Erreur lors de la validation')
     }
   }
 
   const handleRejectEvent = async (eventId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir refuser cet événement ?')) {
-      return
-    }
-
     try {
       const response = await fetch(`${API.BASE_URL}/api/admin/events/${eventId}/reject`, {
         method: 'PUT',
         headers: getAuthHeaders()
       })
 
-      const data = await response.json()
+      if (!response.ok) throw new Error('Erreur lors du refus')
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors du refus')
-      }
-
-      // Recharger les événements
-      loadData()
+      // Mise à jour locale sans rechargement
+      setEvents(events.map(e => e.id === eventId ? { ...e, statut_validation: 'rejected' } : e))
     } catch (err: any) {
       alert(err.message || 'Erreur lors du refus')
     }
@@ -272,6 +264,7 @@ export default function AdminPage() {
       // Recharger les événements
       setEditingEvent(null)
       setEditForm({})
+      // Pour l'édition, on recharge tout car les données peuvent avoir changé de manière complexe
       loadData()
     } catch (err: any) {
       alert(err.message || 'Erreur lors de la modification')
@@ -289,16 +282,70 @@ export default function AdminPage() {
         headers: getAuthHeaders()
       })
 
-      const data = await response.json()
+      if (!response.ok) throw new Error('Erreur lors de la suppression')
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la suppression')
-      }
-
-      // Recharger les événements
-      loadData()
+      // Mise à jour locale sans rechargement
+      setEvents(events.filter(e => e.id !== eventId))
+      setSelectedEvents(selectedEvents.filter(id => id !== eventId))
     } catch (err: any) {
       alert(err.message || 'Erreur lors de la suppression')
+    }
+  }
+
+  const handleBulkValidate = async () => {
+    if (!confirm(`Valider ${selectedEvents.length} événements ?`)) return
+
+    try {
+      await Promise.all(selectedEvents.map(id =>
+        fetch(`${API.BASE_URL}/api/admin/events/${id}/validate`, {
+          method: 'PUT',
+          headers: getAuthHeaders()
+        })
+      ))
+
+      // Mise à jour locale
+      setEvents(events.map(e => selectedEvents.includes(e.id) ? { ...e, statut_validation: 'published' } : e))
+      setSelectedEvents([])
+    } catch (err) {
+      alert('Erreur lors de la validation de masse')
+    }
+  }
+
+  const handleBulkReject = async () => {
+    if (!confirm(`Refuser ${selectedEvents.length} événements ?`)) return
+
+    try {
+      await Promise.all(selectedEvents.map(id =>
+        fetch(`${API.BASE_URL}/api/admin/events/${id}/reject`, {
+          method: 'PUT',
+          headers: getAuthHeaders()
+        })
+      ))
+
+      // Mise à jour locale
+      setEvents(events.map(e => selectedEvents.includes(e.id) ? { ...e, statut_validation: 'rejected' } : e))
+      setSelectedEvents([])
+    } catch (err) {
+      alert('Erreur lors du refus de masse')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Supprimer DÉFINITIVEMENT ${selectedEvents.length} événements ?`)) return
+
+    try {
+      await Promise.all(selectedEvents.map(id =>
+        fetch(`${API.BASE_URL}/api/admin/events/${id}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        })
+      ))
+
+      // Mise à jour locale
+      setEvents(events.filter(e => !selectedEvents.includes(e.id)))
+      setSelectedEvents([])
+    } catch (err) {
+      alert('Erreur lors de la suppression de masse')
     }
   }
 
@@ -498,18 +545,77 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Bulk Actions Toolbar */}
+            {selectedEvents.length > 0 && (
+              <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white shadow-xl rounded-full px-6 py-3 flex items-center gap-4 border border-gray-200 z-50 animate-fade-in-up">
+                <span className="font-semibold text-gray-700">{selectedEvents.length} sélectionné(s)</span>
+                <div className="h-6 w-px bg-gray-300"></div>
+                <button
+                  onClick={handleBulkValidate}
+                  className="text-green-600 hover:text-green-800 font-medium flex items-center gap-1"
+                >
+                  ✅ Valider
+                </button>
+                <button
+                  onClick={handleBulkReject}
+                  className="text-orange-600 hover:text-orange-800 font-medium flex items-center gap-1"
+                >
+                  🚫 Refuser
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="text-red-600 hover:text-red-800 font-medium flex items-center gap-1"
+                >
+                  🗑️ Supprimer
+                </button>
+                <div className="h-6 w-px bg-gray-300"></div>
+                <button
+                  onClick={() => setSelectedEvents([])}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Annuler
+                </button>
+              </div>
+            )}
+
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full table-auto">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lieu</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Soumis par</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Statut</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      <th className="px-4 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const filteredEvents = events.filter(event => {
+                                if (filterStatus === 'all') return true
+                                if (filterStatus === 'pending') return ['pending_review', 'En attente', 'En Attente', undefined].includes(event.statut_validation)
+                                if (filterStatus === 'published') return ['published', 'Validé'].includes(event.statut_validation)
+                                if (filterStatus === 'rejected') return ['rejected', 'Refusé'].includes(event.statut_validation)
+                                return true
+                              })
+                              setSelectedEvents(filteredEvents.map(e => e.id))
+                            } else {
+                              setSelectedEvents([])
+                            }
+                          }}
+                          checked={selectedEvents.length > 0 && selectedEvents.length === events.filter(event => {
+                            if (filterStatus === 'all') return true
+                            if (filterStatus === 'pending') return ['pending_review', 'En attente', 'En Attente', undefined].includes(event.statut_validation)
+                            if (filterStatus === 'published') return ['published', 'Validé'].includes(event.statut_validation)
+                            if (filterStatus === 'rejected') return ['rejected', 'Refusé'].includes(event.statut_validation)
+                            return true
+                          }).length}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/4">Nom</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/6">Lieu</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">Statut</th>
+                      <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-48">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -522,16 +628,29 @@ export default function AdminPage() {
                         return true
                       })
                       .map((event) => (
-                        <tr key={event.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap font-medium">{event.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{event.type}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            {new Date(event.date_debut).toLocaleDateString('fr-FR')}
+                        <tr key={event.id} className={`hover:bg-gray-50 ${selectedEvents.includes(event.id) ? 'bg-blue-50' : ''}`}>
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={selectedEvents.includes(event.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedEvents([...selectedEvents, event.id])
+                                } else {
+                                  setSelectedEvents(selectedEvents.filter(id => id !== event.id))
+                                }
+                              }}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{event.city}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">{event.submitted_by_pseudo || 'Inconnu'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
+                          <td className="px-4 py-3 font-medium text-sm truncate max-w-[200px]" title={event.name}>{event.name}</td>
+                          <td className="px-4 py-3 text-sm whitespace-nowrap">{event.type}</td>
+                          <td className="px-4 py-3 text-sm whitespace-nowrap">
+                            {new Date(event.date_debut).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                          </td>
+                          <td className="px-4 py-3 text-sm truncate max-w-[150px]" title={event.city}>{event.city}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${event.statut_validation === 'published' || event.statut_validation === 'Validé'
                               ? 'bg-green-100 text-green-800'
                               : event.statut_validation === 'rejected' || event.statut_validation === 'Refusé'
                                 ? 'bg-red-100 text-red-800'
@@ -540,41 +659,43 @@ export default function AdminPage() {
                               {event.statut_validation === 'published' || event.statut_validation === 'Validé'
                                 ? 'Publié'
                                 : event.statut_validation === 'pending_review' || event.statut_validation === 'En attente' || event.statut_validation === 'En Attente'
-                                  ? 'En attente'
-                                  : event.statut_validation === 'rejected' || event.statut_validation === 'Refusé'
-                                    ? 'Refusé'
-                                    : event.statut_validation || 'Non défini'}
+                                  ? 'Attente'
+                                  : 'Refusé'}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex gap-2">
+                          <td className="px-4 py-3 whitespace-nowrap text-right">
+                            <div className="flex justify-end gap-1">
                               {(event.statut_validation !== 'published' && event.statut_validation !== 'Validé') && (
                                 <button
                                   onClick={() => handleValidateEvent(event.id)}
-                                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                                  className="text-green-600 hover:bg-green-50 p-1.5 rounded"
+                                  title="Valider"
                                 >
-                                  Valider
+                                  ✅
                                 </button>
                               )}
                               {(event.statut_validation !== 'rejected' && event.statut_validation !== 'Refusé') && (
                                 <button
                                   onClick={() => handleRejectEvent(event.id)}
-                                  className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+                                  className="text-orange-600 hover:bg-orange-50 p-1.5 rounded"
+                                  title="Refuser"
                                 >
-                                  Refuser
+                                  🚫
                                 </button>
                               )}
                               <button
                                 onClick={() => handleEditEvent(event)}
-                                className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                                className="text-blue-600 hover:bg-blue-50 p-1.5 rounded"
+                                title="Éditer"
                               >
-                                Éditer
+                                ✏️
                               </button>
                               <button
                                 onClick={() => handleDeleteEvent(event.id, event.name)}
-                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                className="text-red-600 hover:bg-red-50 p-1.5 rounded"
+                                title="Supprimer"
                               >
-                                Supprimer
+                                🗑️
                               </button>
                             </div>
                           </td>
