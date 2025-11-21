@@ -153,11 +153,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
           )
           const data = await response.json()
 
-          console.log('Reverse geocoding data:', data)
           const cityName = data.address?.city || data.address?.town || data.address?.village || 'Votre position'
-          const postalCode = data.address?.postcode
-
-          console.log(`Géolocalisation: ${cityName}, Code postal: ${postalCode}`)
 
           // Essayer de trouver la ville dans geoData
           if (geoData) {
@@ -172,7 +168,6 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
 
             // Si pas trouvée, l'ajouter via l'API
             if (!cityData) {
-              console.log(`Ville ${cityName} non trouvée, ajout via API avec code postal ${postalCode}`)
               const addCityRes = await fetch(`${window.location.origin}/api/geo/add-city`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -181,7 +176,6 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
               const addCityData = await addCityRes.json()
               if (addCityData.success) {
                 cityData = addCityData.city
-                console.log(`Ville ajoutée:`, cityData)
               }
             }
 
