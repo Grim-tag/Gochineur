@@ -17,23 +17,23 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
     event.type.toLowerCase().includes('vide grenier') || event.type.toLowerCase().includes('vide-grenier')
       ? 'bg-green-100 text-green-800'
       : event.type.toLowerCase().includes('brocante') || event.type.toLowerCase().includes('puces')
-      ? 'bg-blue-100 text-blue-800'
-      : 'bg-purple-100 text-purple-800'
+        ? 'bg-blue-100 text-blue-800'
+        : 'bg-purple-100 text-purple-800'
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-200">
+    <div className="bg-background-paper rounded-lg shadow-lg p-6 hover:shadow-xl transition-all border border-gray-700 hover:border-primary/50 group">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-800 mb-2">{event.name}</h3>
+          <h3 className="text-xl font-bold text-text-primary mb-2 group-hover:text-primary transition-colors">{event.name}</h3>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${eventTypeClass}`}>
               {event.type}
             </span>
-            <span className="text-gray-500 text-sm">
-              📍 {event.city} ({event.postalCode})
+            <span className="text-text-secondary text-sm flex items-center gap-1">
+              📍 {event.city} <span className="text-text-muted">({event.postalCode})</span>
             </span>
             {event.distance !== undefined && (
-              <span className="text-gray-500 text-sm">
+              <span className="text-primary text-sm font-medium">
                 📏 {event.distance} km
               </span>
             )}
@@ -41,14 +41,14 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
         </div>
       </div>
 
-      <div className="mb-3">
-        <p className="text-gray-600 font-medium mb-1">
+      <div className="mb-4">
+        <p className="text-text-primary font-medium mb-1 flex items-center gap-2">
           📅 {formattedDate}
         </p>
-        <p className="text-gray-500 text-sm mb-2">
+        <p className="text-text-muted text-sm mb-2">
           {event.address}
         </p>
-        <p className="text-gray-700 text-sm line-clamp-2">
+        <p className="text-text-secondary text-sm line-clamp-2">
           {event.description}
         </p>
       </div>
@@ -56,11 +56,10 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
       <button
         onClick={() => onAddToCircuit(event.id)}
         disabled={isInCircuit}
-        className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${
-          isInCircuit
-            ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
-        }`}
+        className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${isInCircuit
+            ? 'bg-background-lighter text-text-muted cursor-not-allowed'
+            : 'bg-primary text-white hover:bg-primary-hover shadow-md shadow-orange-900/20'
+          }`}
       >
         {isInCircuit ? 'Déjà dans le circuit' : 'Ajouter au circuit'}
       </button>

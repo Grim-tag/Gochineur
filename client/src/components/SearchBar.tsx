@@ -245,14 +245,13 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
   }
 
   return (
-    <div className="bg-white shadow-md sticky top-0 z-50">
+    <div className="bg-background-paper shadow-md sticky top-0 z-50 border-b border-gray-700">
       <div className="container mx-auto px-4 py-4">
-        {/* Header avec logo et liens */}
         {/* Header avec logo et liens */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
           <div className="w-full md:w-1/3 flex justify-center md:justify-start">
-            <a href="/" onClick={handleLogoClick} className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
-              🛍️ GoChineur
+            <a href="/" onClick={handleLogoClick} className="text-2xl font-bold text-primary hover:text-primary-hover transition-colors cursor-pointer flex items-center gap-2">
+              <span className="text-3xl">🛍️</span> GoChineur
             </a>
           </div>
 
@@ -260,7 +259,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
             <button
               onClick={handleAddEventClick}
               disabled={authLoading}
-              className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transform hover:scale-105 duration-200 font-semibold"
+              className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-900/20 transform hover:scale-105 duration-200 font-semibold"
             >
               <span>➕ Ajouter un événement</span>
             </button>
@@ -270,18 +269,18 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
             {!user ? (
               <button
                 onClick={redirectToGoogleAuth}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="bg-background-lighter text-text-primary border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
               >
                 <span>Se connecter</span>
               </button>
             ) : (
               <Link
                 to="/mon-compte"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="bg-background-lighter text-text-primary border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
               >
                 <span>👤 Mon compte</span>
                 {circuitCount > 0 && (
-                  <span className="bg-white text-blue-600 rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
+                  <span className="bg-primary text-white rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
                     {circuitCount}
                   </span>
                 )}
@@ -291,11 +290,11 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
         </div>
 
         {/* Barre de recherche */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col md:flex-row gap-2 mb-4">
           <button
             onClick={handleGeolocate}
             disabled={geolocating}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            className="w-full md:w-auto px-4 py-3 md:py-2 bg-background-lighter text-text-primary border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             title="Me géolocaliser"
           >
             {geolocating ? '📍...' : '📍 Autour de moi'}
@@ -306,13 +305,13 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-4 py-3 md:py-2 bg-background text-text-primary border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary placeholder-gray-500"
             disabled={geocoding}
           />
           <button
             onClick={handleSearch}
             disabled={geocoding}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-6 py-3 md:py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed font-semibold"
           >
             {geocoding ? 'Recherche...' : 'Rechercher'}
           </button>
@@ -321,8 +320,8 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
         {/* Filtres */}
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <div className="w-full md:w-1/2">
-            <label htmlFor="radius" className="block text-sm font-medium text-gray-700 mb-1">
-              Rayon de recherche: {radius} km
+            <label htmlFor="radius" className="block text-sm font-medium text-text-secondary mb-1">
+              Rayon de recherche: <span className="text-primary font-bold">{radius} km</span>
             </label>
             <input
               type="range"
@@ -338,19 +337,19 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
               }}
               onMouseUp={handleSearch}
               onTouchEnd={handleSearch}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+              className="w-full h-2 bg-background-lighter rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>
 
           <div className="w-full md:w-1/2">
-            <label htmlFor="eventType" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="eventType" className="block text-sm font-medium text-text-secondary mb-1">
               Type d'événement:
             </label>
             <select
               id="eventType"
               value={eventType}
               onChange={(e) => handleTypeChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
             >
               <option value="tous">Tous les types</option>
               <option value="Vide-Grenier">Vide-Grenier</option>

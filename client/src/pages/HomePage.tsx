@@ -435,7 +435,8 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+
+    <div className="min-h-screen bg-background">
       <SearchBar
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
@@ -447,18 +448,16 @@ export default function HomePage() {
         <Breadcrumbs items={breadcrumbsItems} />
 
         {locationLoading && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-blue-700 text-sm">
+          <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3 mb-4">
+            <p className="text-blue-400 text-sm">
               🌍 Recherche de votre position...
             </p>
           </div>
         )}
 
-
-
         {/* Titre H1 principal pour le SEO */}
         {!locationLoading && (
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
             {seoTitle}
           </h1>
         )}
@@ -466,16 +465,16 @@ export default function HomePage() {
         {loading && (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des événements...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-text-secondary">Chargement des événements...</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600 font-semibold">Erreur</p>
-            <p className="text-red-500 mt-2">{error}</p>
+          <div className="bg-red-900/20 border border-red-800 rounded-lg p-6 text-center">
+            <p className="text-red-400 font-semibold">Erreur</p>
+            <p className="text-red-300 mt-2">{error}</p>
             <p className="text-sm text-gray-500 mt-4">
               Assurez-vous que le serveur backend est démarré sur le port 5000
             </p>
@@ -485,11 +484,11 @@ export default function HomePage() {
         {!loading && !error && (
           <>
             <div className="mb-4 flex justify-between items-center">
-              <p className="text-gray-600">
+              <p className="text-text-secondary">
                 {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
               </p>
               {userPosition && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-text-muted">
                   Filtrage par distance activé
                 </p>
               )}
@@ -498,7 +497,7 @@ export default function HomePage() {
             {/* Affichage groupé par jour */}
             {/* Message informatif (non bloquant) */}
             {import.meta.env.DEV && filteredEvents.length > 0 && (
-              <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+              <div className="mb-4 p-2 bg-blue-900/20 border border-blue-800 rounded text-xs text-blue-400">
                 <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
               </div>
             )}
@@ -512,8 +511,8 @@ export default function HomePage() {
 
                     return (
                       <div key={group.date}>
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
-                          {h2Label}
+                        <h2 className="text-xl font-bold text-text-primary mb-4 pb-2 border-b border-gray-700 flex items-center gap-2">
+                          <span className="text-primary">📅</span> {h2Label}
                         </h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                           {group.events.map((event) => (
@@ -537,8 +536,8 @@ export default function HomePage() {
                       onClick={handleLoadMore}
                       disabled={loadingMore}
                       className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-background-lighter text-text-muted cursor-not-allowed'
+                        : 'bg-primary text-white hover:bg-primary-hover shadow-lg shadow-orange-900/20'
                         }`}
                     >
                       {loadingMore ? (
@@ -555,30 +554,30 @@ export default function HomePage() {
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
-                <p className="text-gray-400 text-sm mt-2">
+                <p className="text-text-secondary text-lg font-semibold">Aucun événement trouvé</p>
+                <p className="text-text-muted text-sm mt-2">
                   {filteredEvents.length === 0
                     ? 'Aucun événement ne correspond à vos critères de recherche.'
                     : 'Les événements trouvés ne peuvent pas être groupés par date.'}
                 </p>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-text-muted text-sm mt-1">
                   Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
                 </p>
                 {/* Message spécial si la base est probablement vide */}
                 {filteredEvents.length === 0 && !loading && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-700 text-sm font-semibold">💡 Information</p>
-                    <p className="text-blue-600 text-sm mt-1">
+                  <div className="mt-4 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
+                    <p className="text-blue-400 text-sm font-semibold">💡 Information</p>
+                    <p className="text-blue-300 text-sm mt-1">
                       Si vous êtes administrateur, vérifiez que la base de données contient des événements.
                     </p>
-                    <p className="text-blue-600 text-xs mt-1">
+                    <p className="text-blue-300 text-xs mt-1">
                       Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
                     </p>
                   </div>
                 )}
                 {/* Debug: Afficher le nombre d'événements filtrés */}
                 {import.meta.env.DEV && (
-                  <p className="text-gray-300 text-xs mt-4">
+                  <p className="text-gray-600 text-xs mt-4">
                     Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
                   </p>
                 )}
