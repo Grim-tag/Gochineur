@@ -1,3 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-primary-light: #fdba74;
+
+  --color-background: #0f172a;
+  --color-background-paper: #1e293b;
+  --color-background-lighter: #334155;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+}
+
+/* Styles pour Leaflet */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
 }
 
 /* Styles pour le slider */
@@ -12,8 +33,7 @@ input[type="range"]::-webkit-slider-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f97316;
-  /* Orange primary */
+  background: var(--color-primary);
   cursor: pointer;
 }
 
@@ -21,8 +41,7 @@ input[type="range"]::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #f97316;
-  /* Orange primary */
+  background: var(--color-primary);
   cursor: pointer;
   border: none;
 }
@@ -33,17 +52,14 @@ input[type="range"]::-moz-range-thumb {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: #0f172a;
-  /* bg-background */
+  background-color: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #334155;
-  /* bg-background-lighter */
+  background-color: var(--color-background-lighter);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #f97316;
-  /* bg-primary */
+  background-color: var(--color-primary);
 }
