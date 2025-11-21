@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
+import Breadcrumbs from '../components/Breadcrumbs'
 import type { Event } from '../types'
 import { groupEventsByDay, type GroupedEvents } from '../utils/appUtils'
 import { reverseGeocode } from '../utils/appUtils'
@@ -21,6 +22,7 @@ interface GeoData {
 
 export default function HomePage() {
   const { departmentCode, citySlug } = useParams<{ departmentCode?: string; citySlug?: string }>()
+  const location = useLocation()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
@@ -33,6 +35,7 @@ export default function HomePage() {
   const [locationLoading, setLocationLoading] = useState(true)
   const [city, setCity] = useState<string>('')
   const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
+  const [currentEventType, setCurrentEventType] = useState<string>('tous')
   const [_currentStartDate, setCurrentStartDate] = useState<Date | null>(null)
   const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
@@ -58,6 +61,71 @@ export default function HomePage() {
       .catch(err => console.error('Erreur chargement geo data:', err))
   }, [])
 
+  // Helper pour mettre à jour le titre SEO
+  const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string) => {
+    const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's' // Pluralisation basique
+    let title = `${typeLabel} à ${locationName}`
+
+    if (deptCode) {
+      title = `${typeLabel} - ${locationName} (${deptCode})`
+    }
+
+    // Ajout du rayon si pertinent (pas pour les départements entiers où le rayon est large par défaut)
+    if (!deptCode) {
+      title += ` (${radius} km)`
+    }
+
+    setSeoTitle(title)
+    document.title = `${title} - GoChineur`
+  }
+
+  // Fonction de chargement de la position (extraite pour être réutilisable)
+  const loadUserPosition = async () => {
+    setLocationLoading(true)
+    let position: UserPosition
+
+    const handlePosition = (pos: UserPosition, cityName?: string) => {
+      setUserPosition(pos)
+      setLocationLoading(false)
+      // Si un nom de ville est fourni (via reverse geocode ou autre), on l'utilise
+      if (cityName) {
+        setCity(cityName)
+        updateSeoTitle(cityName, currentEventType, currentRadius)
+      } else {
+        // Sinon on fait un reverse geocode
+        reverseGeocode(pos.latitude, pos.longitude).then(name => {
+          setCity(name)
+          updateSeoTitle(name, currentEventType, currentRadius)
+        })
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          handlePosition({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude
+          })
+        },
+        () => {
+          position = testPositionFallback
+          setLocationError('Position non disponible. Utilisation de la position de test.')
+          handlePosition(position)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: GEOLOCATION.TIMEOUT,
+          maximumAge: GEOLOCATION.MAX_AGE
+        }
+      )
+    } else {
+      position = testPositionFallback
+      setLocationError('Géolocalisation non supportée. Utilisation de la position de test.')
+      handlePosition(position)
+    }
+  }
+
   // Géolocalisation de l'utilisateur avec fallback sur position de test
   // MODIFIÉ : Ne se déclenche que si PAS de paramètres d'URL
   useEffect(() => {
@@ -66,59 +134,10 @@ export default function HomePage() {
       return
     }
 
-    const loadPosition = async () => {
-      let position: UserPosition
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            position = {
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude
-            }
-            setUserPosition(position)
-            setLocationLoading(false)
-            // Géocodage inverse pour obtenir le nom de la ville
-            reverseGeocode(position.latitude, position.longitude).then(cityName => {
-              setCity(cityName)
-              setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
-              document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
-            })
-          },
-          () => {
-            position = testPositionFallback
-            setUserPosition(position)
-            setLocationError('Position non disponible. Utilisation de la position de test comme point de référence.')
-            setLocationLoading(false)
-            // Géocodage inverse pour la position de test
-            reverseGeocode(position.latitude, position.longitude).then(cityName => {
-              setCity(cityName)
-              setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
-              document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
-            })
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: GEOLOCATION.TIMEOUT,
-            maximumAge: GEOLOCATION.MAX_AGE
-          }
-        )
-      } else {
-        position = testPositionFallback
-        setUserPosition(position)
-        setLocationError('La géolocalisation n\'est pas supportée. Utilisation de la position de test comme point de référence.')
-        setLocationLoading(false)
-        // Géocodage inverse pour la position de test
-        reverseGeocode(position.latitude, position.longitude).then(cityName => {
-          setCity(cityName)
-          setSeoTitle(`Vide-greniers et brocantes à ${cityName}`)
-          document.title = `Vide-greniers et brocantes à ${cityName} - GoChineur`
-        })
-      }
-    }
-
-    loadPosition()
+    // Si on est sur la home racine, on lance la géolocalisation
+    loadUserPosition()
   }, [departmentCode, citySlug])
+
 
   // Gérer les paramètres d'URL pour le SEO (Département ou Ville)
   useEffect(() => {
@@ -129,16 +148,17 @@ export default function HomePage() {
       let targetLon: number | null = null
       let targetName = ''
       let targetRadius: number = EVENTS.DEFAULT_RADIUS
+      let deptCodeStr = ''
 
       if (departmentCode) {
         const dept = geoData.departments.find(d => d.code === departmentCode)
         if (dept) {
           targetLat = dept.lat
           targetLon = dept.lon
-          targetName = `${dept.name} (${dept.code})`
+          targetName = dept.name
+          deptCodeStr = dept.code
           targetRadius = 50 // Rayon plus large pour un département
-          setSeoTitle(`Agenda complet des Vide-greniers et Bourses dans le ${dept.name} (${dept.code})`)
-          document.title = `Vide-greniers ${dept.name} (${dept.code}) - Agenda Brocantes - GoChineur`
+          updateSeoTitle(targetName, currentEventType, targetRadius, deptCodeStr)
           // Description meta dynamique (idéalement via Helmet, ici via DOM direct pour SPA simple)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Trouvez tous les vide-greniers, brocantes et bourses aux collections dans le département ${dept.name} (${dept.code}). Agenda complet et à jour.`)
@@ -150,8 +170,7 @@ export default function HomePage() {
           targetLon = cityData.lon
           targetName = cityData.name
           targetRadius = 30 // Rayon standard pour une ville
-          setSeoTitle(`Agenda des vide-greniers et brocantes à ${cityData.name}`)
-          document.title = `Vide-greniers à ${cityData.name} - Agenda Brocantes - GoChineur`
+          updateSeoTitle(targetName, currentEventType, targetRadius)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
         }
@@ -198,6 +217,7 @@ export default function HomePage() {
   ): Promise<Event[]> => {
     const position = customPosition || userPosition || testPositionFallback
     const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
+    const typeToUse = eventType === 'tous' ? undefined : eventType
 
     const data = await fetchEvents({
       lat: position.latitude,
@@ -205,7 +225,7 @@ export default function HomePage() {
       radius: radiusToUse,
       startDate,
       endDate,
-      eventType
+      eventType: typeToUse
     })
 
     if (append) {
@@ -233,7 +253,7 @@ export default function HomePage() {
     setLoading(true)
     setHasMoreEvents(true)
 
-    loadEvents(start, end, false)
+    loadEvents(start, end, false, currentEventType)
       .then((data: Event[]) => {
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
@@ -248,7 +268,7 @@ export default function HomePage() {
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, [departmentCode, citySlug]) // Dépendances ajoutées pour éviter double chargement
+  }, [departmentCode, citySlug, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -282,7 +302,7 @@ export default function HomePage() {
     const { start, end } = calculatePeriodDates(nextStartDate)
 
     try {
-      const newEvents = await loadEvents(start, end, true)
+      const newEvents = await loadEvents(start, end, true, currentEventType)
 
       // Mettre à jour les dates courantes
       setCurrentStartDate(start)
@@ -304,6 +324,31 @@ export default function HomePage() {
     }
   }
 
+  // Réinitialiser à la géolocalisation
+  const handleReset = () => {
+    setCity('')
+    setCurrentEventType('tous')
+    setCurrentRadius(EVENTS.DEFAULT_RADIUS)
+    loadUserPosition()
+
+    // Recharger les événements par défaut
+    const today = new Date()
+    const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
+    setCurrentStartDate(start)
+    setCurrentEndDate(end)
+    setLoading(true)
+
+    // On attend que loadUserPosition mette à jour userPosition, mais comme c'est asynchrone,
+    // on relance loadEvents dans le callback de geolocation ou via un useEffect.
+    // Ici, loadUserPosition va déclencher un refresh via ses propres setters si besoin,
+    // mais pour être sûr, on peut recharger avec "undefined" position qui forcera l'usage du state ou fallback
+    loadEvents(start, end, false, 'tous', EVENTS.DEFAULT_RADIUS)
+      .then((data) => {
+        setFilteredEvents(data)
+        setGroupedEvents(groupEventsByDay(data))
+        setLoading(false)
+      })
+  }
 
   // Fonction de recherche et filtrage
   const handleSearch = (
@@ -313,15 +358,23 @@ export default function HomePage() {
     coordinates?: { latitude: number; longitude: number; city: string }
   ) => {
     setCurrentRadius(radius)
+    setCurrentEventType(eventType)
 
     // Si des coordonnées sont fournies (géocodage réussi), mettre à jour la position et la ville
     if (coordinates) {
       setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
       setCity(coordinates.city)
-      setSeoTitle(`Vide-greniers et brocantes à ${coordinates.city}`)
+      updateSeoTitle(coordinates.city, eventType, radius)
+    } else if (searchTerm === '' && !coordinates) {
+      // Si recherche vide, on reset potentiellement si c'était l'intention
+      // Mais ici on garde la position actuelle si on change juste le type ou le rayon
+      // Si on veut reset la position quand on vide le champ, il faut utiliser handleReset via le prop onReset du SearchBar
+      updateSeoTitle(city || 'autour de moi', eventType, radius)
+    } else {
+      updateSeoTitle(city || 'autour de moi', eventType, radius)
     }
 
-    // Utiliser le rayon spécifié (plus besoin de 2000 km car on a les bonnes coordonnées)
+    // Utiliser le rayon spécifié
     const searchRadius = radius
 
     // Recharger les événements avec le nouveau rayon et type depuis le serveur
@@ -344,7 +397,9 @@ export default function HomePage() {
         let filtered = [...data]
 
         // Filtre par nom, ville ou code postal (côté client) si recherche textuelle
-        if (searchTerm.trim()) {
+        // Note: si coordinates est présent, c'est qu'on a géocodé le terme, donc on ne filtre plus par texte
+        // Si coordinates est absent mais qu'il y a un searchTerm, c'est une recherche textuelle pure
+        if (searchTerm.trim() && !coordinates) {
           const searchLower = searchTerm.toLowerCase()
           filtered = filtered.filter(
             event =>
@@ -376,15 +431,40 @@ export default function HomePage() {
     }
   }
 
+  // Construction du fil d'ariane
+  const breadcrumbsItems = [
+    { label: 'Accueil', path: '/' }
+  ]
+
+  if (departmentCode && geoData) {
+    const dept = geoData.departments.find(d => d.code === departmentCode)
+    if (dept) {
+      breadcrumbsItems.push({ label: `${dept.code} - ${dept.name}`, path: `/vide-grenier/${dept.code}` })
+    }
+  } else if (citySlug && geoData) {
+    const cityData = geoData.cities.find(c => c.slug === citySlug)
+    if (cityData) {
+      // Idéalement on aurait le département de la ville pour l'ajouter au fil d'ariane
+      // Pour l'instant on met juste la ville
+      breadcrumbsItems.push({ label: cityData.name, path: `/brocantes/${cityData.slug}` })
+    }
+  } else if (city && !locationLoading) {
+    // Si on est géolocalisé ou recherche manuelle sans URL
+    breadcrumbsItems.push({ label: city })
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <SearchBar
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
+        onReset={handleReset}
         events={events}
       />
 
       <div className="container mx-auto px-4 py-6">
+        <Breadcrumbs items={breadcrumbsItems} />
+
         {locationLoading && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
             <p className="text-blue-700 text-sm">
@@ -402,135 +482,134 @@ export default function HomePage() {
         {/* Titre H1 principal pour le SEO */}
         {!locationLoading && (
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-            {seoTitle} {city && !seoTitle.includes(city) ? `(${currentRadius} km)` : ''}
+            {seoTitle}
           </h1>
         )}
 
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Chargement des événements...</p>
-            </div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement des événements...</p>
+          </div>
           </div>
         )}
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-600 font-semibold">Erreur</p>
-            <p className="text-red-500 mt-2">{error}</p>
-            <p className="text-sm text-gray-500 mt-4">
-              Assurez-vous que le serveur backend est démarré sur le port 5000
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 font-semibold">Erreur</p>
+          <p className="text-red-500 mt-2">{error}</p>
+          <p className="text-sm text-gray-500 mt-4">
+            Assurez-vous que le serveur backend est démarré sur le port 5000
+          </p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <div className="mb-4 flex justify-between items-center">
+            <p className="text-gray-600">
+              {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
             </p>
-          </div>
-        )}
-
-        {!loading && !error && (
-          <>
-            <div className="mb-4 flex justify-between items-center">
-              <p className="text-gray-600">
-                {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
+            {userPosition && (
+              <p className="text-sm text-gray-500">
+                Filtrage par distance activé
               </p>
-              {userPosition && (
-                <p className="text-sm text-gray-500">
-                  Filtrage par distance activé
+            )}
+          </div>
+
+          {/* Affichage groupé par jour */}
+          {/* Message informatif (non bloquant) */}
+          {import.meta.env.DEV && filteredEvents.length > 0 && (
+            <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+              <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
+            </div>
+          )}
+          {filteredEvents.length > 0 && groupedEvents.length > 0 ? (
+            <>
+              <div className="space-y-8">
+                {groupedEvents.map((group) => {
+                  // Déterminer si c'est aujourd'hui
+                  const isToday = group.label === 'Aujourd\'hui'
+                  const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
+
+                  return (
+                    <div key={group.date}>
+                      <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
+                        {h2Label}
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {group.events.map((event) => (
+                          <EventCard
+                            key={event.id}
+                            event={event}
+                            onAddToCircuit={handleAddToCircuit}
+                            isInCircuit={circuitIds.includes(event.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Bouton "Voir Plus" */}
+              {hasMoreEvents && !loading && (
+                <div className="flex justify-center mt-8 mb-8">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Chargement...
+                      </span>
+                    ) : (
+                      'Voir Plus'
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
+              <p className="text-gray-400 text-sm mt-2">
+                {filteredEvents.length === 0
+                  ? 'Aucun événement ne correspond à vos critères de recherche.'
+                  : 'Les événements trouvés ne peuvent pas être groupés par date.'}
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
+              </p>
+              {/* Message spécial si la base est probablement vide */}
+              {filteredEvents.length === 0 && !loading && (
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-blue-700 text-sm font-semibold">💡 Information</p>
+                  <p className="text-blue-600 text-sm mt-1">
+                    Si vous êtes administrateur, vérifiez que la base de données contient des événements.
+                  </p>
+                  <p className="text-blue-600 text-xs mt-1">
+                    Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
+                  </p>
+                </div>
+              )}
+              {/* Debug: Afficher le nombre d'événements filtrés */}
+              {import.meta.env.DEV && (
+                <p className="text-gray-300 text-xs mt-4">
+                  Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
                 </p>
               )}
             </div>
-
-            {/* Affichage groupé par jour */}
-            {/* Message informatif (non bloquant) */}
-            {import.meta.env.DEV && filteredEvents.length > 0 && (
-              <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
-              </div>
-            )}
-            {filteredEvents.length > 0 && groupedEvents.length > 0 ? (
-              <>
-                <div className="space-y-8">
-                  {groupedEvents.map((group) => {
-                    // Déterminer si c'est aujourd'hui
-                    const isToday = group.label === 'Aujourd\'hui'
-                    const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
-
-                    return (
-                      <div key={group.date}>
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
-                          {h2Label}
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {group.events.map((event) => (
-                            <EventCard
-                              key={event.id}
-                              event={event}
-                              onAddToCircuit={handleAddToCircuit}
-                              isInCircuit={circuitIds.includes(event.id)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Bouton "Voir Plus" */}
-                {hasMoreEvents && !loading && (
-                  <div className="flex justify-center mt-8 mb-8">
-                    <button
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                        }`}
-                    >
-                      {loadingMore ? (
-                        <span className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Chargement...
-                        </span>
-                      ) : (
-                        'Voir Plus'
-                      )}
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  {filteredEvents.length === 0
-                    ? 'Aucun événement ne correspond à vos critères de recherche.'
-                    : 'Les événements trouvés ne peuvent pas être groupés par date.'}
-                </p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
-                </p>
-                {/* Message spécial si la base est probablement vide */}
-                {filteredEvents.length === 0 && !loading && (
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-700 text-sm font-semibold">💡 Information</p>
-                    <p className="text-blue-600 text-sm mt-1">
-                      Si vous êtes administrateur, vérifiez que la base de données contient des événements.
-                    </p>
-                    <p className="text-blue-600 text-xs mt-1">
-                      Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
-                    </p>
-                  </div>
-                )}
-                {/* Debug: Afficher le nombre d'événements filtrés */}
-                {import.meta.env.DEV && (
-                  <p className="text-gray-300 text-xs mt-4">
-                    Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
-                  </p>
-                )}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </>
+      )}
     </div>
+    </div >
   )
 }
 

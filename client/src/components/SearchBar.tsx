@@ -7,10 +7,11 @@ import { forwardGeocode } from '../utils/appUtils'
 interface SearchBarProps {
   onSearch: (searchTerm: string, radius: number, eventType: string, coordinates?: { latitude: number; longitude: number; city: string }) => void
   onRadiusChange?: (radius: number) => void
+  onReset?: () => void
   events: Event[]
 }
 
-export default function SearchBar({ onSearch, onRadiusChange }: SearchBarProps) {
+export default function SearchBar({ onSearch, onRadiusChange, onReset }: SearchBarProps) {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [radius, setRadius] = useState(25)
@@ -42,28 +43,33 @@ export default function SearchBar({ onSearch, onRadiusChange }: SearchBarProps) 
   const [geocoding, setGeocoding] = useState(false)
 
   const handleSearch = async () => {
-    // Si une recherche textuelle est effectuée, faire un géocodage direct
-    if (searchTerm.trim()) {
-      setGeocoding(true)
-      try {
-        const geocodeResult = await forwardGeocode(searchTerm.trim())
-        if (geocodeResult) {
-          // Appeler onSearch avec les coordonnées géocodées
-          onSearch(searchTerm, radius, eventType, geocodeResult)
-        } else {
-          // Si le géocodage échoue, faire quand même la recherche avec le terme textuel
-          onSearch(searchTerm, radius, eventType)
-        }
-      } catch (error) {
-        console.error('Erreur lors du géocodage:', error)
-        // En cas d'erreur, faire quand même la recherche avec le terme textuel
+    // Si le champ est vide, on propose de réinitialiser (retour géolocalisation)
+    if (!searchTerm.trim()) {
+      if (onReset) {
+        onReset()
+      } else {
         onSearch(searchTerm, radius, eventType)
-      } finally {
-        setGeocoding(false)
       }
-    } else {
-      // Pas de recherche textuelle, recherche normale
+      return
+    }
+
+    // Si une recherche textuelle est effectuée, faire un géocodage direct
+    setGeocoding(true)
+    try {
+      const geocodeResult = await forwardGeocode(searchTerm.trim())
+      if (geocodeResult) {
+        // Appeler onSearch avec les coordonnées géocodées
+        onSearch(searchTerm, radius, eventType, geocodeResult)
+      } else {
+        // Si le géocodage échoue, faire quand même la recherche avec le terme textuel
+        onSearch(searchTerm, radius, eventType)
+      }
+    } catch (error) {
+      console.error('Erreur lors du géocodage:', error)
+      // En cas d'erreur, faire quand même la recherche avec le terme textuel
       onSearch(searchTerm, radius, eventType)
+    } finally {
+      setGeocoding(false)
     }
   }
 
