@@ -1,8 +1,162 @@
 const express = require('express');
 const router = express.Router();
 const geoData = require('../config/geo-data.json');
-const City = require('../models/City');
+const { getDB } = require('../config/db');
 const axios = require('axios');
+
+/**
+ * Routes pour les données géographiques
+ */
+module.exports = function () {
+    // GET /api/geo/data - Retourne toutes les données géographiques
+    router.get('/data', (req, res) => {
+        try {
+            res.json({
+                success: true,
+                data: geoData
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des données géographiques:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // GET /api/geo/cities - Retourne uniquement les villes
+    router.get('/cities', (req, res) => {
+        try {
+            res.json({
+                success: true,
+                cities: geoData.cities
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des villes:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // GET /api/geo/regions - Retourne uniquement les régions
+    router.get('/regions', (req, res) => {
+        try {
+            res.json({
+                success: true,
+                regions: geoData.regions
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des régions:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // GET /api/geo/departments - Retourne uniquement les départements
+    router.get('/departments', (req, res) => {
+        try {
+            res.json({
+                success: true,
+                departments: geoData.departments
+            });
+        } catch (error) {
+            console.error('Erreur lors de la récupération des départements:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // GET /api/geo/cities-db - Retourne les villes depuis MongoDB
+    router.get('/cities-db', async (req, res) => {
+        try {
+            const db = getDB();
+            const citiesCollection = db.collection('cities');
+            const cities = await citiesCollection.find().sort({ name: 1 }).toArray();
+            res.json({
+                success: true,
+                cities
+            });
+        } catch (error) {
+            console.error('Erreur récupération villes DB:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    // POST /api/geo/add-city - Ajoute une ville dynamiquement
+    router.post('/add-city', async (req, res) => {
+        try {
+            const { name, lat, lon } = req.body;
+
+            if (!name || !lat || !lon) {
+                return res.status(400).json({ success: false, error: 'Missing required fields' });
+            }
+
+            // Créer le slug
+            const slug = name.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
+
+            const db = getDB();
+            const citiesCollection = db.collection('cities');
+
+            // Vérifier si existe déjà
+            const existing = await citiesCollection.findOne({ slug });
+            if (existing) {
+                return res.json({ success: true, city: existing, alreadyExists: true });
+            }
+
+            // Vérifier que c'est en France via reverse geocoding
+            const geoCheck = await axios.get('https://nominatim.openstreetmap.org/reverse', {
+                params: {
+                    lat,
+                    lon,
+                    format: 'json',
+                    addressdetails: 1
+                },
+                headers: { 'User-Agent': 'GoChineur/1.0' }
+            });
+
+            if (!geoCheck.data?.address?.country?.toLowerCase().includes('france')) {
+                return res.status(400).json({ success: false, error: 'City must be in France' });
+            }
+
+            // Trouver le département le plus proche
+            let closestDept = null;
+            let minDistance = Infinity;
+            geoData.departments.forEach(dept => {
+                const distance = Math.sqrt(
+                    Math.pow(dept.lat - lat, 2) + Math.pow(dept.lon - lon, 2)
+                );
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestDept = dept.code;
+                }
+            });
+
+            if (!closestDept) {
+                return res.status(400).json({ success: false, error: 'Department not found' });
+            }
+
+            // Créer la ville
+            const city = {
+                name,
+                slug,
+                department: closestDept,
+                lat,
+                lon,
+                source: 'search',
+                addedAt: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            await citiesCollection.insertOne(city);
+
+            res.json({ success: true, city });
+        } catch (error) {
+            console.error('Erreur ajout ville:', error);
+            res.status(500).json({ success: false, error: error.message });
+        }
+    });
+
+    return router;
+};
+
 
 /**
  * Routes pour les données géographiques
