@@ -432,7 +432,7 @@ export default function HomePage() {
   }
 
   // Construction du fil d'ariane
-  const breadcrumbsItems = [
+  const breadcrumbsItems: { label: string; path?: string }[] = [
     { label: 'Accueil', path: '/' }
   ]
 
@@ -488,128 +488,128 @@ export default function HomePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Chargement des événements...</p>
-          </div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Chargement des événements...</p>
+            </div>
           </div>
         )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600 font-semibold">Erreur</p>
-          <p className="text-red-500 mt-2">{error}</p>
-          <p className="text-sm text-gray-500 mt-4">
-            Assurez-vous que le serveur backend est démarré sur le port 5000
-          </p>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <>
-          <div className="mb-4 flex justify-between items-center">
-            <p className="text-gray-600">
-              {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 font-semibold">Erreur</p>
+            <p className="text-red-500 mt-2">{error}</p>
+            <p className="text-sm text-gray-500 mt-4">
+              Assurez-vous que le serveur backend est démarré sur le port 5000
             </p>
-            {userPosition && (
-              <p className="text-sm text-gray-500">
-                Filtrage par distance activé
-              </p>
-            )}
           </div>
+        )}
 
-          {/* Affichage groupé par jour */}
-          {/* Message informatif (non bloquant) */}
-          {import.meta.env.DEV && filteredEvents.length > 0 && (
-            <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-              <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
-            </div>
-          )}
-          {filteredEvents.length > 0 && groupedEvents.length > 0 ? (
-            <>
-              <div className="space-y-8">
-                {groupedEvents.map((group) => {
-                  // Déterminer si c'est aujourd'hui
-                  const isToday = group.label === 'Aujourd\'hui'
-                  const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
-
-                  return (
-                    <div key={group.date}>
-                      <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
-                        {h2Label}
-                      </h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {group.events.map((event) => (
-                          <EventCard
-                            key={event.id}
-                            event={event}
-                            onAddToCircuit={handleAddToCircuit}
-                            isInCircuit={circuitIds.includes(event.id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Bouton "Voir Plus" */}
-              {hasMoreEvents && !loading && (
-                <div className="flex justify-center mt-8 mb-8">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loadingMore}
-                    className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
-                      ? 'bg-gray-400 text-white cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                  >
-                    {loadingMore ? (
-                      <span className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Chargement...
-                      </span>
-                    ) : (
-                      'Voir Plus'
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
-              <p className="text-gray-400 text-sm mt-2">
-                {filteredEvents.length === 0
-                  ? 'Aucun événement ne correspond à vos critères de recherche.'
-                  : 'Les événements trouvés ne peuvent pas être groupés par date.'}
+        {!loading && !error && (
+          <>
+            <div className="mb-4 flex justify-between items-center">
+              <p className="text-gray-600">
+                {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
               </p>
-              <p className="text-gray-400 text-sm mt-1">
-                Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
-              </p>
-              {/* Message spécial si la base est probablement vide */}
-              {filteredEvents.length === 0 && !loading && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-blue-700 text-sm font-semibold">💡 Information</p>
-                  <p className="text-blue-600 text-sm mt-1">
-                    Si vous êtes administrateur, vérifiez que la base de données contient des événements.
-                  </p>
-                  <p className="text-blue-600 text-xs mt-1">
-                    Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
-                  </p>
-                </div>
-              )}
-              {/* Debug: Afficher le nombre d'événements filtrés */}
-              {import.meta.env.DEV && (
-                <p className="text-gray-300 text-xs mt-4">
-                  Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
+              {userPosition && (
+                <p className="text-sm text-gray-500">
+                  Filtrage par distance activé
                 </p>
               )}
             </div>
-          )}
-        </>
-      )}
+
+            {/* Affichage groupé par jour */}
+            {/* Message informatif (non bloquant) */}
+            {import.meta.env.DEV && filteredEvents.length > 0 && (
+              <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
+              </div>
+            )}
+            {filteredEvents.length > 0 && groupedEvents.length > 0 ? (
+              <>
+                <div className="space-y-8">
+                  {groupedEvents.map((group) => {
+                    // Déterminer si c'est aujourd'hui
+                    const isToday = group.label === 'Aujourd\'hui'
+                    const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
+
+                    return (
+                      <div key={group.date}>
+                        <h2 className="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-blue-500">
+                          {h2Label}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {group.events.map((event) => (
+                            <EventCard
+                              key={event.id}
+                              event={event}
+                              onAddToCircuit={handleAddToCircuit}
+                              isInCircuit={circuitIds.includes(event.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Bouton "Voir Plus" */}
+                {hasMoreEvents && !loading && (
+                  <div className="flex justify-center mt-8 mb-8">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className={`px-8 py-3 rounded-lg font-semibold transition-colors ${loadingMore
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                    >
+                      {loadingMore ? (
+                        <span className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Chargement...
+                        </span>
+                      ) : (
+                        'Voir Plus'
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg font-semibold">Aucun événement trouvé</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  {filteredEvents.length === 0
+                    ? 'Aucun événement ne correspond à vos critères de recherche.'
+                    : 'Les événements trouvés ne peuvent pas être groupés par date.'}
+                </p>
+                <p className="text-gray-400 text-sm mt-1">
+                  Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
+                </p>
+                {/* Message spécial si la base est probablement vide */}
+                {filteredEvents.length === 0 && !loading && (
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-blue-700 text-sm font-semibold">💡 Information</p>
+                    <p className="text-blue-600 text-sm mt-1">
+                      Si vous êtes administrateur, vérifiez que la base de données contient des événements.
+                    </p>
+                    <p className="text-blue-600 text-xs mt-1">
+                      Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
+                    </p>
+                  </div>
+                )}
+                {/* Debug: Afficher le nombre d'événements filtrés */}
+                {import.meta.env.DEV && (
+                  <p className="text-gray-300 text-xs mt-4">
+                    Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
+                  </p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
-    </div >
   )
 }
-
