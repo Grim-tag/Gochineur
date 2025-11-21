@@ -69,7 +69,7 @@ export default function HomePage() {
   // Helper pour mettre à jour le titre SEO
   const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string) => {
     const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's' // Pluralisation basique
-    let title = `${typeLabel} à ${locationName}`
+    let title = `${typeLabel} en ${locationName}`
 
     if (deptCode) {
       title = `${typeLabel} - ${locationName} (${deptCode})`
