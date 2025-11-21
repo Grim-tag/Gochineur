@@ -394,7 +394,7 @@ export default function HomePage() {
 
   // Construction du fil d'ariane
   const breadcrumbsItems: { label: string; path?: string; onClick?: () => void }[] = [
-    { label: 'Accueil', path: '/', onClick: handleReset }
+    { label: 'Accueil', path: '/' }
   ]
 
   if (regionSlug && geoData) {
@@ -439,7 +439,6 @@ export default function HomePage() {
       <SearchBar
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
-        onReset={handleReset}
         geoData={geoData}
         events={events}
       />
