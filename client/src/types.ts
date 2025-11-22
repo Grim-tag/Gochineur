@@ -22,6 +22,8 @@ export interface Event {
   prix_montant?: number
   submitted_by_pseudo?: string
   role?: string
+  email?: string
+  website?: string
 }
 
 

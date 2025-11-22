@@ -31,9 +31,9 @@ export function calculateDistance(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
@@ -73,7 +73,7 @@ export function groupEventsByDay(events: Event[]): GroupedEvents[] {
       console.warn(`⚠️ Événement sans date ignoré:`, { id: event.id, name: event.name })
       return
     }
-    
+
     const eventStartOfDay = getStartOfDayFromString(eventDateString)
     const year = eventStartOfDay.getFullYear()
     const month = String(eventStartOfDay.getMonth() + 1).padStart(2, '0')
@@ -87,7 +87,7 @@ export function groupEventsByDay(events: Event[]): GroupedEvents[] {
   })
 
   const sortedKeys = Object.keys(grouped).sort()
-  
+
   // Log de diagnostic
   if (events.length > 0) {
     console.log(`📅 groupEventsByDay: ${events.length} événements en entrée, ${eventsWithoutDate} sans date, ${sortedKeys.length} groupes créés`)
@@ -95,7 +95,7 @@ export function groupEventsByDay(events: Event[]): GroupedEvents[] {
 
   return sortedKeys.map(dateKey => {
     const eventStartOfDay = getStartOfDayFromString(dateKey)
-    
+
     let label = eventStartOfDay.toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
@@ -107,12 +107,12 @@ export function groupEventsByDay(events: Event[]): GroupedEvents[] {
     const tomorrowDate = new Date(todayDay)
     tomorrowDate.setDate(todayDay.getDate() + 1)
     const tomorrowDay = getStartOfDay(tomorrowDate)
-    
+
     // Comparaison stricte des timestamps pour éviter les problèmes de fuseau horaire
     const eventTimestamp = eventDay.getTime()
     const todayTimestamp = todayDay.getTime()
     const tomorrowTimestamp = tomorrowDay.getTime()
-    
+
     if (eventTimestamp === todayTimestamp) {
       label = 'Aujourd\'hui'
     } else if (eventTimestamp === tomorrowTimestamp) {
@@ -143,15 +143,15 @@ export function generateChronologicalCircuitUrl(
 
   const origin = `${userPosition.latitude},${userPosition.longitude}`
   const destination = `${circuitEvents[circuitEvents.length - 1].latitude},${circuitEvents[circuitEvents.length - 1].longitude}`
-  
-  const waypoints = circuitEvents.slice(0, -1).map(event => 
+
+  const waypoints = circuitEvents.slice(0, -1).map(event =>
     `${event.latitude},${event.longitude}`
   ).join('|')
 
   const encodedOrigin = encodeURIComponent(origin)
   const encodedDestination = encodeURIComponent(destination)
   let googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodedOrigin}&destination=${encodedDestination}&travelmode=driving`
-  
+
   if (waypoints) {
     const encodedWaypoints = encodeURIComponent(waypoints)
     googleMapsUrl += `&waypoints=${encodedWaypoints}`
@@ -184,11 +184,11 @@ export function generateEventNavigationUrl(
 export async function reverseGeocode(latitude: number, longitude: number): Promise<string> {
   const TEST_LAT = 43.5716
   const TEST_LON = -1.2780
-  
+
   if (Math.abs(latitude - TEST_LAT) < 0.001 && Math.abs(longitude - TEST_LON) < 0.001) {
     return 'Saint-Martin-de-Hinx'
   }
-  
+
   try {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
@@ -198,7 +198,7 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
         }
       }
     )
-    
+
     if (response.ok) {
       const data = await response.json()
       return data.address?.city || data.address?.town || data.address?.village || data.address?.municipality || 'Localisation inconnue'
@@ -206,7 +206,7 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
   } catch (error) {
     console.warn('Erreur lors du géocodage inverse:', error)
   }
-  
+
   return 'Localisation inconnue'
 }
 
@@ -220,7 +220,7 @@ export async function forwardGeocode(query: string): Promise<{ latitude: number;
   if (!query || query.trim().length === 0) {
     return null
   }
-  
+
   try {
     // Ajouter "France" pour améliorer la précision
     const searchQuery = `${query.trim()}, France`
@@ -232,7 +232,7 @@ export async function forwardGeocode(query: string): Promise<{ latitude: number;
         }
       }
     )
-    
+
     if (response.ok) {
       const data = await response.json()
       if (data && data.length > 0) {
@@ -240,7 +240,7 @@ export async function forwardGeocode(query: string): Promise<{ latitude: number;
         const latitude = parseFloat(result.lat)
         const longitude = parseFloat(result.lon)
         const city = result.address?.city || result.address?.town || result.address?.village || result.address?.municipality || query
-        
+
         if (!isNaN(latitude) && !isNaN(longitude)) {
           return { latitude, longitude, city }
         }
@@ -249,8 +249,59 @@ export async function forwardGeocode(query: string): Promise<{ latitude: number;
   } catch (error) {
     console.warn('Erreur lors du géocodage direct:', error)
   }
-  
+
   return null
+}
+
+/**
+ * Génère un slug SEO-friendly pour un événement
+ * Format: /type-slug/nom-evenement-ville-id
+ */
+export function generateEventSlug(event: Event): string {
+  const typeSlug = event.type.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
+    .replace(/[^a-z0-9]+/g, '-') // Remplacer les caractères spéciaux par des tirets
+    .replace(/^-+|-+$/g, '') // Supprimer les tirets au début et à la fin
+
+  const nameSlug = event.name.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  const citySlug = event.city.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  // On ajoute l'ID à la fin pour l'unicité et la récupération facile
+  return `/${typeSlug}/${nameSlug}-${citySlug}-${event.id}`
+}
+
+/**
+ * Extrait l'ID d'un événement depuis son slug
+ * Le slug est supposé se terminer par -ID
+ */
+export function extractIdFromSlug(slug: string): string {
+  // On cherche le dernier tiret qui sépare le slug de l'ID
+  // Attention : l'ID peut contenir des tirets (ex: UUID) ou des underscores (ex: DT_...)
+  // Notre format est : ...-DT_12345 ou ...-USER_12345
+
+  // Stratégie : on prend tout ce qui est après le dernier tiret précédant un préfixe connu (DT_ ou USER_ ou OED_)
+  // Si pas de préfixe connu, on prend le dernier segment après le dernier tiret
+
+  const parts = slug.split('-')
+
+  // Recherche d'un préfixe connu en partant de la fin
+  for (let i = parts.length - 1; i >= 0; i--) {
+    if (parts[i].startsWith('DT_') || parts[i].startsWith('USER_') || parts[i].startsWith('OED_')) {
+      // C'est le début de l'ID. L'ID peut contenir des tirets s'il s'agit d'un UUID après le préfixe
+      // Donc on reconstruit l'ID à partir de ce point
+      return parts.slice(i).join('-')
+    }
+  }
+
+  // Fallback : on retourne le dernier segment (cas d'un ID simple sans tiret)
+  return parts[parts.length - 1]
 }
 
 

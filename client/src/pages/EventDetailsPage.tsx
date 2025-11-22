@@ -4,20 +4,27 @@ import { fetchEventById } from '../services/api'
 import type { Event } from '../types'
 import Breadcrumbs from '../components/Breadcrumbs'
 
+import { extractIdFromSlug } from '../utils/appUtils'
+
 export default function EventDetailsPage() {
-    const { id } = useParams<{ id: string }>()
+    const { id, param } = useParams<{ id?: string; param?: string }>()
     const navigate = useNavigate()
     const [event, setEvent] = useState<Event | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
-        if (!id) return
+        let eventId = id
 
-        const decodedId = decodeURIComponent(id)
+        // Si pas d'ID direct, on essaie d'extraire depuis le slug (param)
+        if (!eventId && param) {
+            eventId = extractIdFromSlug(param)
+        }
+
+        if (!eventId) return
 
         setLoading(true)
-        fetchEventById(decodedId)
+        fetchEventById(eventId)
             .then(data => {
                 setEvent(data)
                 setLoading(false)
@@ -29,7 +36,7 @@ export default function EventDetailsPage() {
                 setError('Impossible de charger les détails de l\'événement.')
                 setLoading(false)
             })
-    }, [id])
+    }, [id, param])
 
     if (loading) {
         return (
@@ -153,6 +160,26 @@ export default function EventDetailsPage() {
                                     <div className="p-4 bg-gray-800/50 rounded-lg text-center text-text-muted italic">
                                         Aucun numéro de téléphone disponible
                                     </div>
+                                )}
+
+                                {event.email && (
+                                    <a
+                                        href={`mailto:${event.email}`}
+                                        className="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                                    >
+                                        <span>✉️ Envoyer un email</span>
+                                    </a>
+                                )}
+
+                                {event.website && (
+                                    <a
+                                        href={event.website}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors"
+                                    >
+                                        <span>🌐 Visiter le site web</span>
+                                    </a>
                                 )}
 
                                 {event.prix_montant && (

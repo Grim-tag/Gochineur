@@ -8,6 +8,7 @@ import SetPseudoPage from './pages/SetPseudoPage'
 import AdminPage from './pages/AdminPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import EventDetailsPage from './pages/EventDetailsPage'
+import CategoryRouteWrapper from './components/CategoryRouteWrapper'
 import './index.css'
 import Footer from './components/Footer'
 
@@ -19,9 +20,15 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/vide-grenier/region/:regionSlug" element={<HomePage />} />
-            <Route path="/vide-grenier/:departmentCode" element={<HomePage />} />
+
+            {/* Routes hybrides : peuvent être une recherche (département/ville) ou un événement */}
+            <Route path="/vide-grenier/:param" element={<CategoryRouteWrapper />} />
             <Route path="/brocantes/:departmentSlug/:citySlug" element={<HomePage />} />
-            <Route path="/brocantes/:citySlug" element={<HomePage />} />
+            <Route path="/brocantes/:param" element={<CategoryRouteWrapper />} />
+
+            {/* Route générique pour les autres types d'événements (ex: /puces-et-antiquites/slug-event) */}
+            <Route path="/:category/:param" element={<CategoryRouteWrapper />} />
+
             <Route path="/event/:id" element={<EventDetailsPage />} />
             <Route path="/mon-compte" element={<MyAccountPage />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />

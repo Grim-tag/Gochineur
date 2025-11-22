@@ -60,8 +60,15 @@ function normalizeEventType(type) {
  * Fonction de transformation des événements DATAtourisme depuis fichiers JSON locaux (format Apidae) vers GoChineur
  */
 function transformDataTourismeEventFromFile(apidaeEvent) {
-  // Extraction de l'identifiant Apidae
-  const idApidae = apidaeEvent['@id'] || `DT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Extraction de l'identifiant Apidae (nettoyage pour URL propre)
+  // Format original : https://data.datatourisme.fr/23/uuid
+  // Nouveau format : DT_uuid
+  let idApidae = apidaeEvent['@id'] || `DT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  if (idApidae.startsWith('https://data.datatourisme.fr/')) {
+    const parts = idApidae.split('/');
+    const uuid = parts[parts.length - 1];
+    idApidae = `DT_${uuid}`;
+  }
 
   // Nom : rdfs:label.fr[0]
   const name = apidaeEvent['rdfs:label']?.['fr']?.[0] ||
@@ -256,6 +263,46 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
   const latNumber = typeof latitude === 'number' ? latitude : parseFloat(latitude);
   const lonNumber = typeof longitude === 'number' ? longitude : parseFloat(longitude);
 
+  // --- NOUVEAU : Extraction des données enrichies ---
+
+  // Contact
+  let telephone = '';
+  let email = '';
+  let website = '';
+
+  if (apidaeEvent['hasContact'] && Array.isArray(apidaeEvent['hasContact'])) {
+    const contact = apidaeEvent['hasContact'][0];
+    if (contact['schema:telephone'] && Array.isArray(contact['schema:telephone'])) {
+      telephone = contact['schema:telephone'][0];
+    }
+    if (contact['schema:email'] && Array.isArray(contact['schema:email'])) {
+      email = contact['schema:email'][0];
+    }
+    if (contact['foaf:homepage'] && Array.isArray(contact['foaf:homepage'])) {
+      website = contact['foaf:homepage'][0];
+    }
+  }
+
+  // Prix / Offres
+  let prix_visiteur = '';
+  if (apidaeEvent['schema:offers'] && Array.isArray(apidaeEvent['schema:offers'])) {
+    const offer = apidaeEvent['schema:offers'][0];
+    if (offer['schema:price'] && offer['schema:priceCurrency']) {
+      const price = parseFloat(offer['schema:price']);
+      if (price === 0) {
+        prix_visiteur = 'Gratuit';
+      } else {
+        prix_visiteur = `${price} ${offer['schema:priceCurrency']}`;
+      }
+    } else if (offer['schema:description'] && offer['schema:description']['fr']) {
+      prix_visiteur = offer['schema:description']['fr'][0];
+    }
+  }
+
+  // Audience (pour description exposants vs visiteurs)
+  // DataTourisme ne sépare pas toujours clairement, mais on peut chercher dans 'hasAudience'
+  // Pour l'instant on met tout dans description, mais on pourrait affiner si on trouve des champs spécifiques.
+
   return {
     id: idApidae,
     id_source: idApidae,
@@ -268,12 +315,17 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
     city: city,
     postalCode: postalCode,
     address: address,
-    latitude: !isNaN(latNumber) ? latNumber : null, // Garantir que c'est un nombre ou null
-    longitude: !isNaN(lonNumber) ? lonNumber : null, // Garantir que c'est un nombre ou null
+    latitude: !isNaN(latNumber) ? latNumber : null,
+    longitude: !isNaN(lonNumber) ? lonNumber : null,
     description: description,
     distance: 0,
-    statut_validation: "pending_review", // Tous les événements importés nécessitent une validation manuelle
-    date_creation: new Date().toISOString()
+    statut_validation: "pending_review",
+    date_creation: new Date().toISOString(),
+    // Nouveaux champs
+    telephone: telephone,
+    email: email,
+    website: website,
+    prix_visiteur: prix_visiteur
   };
 }
 

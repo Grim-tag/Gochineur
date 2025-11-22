@@ -1,5 +1,6 @@
 import type { Event } from '../types'
 import { Link } from 'react-router-dom'
+import { generateEventSlug } from '../utils/appUtils'
 
 interface EventCardProps {
   event: Event
@@ -56,7 +57,7 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
 
       <div className="flex gap-2">
         <Link
-          to={`/event/${encodeURIComponent(event.id.toString())}`}
+          to={generateEventSlug(event)}
           className="flex-1 py-2 px-4 bg-background-lighter text-text-primary hover:bg-gray-700 rounded-lg font-semibold transition-colors text-center border border-gray-600"
         >
           Voir détails
@@ -75,9 +76,3 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
     </div>
   )
 }
-
-
-
-
-
-
