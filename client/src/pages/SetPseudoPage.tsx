@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Link } from 'react-router-dom'
 import { getCurrentUser, updateDisplayName } from '../services/api'
+import Header from '../components/Header'
 
 interface User {
   id: string
@@ -24,12 +24,12 @@ export default function SetPseudoPage() {
     getCurrentUser()
       .then(data => {
         console.log('👤 Données utilisateur reçues:', data)
-        
+
         if (data.authenticated && data.user) {
           // Si l'utilisateur a déjà un pseudo, rediriger selon son rôle
           if (data.user.displayName) {
             const userRole = data.user.role || 'user'
-            
+
             if (userRole === 'admin' || userRole === 'moderator') {
               // Les admins/moderators sont redirigés vers le dashboard admin
               console.log('✅ Utilisateur admin/moderator avec pseudo, redirection vers /admin/dashboard')
@@ -42,7 +42,7 @@ export default function SetPseudoPage() {
               return
             }
           }
-          
+
           // L'utilisateur n'a pas de pseudo, afficher le formulaire
           setUser(data.user)
           setDisplayName(data.user.name || '')
@@ -62,7 +62,7 @@ export default function SetPseudoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!displayName.trim()) {
       setError('Veuillez saisir un pseudo')
       return
@@ -78,7 +78,7 @@ export default function SetPseudoPage() {
 
     try {
       console.log('💾 Sauvegarde du pseudo:', displayName.trim())
-      
+
       const data = await updateDisplayName(displayName.trim())
       console.log('✅ Pseudo sauvegardé avec succès:', data.user)
 
@@ -87,14 +87,14 @@ export default function SetPseudoPage() {
         setUser(data.user)
       }
 
-      // Vérifier si on doit rediriger vers l'admin-client
+      // Vérifier si on doit rediriger vers l'admin
       const urlParams = new URLSearchParams(window.location.search)
       const returnTo = urlParams.get('returnTo')
-      
+
       // Redirection selon le rôle et l'origine
       const userRole = data.user?.role || 'user'
       console.log(`🔑 Rôle utilisateur: ${userRole}, returnTo: ${returnTo}`)
-      
+
       // Si un returnTo est spécifié, rediriger vers cette page
       if (returnTo) {
         console.log(`✅ Redirection vers: ${returnTo}`)
@@ -118,10 +118,10 @@ export default function SetPseudoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Chargement...</p>
         </div>
       </div>
     )
@@ -132,20 +132,13 @@ export default function SetPseudoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4">
-          <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-            🛍️ GoChineur
-          </Link>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
       <div className="container mx-auto px-4 py-8 max-w-md">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Choisissez votre pseudo</h1>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-6">
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Choisissez votre pseudo</h1>
+          <p className="text-text-secondary mb-6">
             Pour finaliser votre inscription, choisissez un pseudo qui sera affiché avec vos événements.
           </p>
 
@@ -154,20 +147,20 @@ export default function SetPseudoPage() {
               <img
                 src={user.photo}
                 alt={user.name}
-                className="w-20 h-20 rounded-full"
+                className="w-20 h-20 rounded-full border-2 border-gray-600"
               />
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-red-600">{error}</p>
+            <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 mb-6">
+              <p className="text-red-400">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Pseudo <span className="text-red-500">*</span>
               </label>
               <input
@@ -179,10 +172,10 @@ export default function SetPseudoPage() {
                 }}
                 placeholder="Votre pseudo"
                 maxLength={50}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 required
               />
-              <p className="text-sm text-gray-500 mt-2">
+              <p className="text-sm text-text-muted mt-2">
                 {displayName.length}/50 caractères
               </p>
             </div>
@@ -191,20 +184,19 @@ export default function SetPseudoPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors ${
-                  saving
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                }`}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors shadow-lg ${saving
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-hover shadow-orange-900/20'
+                  }`}
               >
                 {saving ? 'Enregistrement...' : 'Enregistrer mon Pseudo'}
               </button>
             </div>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500 text-center">
-              Connecté en tant que <strong>{user.email}</strong>
+          <div className="mt-6 pt-6 border-t border-gray-700">
+            <p className="text-sm text-text-muted text-center">
+              Connecté en tant que <strong className="text-text-secondary">{user.email}</strong>
             </p>
           </div>
         </div>
@@ -212,4 +204,3 @@ export default function SetPseudoPage() {
     </div>
   )
 }
-

@@ -1,27 +1,27 @@
 import { Link } from 'react-router-dom'
-import { getToken } from '../services/auth'
 import { useEffect, useState } from 'react'
-import { API } from '../config/constants'
+import { checkAuth, type User } from '../utils/authUtils'
 
 export default function Header() {
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<User | null>(null)
+    const [circuitCount, setCircuitCount] = useState(0)
 
     useEffect(() => {
-        const token = getToken()
-        if (token) {
-            fetch(`${API.BASE_URL}/api/user/current`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success && data.user) {
-                        setUser(data.user)
-                    }
-                })
-                .catch(err => console.error('Error fetching user:', err))
+        // Check authentication
+        checkAuth().then(({ authenticated, user }) => {
+            if (authenticated && user) {
+                setUser(user)
+            }
+        })
+
+        // Load circuit count
+        const updateCircuitCount = () => {
+            const circuit = JSON.parse(localStorage.getItem('gochineur-circuit') || '[]')
+            setCircuitCount(circuit.length)
         }
+        updateCircuitCount()
+        window.addEventListener('storage', updateCircuitCount)
+        return () => window.removeEventListener('storage', updateCircuitCount)
     }, [])
 
     return (
@@ -46,6 +46,11 @@ export default function Header() {
                                 className="bg-background-lighter hover:bg-gray-700 text-text-primary px-4 py-2 rounded-lg font-semibold transition-colors border border-gray-600 flex items-center gap-2"
                             >
                                 <span>👤</span> <span className="hidden sm:inline">Mon compte</span>
+                                {circuitCount > 0 && (
+                                    <span className="bg-primary text-white rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
+                                        {circuitCount}
+                                    </span>
+                                )}
                             </Link>
                         ) : (
                             <Link

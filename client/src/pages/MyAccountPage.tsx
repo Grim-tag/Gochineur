@@ -8,6 +8,7 @@ import { calculateDistance, generateChronologicalCircuitUrl, generateEventNaviga
 import { fetchEvents, fetchMyEvents, deleteAccount } from '../services/api'
 import { checkAuth, logout, type User } from '../utils/authUtils'
 import Breadcrumbs from '../components/Breadcrumbs'
+import Header from '../components/Header'
 
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -184,8 +185,8 @@ export default function MyAccountPage() {
     }
 
     if (loadingAuth) {
-        return <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        return <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
     }
 
@@ -193,21 +194,11 @@ export default function MyAccountPage() {
     const polylinePositions = userPosition ? [[userPosition.latitude, userPosition.longitude], ...circuitEvents.map(event => [event.latitude, event.longitude])] : circuitEvents.map(event => [event.latitude, event.longitude]);
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12">
-            {/* Header Global */}
-            <div className="bg-white shadow-sm border-b border-gray-200">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-2">
-                        🛍️ GoChineur
-                    </Link>
-                    <Link to="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
-                        ← Retour à l'accueil
-                    </Link>
-                </div>
-            </div>
+        <div className="min-h-screen bg-background pb-12">
+            <Header />
 
             {/* Header Compte */}
-            <div className="bg-white shadow mb-6">
+            <div className="bg-background-paper shadow-lg border-b border-gray-700">
                 <div className="container mx-auto px-4 py-6">
                     <Breadcrumbs items={[
                         { label: 'Accueil', path: '/' },
@@ -216,8 +207,8 @@ export default function MyAccountPage() {
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">Mon Compte</h1>
-                            <div className="mt-2 text-gray-600">
+                            <h1 className="text-3xl font-bold text-text-primary">Mon Compte</h1>
+                            <div className="mt-2 text-text-secondary">
                                 <p><span className="font-semibold">Pseudo:</span> {user?.displayName}</p>
                                 <p><span className="font-semibold">Email:</span> {user?.email}</p>
                             </div>
@@ -225,13 +216,13 @@ export default function MyAccountPage() {
                         <div className="flex gap-3">
                             <button
                                 onClick={handleLogout}
-                                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="px-4 py-2 border border-gray-600 rounded-lg text-text-primary hover:bg-background-lighter transition-colors"
                             >
                                 Me déconnecter
                             </button>
                             <button
                                 onClick={handleDeleteAccount}
-                                className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                                className="px-4 py-2 bg-red-900/30 text-red-400 border border-red-800 rounded-lg hover:bg-red-900/50 transition-colors"
                             >
                                 Supprimer mon compte
                             </button>
@@ -240,18 +231,18 @@ export default function MyAccountPage() {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 space-y-8">
+            <div className="container mx-auto px-4 space-y-8 mt-8">
 
                 {/* Section Mon Circuit */}
                 <section>
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
                             🗺️ Mon Circuit
                         </h2>
                         {circuitEvents.length > 0 && (
                             <button
                                 onClick={handleClearCircuit}
-                                className="text-red-600 hover:text-red-800 text-sm font-semibold"
+                                className="text-red-400 hover:text-red-300 text-sm font-semibold"
                             >
                                 Vider le circuit
                             </button>
@@ -259,11 +250,11 @@ export default function MyAccountPage() {
                     </div>
 
                     {!loadingCircuit && circuitEvents.length === 0 ? (
-                        <div className="bg-white rounded-lg shadow p-8 text-center">
-                            <p className="text-gray-500 mb-4">Votre circuit est vide.</p>
+                        <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-8 text-center">
+                            <p className="text-text-muted mb-4">Votre circuit est vide.</p>
                             <Link
                                 to="/"
-                                className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-orange-900/20"
                             >
                                 Rechercher des événements
                             </Link>
@@ -271,7 +262,7 @@ export default function MyAccountPage() {
                     ) : (
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Carte */}
-                            <div className="lg:w-2/3 h-[500px] bg-white rounded-lg shadow overflow-hidden">
+                            <div className="lg:w-2/3 h-[500px] bg-background-paper rounded-lg shadow-lg border border-gray-700 overflow-hidden">
                                 <MapContainer
                                     center={mapCenter}
                                     zoom={9}
@@ -301,7 +292,7 @@ export default function MyAccountPage() {
                                         >
                                             <Popup>
                                                 <div className="p-2">
-                                                    <h3 className="font-bold text-lg text-blue-600">{event.name}</h3>
+                                                    <h3 className="font-bold text-lg text-primary">{event.name}</h3>
                                                     <p className="text-sm text-gray-600 mt-1">{event.city}</p>
                                                     <p className="text-sm mt-1">{new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}</p>
                                                 </div>
@@ -309,7 +300,7 @@ export default function MyAccountPage() {
                                         </Marker>
                                     ))}
                                     {polylinePositions.length > 1 && (
-                                        <Polyline positions={polylinePositions as L.LatLngExpression[]} color="blue" weight={3} />
+                                        <Polyline positions={polylinePositions as L.LatLngExpression[]} color="#ff6b35" weight={3} />
                                     )}
                                 </MapContainer>
                             </div>
@@ -319,17 +310,17 @@ export default function MyAccountPage() {
                                 {userPosition && (
                                     <button
                                         onClick={launchChronologicalCircuit}
-                                        className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-semibold shadow-sm sticky top-0 z-10"
+                                        className="w-full bg-primary text-white px-4 py-3 rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 font-semibold shadow-lg shadow-orange-900/20 sticky top-0 z-10"
                                     >
                                         <span>▶️ Lancer le Circuit (GPS)</span>
                                     </button>
                                 )}
 
                                 {circuitEvents.map((event) => (
-                                    <div key={event.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-                                        <h3 className="font-bold text-gray-800">{event.name}</h3>
-                                        <p className="text-sm text-gray-600">{event.city} ({event.postalCode})</p>
-                                        <p className="text-sm text-gray-500 mb-3">
+                                    <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4">
+                                        <h3 className="font-bold text-text-primary">{event.name}</h3>
+                                        <p className="text-sm text-text-secondary">{event.city} ({event.postalCode})</p>
+                                        <p className="text-sm text-text-muted mb-3">
                                             {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
                                             {event.distance !== undefined && ` • ${event.distance} km`}
                                         </p>
@@ -338,14 +329,14 @@ export default function MyAccountPage() {
                                             {userPosition && (
                                                 <button
                                                     onClick={() => navigateToEvent(event)}
-                                                    className="flex-1 py-1.5 px-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm font-medium flex items-center justify-center gap-1"
+                                                    className="flex-1 py-1.5 px-2 bg-primary/20 text-primary rounded hover:bg-primary/30 text-sm font-medium flex items-center justify-center gap-1"
                                                 >
                                                     <span>📍 Y aller</span>
                                                 </button>
                                             )}
                                             <button
                                                 onClick={() => handleRemoveFromCircuit(event.id)}
-                                                className="py-1.5 px-3 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm font-medium"
+                                                className="py-1.5 px-3 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50 text-sm font-medium"
                                             >
                                                 Retirer
                                             </button>
@@ -357,37 +348,37 @@ export default function MyAccountPage() {
                     )}
                 </section>
 
-                <hr className="border-gray-200" />
+                <hr className="border-gray-700" />
 
                 {/* Section Mes Événements */}
                 <section>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
                         📅 Mes Événements Ajoutés
                     </h2>
                     {loadingMyEvents ? (
-                        <p className="text-gray-500">Chargement de vos événements...</p>
+                        <p className="text-text-muted">Chargement de vos événements...</p>
                     ) : myEvents.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {myEvents.map(event => (
-                                <div key={event.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
+                                <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4">
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-lg text-gray-800">{event.name}</h3>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${event.statut_validation === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                        <h3 className="font-bold text-lg text-text-primary">{event.name}</h3>
+                                        <span className={`text-xs px-2 py-1 rounded-full ${event.statut_validation === 'published' ? 'bg-green-900/30 text-green-400' : 'bg-yellow-900/30 text-yellow-400'
                                             }`}>
                                             {event.statut_validation === 'published' ? 'Publié' : 'En attente'}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-gray-600 mt-1">{event.city} ({event.postalCode})</p>
-                                    <p className="text-sm text-gray-500 mt-2">
+                                    <p className="text-sm text-text-secondary mt-1">{event.city} ({event.postalCode})</p>
+                                    <p className="text-sm text-text-muted mt-2">
                                         {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
                                     </p>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="bg-white rounded-lg shadow p-6 text-center">
-                            <p className="text-gray-500">Vous n'avez pas encore ajouté d'événements.</p>
-                            <Link to="/soumettre" className="text-blue-600 hover:underline mt-2 inline-block">
+                        <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-6 text-center">
+                            <p className="text-text-muted">Vous n'avez pas encore ajouté d'événements.</p>
+                            <Link to="/soumettre" className="text-primary hover:text-primary-hover mt-2 inline-block">
                                 Ajouter un événement
                             </Link>
                         </div>

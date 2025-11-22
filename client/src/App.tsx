@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 
 import MyAccountPage from './pages/MyAccountPage'
@@ -31,6 +31,7 @@ export default function App() {
 
             <Route path="/event/:id" element={<EventDetailsPage />} />
             <Route path="/mon-compte" element={<MyAccountPage />} />
+            <Route path="/ma-liste" element={<Navigate to="/mon-compte" replace />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/set-pseudo" element={<SetPseudoPage />} />
