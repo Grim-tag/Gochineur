@@ -68,10 +68,17 @@ export default function EventDetailsPage() {
         )
     }
 
+    // Générer le slug de la catégorie pour le lien
+    const categorySlug = event.type.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+
     const breadcrumbsItems = [
         { label: 'Accueil', path: '/' },
-        { label: event.city, path: `/brocantes/${event.city.toLowerCase().replace(/\s+/g, '-')}` }, // Approximate link
-        { label: event.name }
+        { label: event.type, path: `/${categorySlug}` },
+        { label: event.name },
+        { label: event.city }
     ]
 
     // Format date
