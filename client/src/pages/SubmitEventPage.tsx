@@ -178,7 +178,8 @@ export default function SubmitEventPage() {
       const eventData = {
         ...formData,
         latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude)
+        longitude: parseFloat(formData.longitude),
+        prix_montant: formData.prix_montant ? parseFloat(formData.prix_montant) : undefined
       }
 
       await submitEvent(eventData)
