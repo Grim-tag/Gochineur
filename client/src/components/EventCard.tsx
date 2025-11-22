@@ -56,7 +56,7 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
 
       <div className="flex gap-2">
         <Link
-          to={`/event/${event.id}`}
+          to={`/event/${encodeURIComponent(event.id.toString())}`}
           className="flex-1 py-2 px-4 bg-background-lighter text-text-primary hover:bg-gray-700 rounded-lg font-semibold transition-colors text-center border border-gray-600"
         >
           Voir détails

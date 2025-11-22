@@ -14,8 +14,10 @@ export default function EventDetailsPage() {
     useEffect(() => {
         if (!id) return
 
+        const decodedId = decodeURIComponent(id)
+
         setLoading(true)
-        fetchEventById(id)
+        fetchEventById(decodedId)
             .then(data => {
                 setEvent(data)
                 setLoading(false)
