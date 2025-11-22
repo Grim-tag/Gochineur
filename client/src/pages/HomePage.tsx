@@ -138,7 +138,7 @@ export default function HomePage() {
           dept = geoData.departments.find(d => d.code === departmentCode)
         } else if (departmentSlug) {
           dept = geoData.departments.find(d =>
-            d.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === departmentSlug
+            d.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === departmentSlug
           )
         }
         if (dept) {
@@ -292,6 +292,21 @@ export default function HomePage() {
     const grouped = groupEventsByDay(events)
     setGroupedEvents(grouped)
   }, [events])
+
+  // Mettre à jour le H1 quand le rayon change
+  useEffect(() => {
+    if (city && currentRadius) {
+      // Déterminer si c'est une ville ou un département
+      const isCity = geoData?.cities?.some(c => c.name === city)
+      const dept = geoData?.departments?.find(d => d.name === city)
+
+      if (isCity) {
+        updateSeoTitle(city, currentEventType, currentRadius, undefined, true)
+      } else if (dept) {
+        updateSeoTitle(city, currentEventType, currentRadius, dept.code, false)
+      }
+    }
+  }, [currentRadius, city, currentEventType, geoData])
 
   // Charger le circuit depuis localStorage
   useEffect(() => {

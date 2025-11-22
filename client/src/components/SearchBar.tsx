@@ -48,7 +48,11 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
           const dept = geoData.departments?.find((d: any) => d.code === cityData.department)
           if (dept) {
             // Créer le slug du département (ex: "landes" pour "40")
-            const deptSlug = dept.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+            const deptSlug = dept.name
+              .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase()
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '')
             const targetUrl = `/brocantes/${deptSlug}/${cityData.slug}`
             console.log('Navigating to:', targetUrl)
             // Naviguer vers /brocantes/landes/saint-martin-de-hinx
