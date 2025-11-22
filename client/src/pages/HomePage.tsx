@@ -132,7 +132,15 @@ export default function HomePage() {
 
       if (citySlug) {
         console.log('🏙️ Looking for city with slug:', citySlug, 'in geoData.cities:', geoData.cities?.length)
-        const cityData = geoData.cities.find(c => c.slug === citySlug)
+
+        // Vérifier d'abord si les données de la ville sont passées via navigate state
+        let cityData = (location.state as any)?.cityData
+
+        if (!cityData) {
+          // Sinon, chercher dans geoData
+          cityData = geoData.cities.find(c => c.slug === citySlug)
+        }
+
         console.log('🏙️ City found:', cityData)
         if (cityData) {
           targetLat = cityData.lat

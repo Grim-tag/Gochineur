@@ -96,7 +96,17 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
                   .replace(/[^a-z0-9-]/g, '')
 
                 console.log('City added successfully, navigating to:', `/brocantes/${deptSlug}/${city.slug}`)
-                navigate(`/brocantes/${deptSlug}/${city.slug}`)
+                navigate(`/brocantes/${deptSlug}/${city.slug}`, {
+                  state: {
+                    cityData: {
+                      name: city.name,
+                      slug: city.slug,
+                      lat: city.lat,
+                      lon: city.lon,
+                      department: city.department
+                    }
+                  }
+                })
                 return
               }
             }
