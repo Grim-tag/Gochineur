@@ -128,9 +128,7 @@ export default function HomePage() {
           targetLon = cityData.lon
           targetName = cityData.name
           targetRadius = 30 // Rayon standard pour une ville
-          // Utiliser currentRadius si déjà défini (l'utilisateur a bougé le slider)
-          const radiusToUse = currentRadius !== EVENTS.DEFAULT_RADIUS ? currentRadius : targetRadius
-          updateSeoTitle(targetName, currentEventType, radiusToUse, undefined, true)
+          updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
         }
@@ -185,10 +183,7 @@ export default function HomePage() {
       if (targetLat && targetLon) {
         setUserPosition({ latitude: targetLat, longitude: targetLon })
         setCity(targetName)
-        // Ne mettre à jour currentRadius que si l'utilisateur n'a pas déjà changé le rayon
-        if (currentRadius === EVENTS.DEFAULT_RADIUS) {
-          setCurrentRadius(targetRadius)
-        }
+        setCurrentRadius(targetRadius)
 
         // Charger les événements pour cette position
         const today = new Date()
@@ -197,9 +192,7 @@ export default function HomePage() {
         setCurrentEndDate(end)
         setLoading(true)
 
-        // Utiliser currentRadius si l'utilisateur l'a modifié, sinon targetRadius
-        const radiusToUse = currentRadius !== EVENTS.DEFAULT_RADIUS ? currentRadius : targetRadius
-        loadEvents(start, end, false, undefined, radiusToUse, { latitude: targetLat, longitude: targetLon })
+        loadEvents(start, end, false, undefined, targetRadius, { latitude: targetLat, longitude: targetLon })
           .then((data: Event[]) => {
             setFilteredEvents(data)
             const grouped = groupEventsByDay(data)
@@ -215,7 +208,7 @@ export default function HomePage() {
     }
 
     handleUrlParams()
-  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData, location.pathname, currentRadius, currentEventType])
+  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData, location.pathname])
 
   // Fonction pour charger les événements avec une période donnée
   const loadEvents = async (
