@@ -96,16 +96,39 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
           }
         }
 
-        // Appeler onSearch avec les coordonnées géocodées
-        onSearch(searchTerm, radius, eventType, geocodeResult)
+        // Si on arrive ici, naviguer quand même (ville ajoutée ou géocodage réussi)
+        // Utiliser le nom de la ville du géocodage pour créer un slug
+        const citySlugFallback = geocodeResult.city
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '')
+
+        // Trouver le département via les coordonnées (approximatif)
+        const dept = geoData.departments?.find((d: any) => {
+          // Distance approximative - on pourrait améliorer ça
+          const distance = Math.sqrt(
+            Math.pow(d.lat - geocodeResult.latitude, 2) +
+            Math.pow(d.lon - geocodeResult.longitude, 2)
+          )
+          return distance < 1 // Environ 100km
+        })
+
+        if (dept) {
+          const deptSlug = dept.name
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^a-z0-9-]/g, '')
+          console.log('Navigating to fallback:', `/brocantes/${deptSlug}/${citySlugFallback}`)
+          navigate(`/brocantes/${deptSlug}/${citySlugFallback}`)
+          return
+        }
       } else {
-        // Si le géocodage échoue, faire quand même la recherche avec le terme textuel
-        onSearch(searchTerm, radius, eventType)
+        console.log('❌ No geocode result or geoData')
       }
     } catch (error) {
       console.error('Erreur lors du géocodage:', error)
-      // En cas d'erreur, faire quand même la recherche avec le terme textuel
-      onSearch(searchTerm, radius, eventType)
     } finally {
       setGeocoding(false)
     }
