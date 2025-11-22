@@ -335,26 +335,34 @@ export default function HomePage() {
   useEffect(() => {
     // Ne se déclencher que si on est sur une page ville/département ET que le rayon a changé
     if ((citySlug || departmentSlug) && userPosition && currentRadius && currentEndDate) {
-      console.log('🔄 Radius changed, reloading events with radius:', currentRadius)
-      setLoading(true)
+      console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
-      const today = new Date()
-      const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
+      // Debounce: attendre 500ms après le dernier changement avant de recharger
+      const timeoutId = setTimeout(() => {
+        console.log('🔄 Reloading events with radius:', currentRadius)
+        setLoading(true)
 
-      loadEvents(start, end, false, currentEventType, currentRadius, userPosition)
-        .then((data: Event[]) => {
-          setFilteredEvents(data)
-          const grouped = groupEventsByDay(data)
-          setGroupedEvents(grouped)
-          setLoading(false)
-          setHasMoreEvents(data.length > 0)
-        })
-        .catch(err => {
-          setError(err.message)
-          setLoading(false)
-        })
+        const today = new Date()
+        const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
+
+        loadEvents(start, end, false, currentEventType, currentRadius, userPosition)
+          .then((data: Event[]) => {
+            setFilteredEvents(data)
+            const grouped = groupEventsByDay(data)
+            setGroupedEvents(grouped)
+            setLoading(false)
+            setHasMoreEvents(data.length > 0)
+          })
+          .catch(err => {
+            setError(err.message)
+            setLoading(false)
+          })
+      }, 500)
+
+      // Cleanup: annuler le timeout si le rayon change à nouveau avant les 500ms
+      return () => clearTimeout(timeoutId)
     }
-  }, [currentRadius])
+  }, [currentRadius, citySlug, departmentSlug, userPosition, currentEndDate, currentEventType])
 
 
   // Charger le circuit depuis localStorage
