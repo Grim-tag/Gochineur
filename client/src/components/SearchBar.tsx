@@ -64,8 +64,8 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
               .replace(/[^a-z0-9-]/g, '')
             const targetUrl = `/brocantes/${deptSlug}/${cityData.slug}`
             console.log('Navigating to:', targetUrl)
-            // Naviguer vers /brocantes/landes/saint-martin-de-hinx
-            navigate(targetUrl)
+            // Forcer un rechargement complet de la page pour éviter les problèmes de state
+            window.location.href = targetUrl
             return
           }
         } else {
@@ -96,17 +96,8 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
                   .replace(/[^a-z0-9-]/g, '')
 
                 console.log('City added successfully, navigating to:', `/brocantes/${deptSlug}/${city.slug}`)
-                navigate(`/brocantes/${deptSlug}/${city.slug}`, {
-                  state: {
-                    cityData: {
-                      name: city.name,
-                      slug: city.slug,
-                      lat: city.lat,
-                      lon: city.lon,
-                      department: city.department
-                    }
-                  }
-                })
+                // Forcer un rechargement complet de la page
+                window.location.href = `/brocantes/${deptSlug}/${city.slug}`
                 return
               }
             }
@@ -140,7 +131,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             .replace(/\s+/g, '-')
             .replace(/[^a-z0-9-]/g, '')
           console.log('Navigating to fallback:', `/brocantes/${deptSlug}/${citySlugFallback}`)
-          navigate(`/brocantes/${deptSlug}/${citySlugFallback}`)
+          window.location.href = `/brocantes/${deptSlug}/${citySlugFallback}`
           return
         }
       } else {
