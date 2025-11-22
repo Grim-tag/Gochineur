@@ -331,6 +331,32 @@ export default function HomePage() {
     }
   }, [currentRadius, city, currentEventType, geoData])
 
+  // Recharger les événements quand le rayon change (pour les pages ville/département)
+  useEffect(() => {
+    // Ne se déclencher que si on est sur une page ville/département ET que le rayon a changé
+    if ((citySlug || departmentSlug) && userPosition && currentRadius && currentEndDate) {
+      console.log('🔄 Radius changed, reloading events with radius:', currentRadius)
+      setLoading(true)
+
+      const today = new Date()
+      const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
+
+      loadEvents(start, end, false, currentEventType, currentRadius, userPosition)
+        .then((data: Event[]) => {
+          setFilteredEvents(data)
+          const grouped = groupEventsByDay(data)
+          setGroupedEvents(grouped)
+          setLoading(false)
+          setHasMoreEvents(data.length > 0)
+        })
+        .catch(err => {
+          setError(err.message)
+          setLoading(false)
+        })
+    }
+  }, [currentRadius])
+
+
   // Charger le circuit depuis localStorage
   useEffect(() => {
     const loadCircuit = () => {
