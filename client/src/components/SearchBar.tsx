@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../types'
 import { forwardGeocode } from '../utils/appUtils'
@@ -9,15 +9,24 @@ interface SearchBarProps {
   onReset?: () => void
   events: Event[]
   geoData?: any
+  currentRadius?: number
 }
 
-export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }: SearchBarProps) {
+export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, currentRadius }: SearchBarProps) {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const [radius, setRadius] = useState(25)
+  const [radius, setRadius] = useState(currentRadius || 25)
   const [eventType, setEventType] = useState('tous')
   const [geocoding, setGeocoding] = useState(false)
   const [geolocating, setGeolocating] = useState(false)
+
+  // Synchroniser le slider avec currentRadius de HomePage
+  useEffect(() => {
+    if (currentRadius !== undefined && currentRadius !== radius) {
+      setRadius(currentRadius)
+    }
+  }, [currentRadius])
+
 
   const handleSearch = async () => {
     // Si le champ est vide, on propose de réinitialiser (retour géolocalisation)

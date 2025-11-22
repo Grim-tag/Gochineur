@@ -508,6 +508,7 @@ export default function HomePage() {
         }}
         geoData={geoData}
         events={events}
+        currentRadius={currentRadius}
       />
 
       <div className="container mx-auto px-4 py-6">
