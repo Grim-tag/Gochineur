@@ -462,10 +462,6 @@ export default function HomePage() {
     breadcrumbsItems.push({ label: city })
   }
 
-  import Header from '../components/Header'
-
-  // ...
-
   return (
 
     <div className="min-h-screen bg-background">

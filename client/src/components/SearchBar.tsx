@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Event } from '../types'
-import { checkAuth, redirectToGoogleAuth, type User } from '../utils/authUtils'
 import { forwardGeocode } from '../utils/appUtils'
 
 interface SearchBarProps {
@@ -13,6 +12,13 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }: SearchBarProps) {
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [radius, setRadius] = useState(25)
+  const [eventType, setEventType] = useState('tous')
+  const [geocoding, setGeocoding] = useState(false)
+  const [geolocating, setGeolocating] = useState(false)
+
   const handleSearch = async () => {
     // Si le champ est vide, on propose de réinitialiser (retour géolocalisation)
     if (!searchTerm.trim()) {
@@ -179,39 +185,10 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
     )
   }
 
-  const handleLogoClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setSearchTerm('')
-    if (onReset) {
-      onReset()
-    }
-    navigate('/')
-  }
-
   // Appeler la recherche automatiquement quand le type change
   const handleTypeChange = (newType: string) => {
     setEventType(newType)
     onSearch(searchTerm, radius, newType)
-  }
-
-  // Gestion du clic sur le bouton "Ajouter un événement"
-  const handleAddEventClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-
-    if (!user) {
-      // Utilisateur non connecté : rediriger vers la connexion Google
-      redirectToGoogleAuth()
-      return
-    }
-
-    if (!user.displayName) {
-      // Utilisateur connecté mais sans pseudo : rediriger vers la page de pseudo
-      navigate('/set-pseudo?returnTo=/soumettre')
-      return
-    }
-
-    // Utilisateur connecté avec pseudo : rediriger vers le formulaire
-    navigate('/soumettre')
   }
 
   return (
