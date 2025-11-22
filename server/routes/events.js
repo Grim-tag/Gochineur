@@ -161,6 +161,25 @@ module.exports = function () {
     }
   });
 
+  // Route pour obtenir un événement par son ID
+  router.get('/:id', async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+      const eventId = req.params.id;
+
+      const event = await eventsCollection.findOne({ id: eventId });
+
+      if (!event) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+
+      res.json(event);
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'événement:', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+    }
+  });
+
   // Route pour récupérer les événements de l'utilisateur connecté
   router.get('/my-events', authenticateJWT, async (req, res) => {
     try {

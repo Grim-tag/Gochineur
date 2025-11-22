@@ -1,4 +1,5 @@
 import type { Event } from '../types'
+import { Link } from 'react-router-dom'
 
 interface EventCardProps {
   event: Event
@@ -53,16 +54,24 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
         </p>
       </div>
 
-      <button
-        onClick={() => onAddToCircuit(event.id)}
-        disabled={isInCircuit}
-        className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${isInCircuit
+      <div className="flex gap-2">
+        <Link
+          to={`/event/${event.id}`}
+          className="flex-1 py-2 px-4 bg-background-lighter text-text-primary hover:bg-gray-700 rounded-lg font-semibold transition-colors text-center border border-gray-600"
+        >
+          Voir détails
+        </Link>
+        <button
+          onClick={() => onAddToCircuit(event.id)}
+          disabled={isInCircuit}
+          className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${isInCircuit
             ? 'bg-background-lighter text-text-muted cursor-not-allowed'
             : 'bg-primary text-white hover:bg-primary-hover shadow-md shadow-orange-900/20'
-          }`}
-      >
-        {isInCircuit ? 'Déjà dans le circuit' : 'Ajouter au circuit'}
-      </button>
+            }`}
+        >
+          {isInCircuit ? 'Ajouté' : 'Ajouter'}
+        </button>
+      </div>
     </div>
   )
 }

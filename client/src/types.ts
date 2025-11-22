@@ -16,6 +16,12 @@ export interface Event {
   distance: number
   statut_validation?: string
   date_creation?: string
+  telephone?: string
+  pays?: string
+  prix_visiteur?: string
+  prix_montant?: number
+  submitted_by_pseudo?: string
+  role?: string
 }
 
 

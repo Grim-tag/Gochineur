@@ -87,6 +87,27 @@ export async function fetchEvents(params: FetchEventsParams): Promise<Event[]> {
 }
 
 /**
+ * Récupère un événement par son ID
+ */
+export async function fetchEventById(id: string): Promise<Event> {
+  const endpoint = `${API.ENDPOINTS.EVENTS}/${id}`;
+  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
+  }
+
+  return response.json();
+}
+
+/**
  * Soumet un nouvel événement
  */
 export async function submitEvent(eventData: Partial<Event>): Promise<Event> {

@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import SetPseudoPage from './pages/SetPseudoPage'
 import AdminPage from './pages/AdminPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
+import EventDetailsPage from './pages/EventDetailsPage'
 import './index.css'
 import Footer from './components/Footer'
 
@@ -21,6 +22,7 @@ export default function App() {
             <Route path="/vide-grenier/:departmentCode" element={<HomePage />} />
             <Route path="/brocantes/:departmentSlug/:citySlug" element={<HomePage />} />
             <Route path="/brocantes/:citySlug" element={<HomePage />} />
+            <Route path="/event/:id" element={<EventDetailsPage />} />
             <Route path="/mon-compte" element={<MyAccountPage />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />
             <Route path="/login" element={<LoginPage />} />
