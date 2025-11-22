@@ -112,6 +112,15 @@ export default function HomePage() {
 
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
   useEffect(() => {
+    console.log('🔍 URL Params useEffect triggered:', {
+      departmentCode,
+      citySlug,
+      regionSlug,
+      departmentSlug,
+      pathname: location.pathname,
+      hasGeoData: !!geoData
+    })
+
     if (!geoData) return
 
     const handleUrlParams = async () => {
