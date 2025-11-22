@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
@@ -43,6 +43,7 @@ export default function HomePage() {
   const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
   const [seoTitle, setSeoTitle] = useState<string>('Vide-greniers et brocantes l\'agenda des chineurs')
+  const lastRequestId = useRef<number>(0)
 
   // Coordonnées de test (Landes/Pays Basque Sud)
   const testPositionFallback: UserPosition = {
@@ -161,6 +162,20 @@ export default function HomePage() {
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
         }
+      } else {
+        // Si aucun paramètre d'URL, on est sur la page d'accueil "pure"
+        // On réinitialise le titre et la position si nécessaire
+        // Note: On ne reset pas userPosition si on veut garder la dernière position connue,
+        // mais pour le H1, on veut le titre par défaut.
+        // Le comportement demandé est de revenir à l'état initial "Vide-greniers et brocantes l'agenda des chineurs"
+
+        setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
+        document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
+        setCity('') // On enlève la ville sélectionnée
+
+        // Si on veut aussi réinitialiser la liste d'événements à la vue par défaut (testPositionFallback ou autre)
+        // on peut le faire ici.
+        // Pour l'instant, on reset juste le titre comme demandé.
       }
 
       if (targetLat && targetLon) {
@@ -202,6 +217,13 @@ export default function HomePage() {
     customRadius?: number,
     customPosition?: UserPosition
   ): Promise<Event[]> => {
+    // Gestion des race conditions : si c'est une nouvelle recherche (!append), on incrémente l'ID
+    // Si c'est un chargement de plus (append), on garde l'ID actuel pour valider qu'on est toujours sur la même recherche
+    if (!append) {
+      lastRequestId.current = Date.now()
+    }
+    const currentRequestId = lastRequestId.current
+
     const position = customPosition || userPosition || testPositionFallback
     const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
     const typeToUse = eventType === 'tous' ? undefined : eventType
@@ -214,6 +236,11 @@ export default function HomePage() {
       endDate,
       eventType: typeToUse
     })
+
+    // Si une nouvelle recherche a été lancée entre temps, on ignore ce résultat
+    if (lastRequestId.current !== currentRequestId) {
+      return []
+    }
 
     if (append) {
       setEvents(prev => {
@@ -440,6 +467,12 @@ export default function HomePage() {
       <SearchBar
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
+        onReset={() => {
+          setCity('')
+          setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
+          document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
+          // On pourrait aussi reset userPosition ici si voulu
+        }}
         geoData={geoData}
         events={events}
       />

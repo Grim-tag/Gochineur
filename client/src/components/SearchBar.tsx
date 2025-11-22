@@ -134,6 +134,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
 
   const handleGeolocate = async () => {
     setGeolocating(true)
+    setSearchTerm('') // Clear search term immediately
 
     if (!navigator.geolocation) {
       alert('La géolocalisation n\'est pas supportée par votre navigateur')
