@@ -131,15 +131,20 @@ export default function HomePage() {
       let deptCodeStr = ''
 
       if (citySlug) {
+        console.log('🏙️ Looking for city with slug:', citySlug, 'in geoData.cities:', geoData.cities?.length)
         const cityData = geoData.cities.find(c => c.slug === citySlug)
+        console.log('🏙️ City found:', cityData)
         if (cityData) {
           targetLat = cityData.lat
           targetLon = cityData.lon
           targetName = cityData.name
           targetRadius = 30 // Rayon standard pour une ville
+          console.log('✅ Setting city:', targetName, 'radius:', targetRadius)
           updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
+        } else {
+          console.log('❌ City not found in geoData')
         }
       } else if (departmentCode || departmentSlug) {
         let dept = null
@@ -190,6 +195,7 @@ export default function HomePage() {
       }
 
       if (targetLat && targetLon) {
+        console.log('📍 Loading events for:', targetName, 'at', targetLat, targetLon, 'radius:', targetRadius)
         setUserPosition({ latitude: targetLat, longitude: targetLon })
         setCity(targetName)
         setCurrentRadius(targetRadius)
