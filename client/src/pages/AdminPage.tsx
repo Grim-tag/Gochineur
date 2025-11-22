@@ -403,7 +403,29 @@ export default function AdminPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Actions globales */}
-        <div className="flex justify-end mb-6">
+        <div className="flex justify-end mb-6 gap-4">
+          <button
+            onClick={async () => {
+              if (!confirm('Êtes-vous sûr de vouloir migrer les IDs ? Cela corrigera les URLs des anciens événements.')) return;
+
+              try {
+                setLoadingData(true);
+                const response = await fetch(`${API.BASE_URL}/api/admin/migrate-ids`, {
+                  method: 'POST',
+                  headers: getAuthHeaders()
+                });
+                const data = await response.json();
+                alert(data.message);
+                loadData();
+              } catch (err: any) {
+                alert('Erreur lors de la migration: ' + err.message);
+                setLoadingData(false);
+              }
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg shadow-blue-900/20"
+          >
+            🔄 Migrer les IDs (Fix URLs)
+          </button>
           <button
             onClick={async () => {
               if (!confirm('Êtes-vous sûr de vouloir lancer l\'importation ? Cela peut prendre plusieurs minutes.')) return;

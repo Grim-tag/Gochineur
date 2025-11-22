@@ -230,6 +230,63 @@ module.exports = function () {
     }
   });
 
+  // Route de migration des IDs (Nettoyage des URLs)
+  router.post('/migrate-ids', requireAdmin, async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+
+      // Trouver tous les événements dont l'ID commence par http (donc les anciens IDs DataTourisme)
+      const eventsToMigrate = await eventsCollection.find({
+        id: { $regex: /^http/ }
+      }).toArray();
+
+      let migratedCount = 0;
+      let errors = 0;
+
+      for (const event of eventsToMigrate) {
+        try {
+          // Extraire l'UUID de l'URL
+          // Ex: https://data.datatourisme.fr/23/eaee8540-5625-3790-b055-8e69f0c60f1f
+          const parts = event.id.split('/');
+          const uuid = parts[parts.length - 1];
+
+          if (uuid && (uuid.length === 36 || uuid.includes('-'))) {
+            const newId = `DT_${uuid}`;
+
+            // Vérifier si le nouvel ID existe déjà
+            const existing = await eventsCollection.findOne({ id: newId });
+
+            if (!existing) {
+              await eventsCollection.updateOne(
+                { _id: event._id },
+                { $set: { id: newId } }
+              );
+              migratedCount++;
+            } else {
+              // Si l'ID existe déjà (doublon), on supprime l'ancien (celui avec l'URL moche)
+              // car le nouveau est probablement une réimportation plus récente
+              await eventsCollection.deleteOne({ _id: event._id });
+              migratedCount++; // On compte comme traité
+            }
+          }
+        } catch (err) {
+          console.error(`Erreur migration event ${event.id}:`, err);
+          errors++;
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `${migratedCount} événements migrés avec succès.`,
+        migrated: migratedCount,
+        errors: errors
+      });
+    } catch (error) {
+      console.error('Erreur lors de la migration des IDs:', error);
+      res.status(500).json({ error: 'Erreur lors de la migration des IDs' });
+    }
+  });
+
   // ==================== ROUTES ADMIN API ====================
 
   // Route pour obtenir tous les utilisateurs
