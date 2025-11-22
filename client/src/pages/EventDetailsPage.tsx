@@ -1,93 +1,3 @@
-import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { fetchEventById } from '../services/api'
-import type { Event } from '../types'
-import Breadcrumbs from '../components/Breadcrumbs'
-
-import { extractIdFromSlug } from '../utils/appUtils'
-
-export default function EventDetailsPage() {
-    const { id, param } = useParams<{ id?: string; param?: string }>()
-    const navigate = useNavigate()
-    const [event, setEvent] = useState<Event | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-
-    useEffect(() => {
-        let eventId = id
-
-        // Si pas d'ID direct, on essaie d'extraire depuis le slug (param)
-        if (!eventId && param) {
-            eventId = extractIdFromSlug(param)
-        }
-
-        if (!eventId) return
-
-        setLoading(true)
-        fetchEventById(eventId)
-            .then(data => {
-                setEvent(data)
-                setLoading(false)
-                // Update SEO title
-                document.title = `${data.name} - GoChineur`
-            })
-            .catch(err => {
-                console.error('Error loading event:', err)
-                setError('Impossible de charger les détails de l\'événement.')
-                setLoading(false)
-            })
-    }, [id, param])
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-4 text-text-secondary">Chargement...</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (error || !event) {
-        return (
-            <div className="min-h-screen bg-background py-12 px-4">
-                <div className="container mx-auto max-w-2xl text-center">
-                    <div className="bg-red-900/20 border border-red-800 rounded-lg p-6">
-                        <h1 className="text-2xl font-bold text-red-400 mb-2">Erreur</h1>
-                        <p className="text-red-300">{error || 'Événement non trouvé'}</p>
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="mt-6 px-6 py-2 bg-background-lighter hover:bg-gray-700 text-text-primary rounded-lg transition-colors"
-                        >
-                            Retour
-                        </button>
-                    </div>
-                </div>
-            </div>
-        )
-    }
-
-    const breadcrumbsItems = [
-        { label: 'Accueil', path: '/' },
-        { label: event.city, path: `/brocantes/${event.city.toLowerCase().replace(/\s+/g, '-')}` }, // Approximate link
-        { label: event.name }
-    ]
-
-    // Format date
-    const dateObj = new Date(event.date_debut || event.date)
-    const dateFormatted = dateObj.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    })
-
-    return (
-        <div className="min-h-screen bg-background pb-12">
-            {/* Header / Nav would go here if not in layout */}
-
-            <div className="container mx-auto px-4 py-6">
                 <Breadcrumbs items={breadcrumbsItems} />
 
                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -107,7 +17,7 @@ export default function EventDetailsPage() {
                                 </div>
 
                                 <h1 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-                                    {event.name}
+                                    {event.name} {event.city}
                                 </h1>
 
                                 <div className="flex items-center gap-2 text-text-secondary mb-6">
@@ -203,7 +113,7 @@ export default function EventDetailsPage() {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

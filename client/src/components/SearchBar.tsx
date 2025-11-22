@@ -13,37 +13,6 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }: SearchBarProps) {
-  const navigate = useNavigate()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [radius, setRadius] = useState(25)
-  const [eventType, setEventType] = useState('tous')
-  const [circuitCount, setCircuitCount] = useState(0)
-  const [user, setUser] = useState<User | null>(null)
-  const [authLoading, setAuthLoading] = useState(true)
-
-  useEffect(() => {
-    const updateCircuitCount = () => {
-      const circuit = JSON.parse(localStorage.getItem('gochineur-circuit') || '[]')
-      setCircuitCount(circuit.length)
-    }
-    updateCircuitCount()
-    window.addEventListener('storage', updateCircuitCount)
-    return () => window.removeEventListener('storage', updateCircuitCount)
-  }, [])
-
-  // Vérifier l'authentification au chargement
-  useEffect(() => {
-    checkAuth().then(({ authenticated, user }) => {
-      if (authenticated && user) {
-        setUser(user)
-      }
-      setAuthLoading(false)
-    })
-  }, [])
-
-  const [geocoding, setGeocoding] = useState(false)
-  const [geolocating, setGeolocating] = useState(false)
-
   const handleSearch = async () => {
     // Si le champ est vide, on propose de réinitialiser (retour géolocalisation)
     if (!searchTerm.trim()) {
@@ -248,48 +217,6 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
   return (
     <div className="bg-background-paper shadow-md sticky top-0 z-50 border-b border-gray-700">
       <div className="container mx-auto px-4 py-4">
-        {/* Header avec logo et liens */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-          <div className="w-full md:w-1/3 flex justify-center md:justify-start">
-            <a href="/" onClick={handleLogoClick} className="text-2xl font-bold text-primary hover:text-primary-hover transition-colors cursor-pointer flex items-center gap-2">
-              <span className="text-3xl">🛍️</span> GoChineur
-            </a>
-          </div>
-
-          <div className="w-full md:w-1/3 flex justify-center">
-            <button
-              onClick={handleAddEventClick}
-              disabled={authLoading}
-              className="bg-primary text-white px-6 py-2 rounded-full hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-orange-900/20 transform hover:scale-105 duration-200 font-semibold"
-            >
-              <span>➕ Ajouter un événement</span>
-            </button>
-          </div>
-
-          <div className="w-full md:w-1/3 flex justify-center md:justify-end gap-2">
-            {!user ? (
-              <button
-                onClick={redirectToGoogleAuth}
-                className="bg-background-lighter text-text-primary border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-              >
-                <span>Se connecter</span>
-              </button>
-            ) : (
-              <Link
-                to="/mon-compte"
-                className="bg-background-lighter text-text-primary border border-gray-600 px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-              >
-                <span>👤 Mon compte</span>
-                {circuitCount > 0 && (
-                  <span className="bg-primary text-white rounded-full h-6 w-6 flex items-center justify-center text-xs font-bold">
-                    {circuitCount}
-                  </span>
-                )}
-              </Link>
-            )}
-          </div>
-        </div>
-
         {/* Barre de recherche */}
         <div className="flex flex-col md:flex-row gap-2 mb-4">
           <button

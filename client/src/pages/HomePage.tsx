@@ -8,6 +8,7 @@ import { groupEventsByDay, type GroupedEvents } from '../utils/appUtils'
 import { calculatePeriodDates } from '../utils/dateUtils'
 import { fetchEvents } from '../services/api'
 import { EVENTS, GEOLOCATION, API } from '../config/constants'
+import Header from '../components/Header'
 
 interface UserPosition {
   latitude: number
@@ -72,7 +73,7 @@ export default function HomePage() {
       .catch(err => console.error('Erreur chargement geo data:', err))
   }, [])
 
-  // Helper pour mettre à jour le titre SEO
+  // Placeholder - I need to check SearchBar.tsx first. pour mettre à jour le titre SEO
   const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string, isCity: boolean = false) => {
     const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's'
     let title = ''
@@ -461,9 +462,14 @@ export default function HomePage() {
     breadcrumbsItems.push({ label: city })
   }
 
+  import Header from '../components/Header'
+
+  // ...
+
   return (
 
     <div className="min-h-screen bg-background">
+      <Header />
       <SearchBar
         onSearch={handleSearch}
         onRadiusChange={setCurrentRadius}
