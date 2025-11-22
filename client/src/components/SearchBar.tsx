@@ -240,8 +240,6 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData }
                 setRadius(newRadius)
                 onRadiusChange?.(newRadius)
               }}
-              onMouseUp={handleSearch}
-              onTouchEnd={handleSearch}
               className="w-full h-2 bg-background-lighter rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>

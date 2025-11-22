@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
@@ -22,6 +22,7 @@ interface GeoData {
 }
 
 export default function HomePage() {
+  const location = useLocation()
   const { departmentCode, citySlug, regionSlug, departmentSlug } = useParams<{
     departmentCode?: string;
     citySlug?: string;
@@ -207,7 +208,7 @@ export default function HomePage() {
     }
 
     handleUrlParams()
-  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData])
+  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData, location.pathname])
 
   // Fonction pour charger les événements avec une période donnée
   const loadEvents = async (
