@@ -20,6 +20,18 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
   const [geocoding, setGeocoding] = useState(false)
   const [geolocating, setGeolocating] = useState(false)
 
+  // Helper function to build hierarchical SEO URLs
+  const buildHierarchicalUrl = (citySlug: string, deptCode: string, category: string = 'vide-grenier') => {
+    const dept = geoData?.departments?.find((d: any) => d.code === deptCode)
+    if (!dept) return null
+
+    const region = geoData?.regions?.find((r: any) => r.code === dept.region)
+    if (!region) return null
+
+    // Build hierarchical URL: /{category}/{region}/{department}/{city}
+    return `/${category}/${region.slug}/${dept.slug}/${citySlug}`
+  }
+
   // Synchroniser le slider avec currentRadius de HomePage
   useEffect(() => {
     if (currentRadius !== undefined && currentRadius !== radius) {
@@ -53,18 +65,10 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
         )
 
         if (cityData) {
-          // Trouver le département
-          const dept = geoData.departments?.find((d: any) => d.code === cityData.department)
-          if (dept) {
-            // Créer le slug du département (ex: "landes" pour "40")
-            const deptSlug = dept.name
-              .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-              .toLowerCase()
-              .replace(/\s+/g, '-')
-              .replace(/[^a-z0-9-]/g, '')
-            const targetUrl = `/brocantes/${deptSlug}/${cityData.slug}`
+          // Build hierarchical URL
+          const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+          if (targetUrl) {
             console.log('Navigating to:', targetUrl)
-            // Forcer un rechargement complet de la page pour éviter les problèmes de state
             window.location.href = targetUrl
             return
           }
@@ -90,15 +94,12 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
               const dept = geoData.departments?.find((d: any) => d.code === city.department)
 
               if (dept) {
-                const deptSlug = dept.name.toLowerCase()
-                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                  .replace(/\s+/g, '-')
-                  .replace(/[^a-z0-9-]/g, '')
-
-                console.log('City added successfully, navigating to:', `/brocantes/${deptSlug}/${city.slug}`)
-                // Forcer un rechargement complet de la page
-                window.location.href = `/brocantes/${deptSlug}/${city.slug}`
-                return
+                const targetUrl = buildHierarchicalUrl(city.slug, city.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+                if (targetUrl) {
+                  console.log('City added successfully, navigating to:', targetUrl)
+                  window.location.href = targetUrl
+                  return
+                }
               }
             }
           } catch (error) {
@@ -125,14 +126,12 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
         })
 
         if (dept) {
-          const deptSlug = dept.name
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .toLowerCase()
-            .replace(/\s+/g, '-')
-            .replace(/[^a-z0-9-]/g, '')
-          console.log('Navigating to fallback:', `/brocantes/${deptSlug}/${citySlugFallback}`)
-          window.location.href = `/brocantes/${deptSlug}/${citySlugFallback}`
-          return
+          const targetUrl = buildHierarchicalUrl(citySlugFallback, dept.code, eventType === 'tous' ? 'vide-grenier' : eventType)
+          if (targetUrl) {
+            console.log('Navigating to fallback:', targetUrl)
+            window.location.href = targetUrl
+            return
+          }
         }
       } else {
         console.log('❌ No geocode result or geoData')
@@ -193,13 +192,9 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             }
 
             if (cityData) {
-              const dept = geoData.departments?.find((d: any) => d.code === cityData.department)
-              if (dept) {
-                const deptSlug = dept.name.toLowerCase()
-                  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                  .replace(/\s+/g, '-')
-                  .replace(/[^a-z0-9-]/g, '')
-                navigate(`/brocantes/${deptSlug}/${cityData.slug}`)
+              const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+              if (targetUrl) {
+                navigate(targetUrl)
                 setGeolocating(false)
                 return
               }
