@@ -39,12 +39,13 @@ export async function checkAuth(): Promise<AuthStatus> {
 /**
  * Redirige vers la connexion Google
  */
-export function redirectToGoogleAuth() {
+export function redirectToGoogleAuth(returnTo?: string) {
   const authUrl = API.BASE_URL
     ? `${API.BASE_URL}${API.ENDPOINTS.AUTH}/google`
     : `${API.ENDPOINTS.AUTH}/google`
 
-  window.location.href = authUrl
+  const url = returnTo ? `${authUrl}?returnTo=${encodeURIComponent(returnTo)}` : authUrl
+  window.location.href = url
 }
 
 /**

@@ -22,6 +22,7 @@ interface FormData {
   // Étape 3
   name: string
   telephone: string
+  email: string
   pays: string
   prix_visiteur: string
   prix_montant: string
@@ -52,6 +53,7 @@ export default function SubmitEventPage() {
     heure_fin: '18:00',
     name: '',
     telephone: '',
+    email: '',
     pays: 'France',
     prix_visiteur: 'Gratuite',
     prix_montant: '',
@@ -71,8 +73,8 @@ export default function SubmitEventPage() {
           setCheckingAuth(false)
         }
       } else {
-        // Non authentifié, rediriger vers la connexion Google
-        redirectToGoogleAuth()
+        // Non authentifié, rediriger vers la connexion Google avec returnTo
+        redirectToGoogleAuth('/soumettre')
       }
     }).catch(err => {
       console.error('Erreur lors de la vérification de l\'authentification:', err)
@@ -483,20 +485,33 @@ export default function SubmitEventPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Pays
+                  Email
                 </label>
-                <select
-                  value={formData.pays}
-                  onChange={(e) => handleInputChange('pays', e.target.value)}
-                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
-                >
-                  <option value="France">France</option>
-                  <option value="Belgique">Belgique</option>
-                  <option value="Suisse">Suisse</option>
-                  <option value="Espagne">Espagne</option>
-                  <option value="Luxembourg">Luxembourg</option>
-                </select>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="Ex: contact@example.com"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
+                />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Pays
+              </label>
+              <select
+                value={formData.pays}
+                onChange={(e) => handleInputChange('pays', e.target.value)}
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+              >
+                <option value="France">France</option>
+                <option value="Belgique">Belgique</option>
+                <option value="Suisse">Suisse</option>
+                <option value="Espagne">Espagne</option>
+                <option value="Luxembourg">Luxembourg</option>
+              </select>
             </div>
 
             <div>
