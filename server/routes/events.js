@@ -198,11 +198,9 @@ module.exports = function () {
   });
 
   // Route de soumission d'événement par l'utilisateur
-  router.post('/submit', async (req, res) => {
-    // Vérifier l'authentification
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: 'Authentification requise. Veuillez vous connecter avec Google.' });
-    }
+  router.post('/submit', authenticateJWT, async (req, res) => {
+    // L'utilisateur est déjà authentifié par le middleware authenticateJWT
+    // req.user contient les infos du token décodé
 
     try {
       const {
