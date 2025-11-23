@@ -14,11 +14,20 @@ module.exports = function (googleClientId, googleClientSecret) {
         error: 'Configuration Google OAuth manquante. Vérifiez les variables d\'environnement.'
       });
     }
+
+    // Capturer le paramètre returnTo pour rediriger après connexion
+    const returnTo = req.query.returnTo || '/';
+
+    // Stocker returnTo dans l'état pour le récupérer après callback
+    // Comme on n'utilise pas de session, on va le passer via le paramètre state
+    const state = Buffer.from(JSON.stringify({ returnTo })).toString('base64');
+
     // session: false pour éviter d'utiliser express-session
     // Note: Cela désactive la vérification du paramètre state par défaut qui requiert une session
     passport.authenticate('google', {
       scope: ['profile', 'email'],
-      session: false
+      session: false,
+      state: state
     })(req, res, next);
   });
 
@@ -53,6 +62,17 @@ module.exports = function (googleClientId, googleClientSecret) {
         return res.redirect(`${mainClientUrl}/?error=no_user`);
       }
 
+      // Récupérer le returnTo depuis le paramètre state
+      let returnTo = '/';
+      try {
+        if (req.query.state) {
+          const decodedState = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+          returnTo = decodedState.returnTo || '/';
+        }
+      } catch (e) {
+        console.warn('⚠️ Impossible de décoder le paramètre state:', e.message);
+      }
+
       // Recharger l'utilisateur depuis MongoDB pour avoir les données à jour (rôle, displayName)
       const freshUser = await usersCollection.findOne({ id: user.id });
       if (!freshUser) {
@@ -83,10 +103,14 @@ module.exports = function (googleClientId, googleClientSecret) {
         const isProduction = process.env.NODE_ENV === 'production';
         const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
 
-        // Déterminer la destination finale selon le pseudo et le rôle
+        // Déterminer la destination finale selon le pseudo, le rôle, et returnTo
         let finalDestination;
         if (!freshUser.displayName) {
-          finalDestination = '/set-pseudo';
+          // Si pas de pseudo, aller à set-pseudo avec returnTo
+          finalDestination = returnTo !== '/' ? `/set-pseudo?returnTo=${encodeURIComponent(returnTo)}` : '/set-pseudo';
+        } else if (returnTo && returnTo !== '/') {
+          // Si returnTo est spécifié et l'utilisateur a un pseudo, utiliser returnTo
+          finalDestination = returnTo;
         } else if (freshUser.role === 'admin' || freshUser.role === 'moderator') {
           finalDestination = '/admin/dashboard';
         } else {
