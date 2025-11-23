@@ -337,8 +337,18 @@ export default function HomePage() {
     if ((citySlug || departmentSlug) && userPosition && currentRadius && currentEndDate) {
       console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
+      // Incrémenter l'ID de requête AVANT le timeout pour invalider les requêtes en attente
+      lastRequestId.current = Date.now()
+      const currentRequestId = lastRequestId.current
+
       // Debounce: attendre 500ms après le dernier changement avant de recharger
       const timeoutId = setTimeout(() => {
+        // Vérifier si cette requête est toujours la plus récente
+        if (lastRequestId.current !== currentRequestId) {
+          console.log('⏭️ Skipping outdated request for radius:', currentRadius)
+          return
+        }
+
         console.log('🔄 Reloading events with radius:', currentRadius)
         setLoading(true)
 
@@ -347,15 +357,22 @@ export default function HomePage() {
 
         loadEvents(start, end, false, currentEventType, currentRadius, userPosition)
           .then((data: Event[]) => {
-            setFilteredEvents(data)
-            const grouped = groupEventsByDay(data)
-            setGroupedEvents(grouped)
-            setLoading(false)
-            setHasMoreEvents(data.length > 0)
+            // Double vérification: s'assurer que c'est toujours la requête la plus récente
+            if (lastRequestId.current === currentRequestId) {
+              setFilteredEvents(data)
+              const grouped = groupEventsByDay(data)
+              setGroupedEvents(grouped)
+              setLoading(false)
+              setHasMoreEvents(data.length > 0)
+            } else {
+              console.log('⏭️ Discarding outdated results for radius:', currentRadius)
+            }
           })
           .catch(err => {
-            setError(err.message)
-            setLoading(false)
+            if (lastRequestId.current === currentRequestId) {
+              setError(err.message)
+              setLoading(false)
+            }
           })
       }, 500)
 
