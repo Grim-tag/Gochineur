@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { checkAuth, redirectToGoogleAuth } from '../utils/authUtils'
 import { submitEvent } from '../services/api'
+import { API } from '../config/constants'
 import Header from '../components/Header'
 
 interface FormData {
@@ -84,16 +85,32 @@ export default function SubmitEventPage() {
   }, [navigate])
 
   // Géocodage de l'adresse (simulation avec Nominatim)
+  // Géocodage avec debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (formData.address && formData.city && formData.postalCode) {
+        geocodeAddress(formData.address, formData.city, formData.postalCode).then(coords => {
+          if (coords) {
+            setFormData(prev => ({
+              ...prev,
+              latitude: coords.latitude.toString(),
+              longitude: coords.longitude.toString()
+            }))
+          }
+        })
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [formData.address, formData.city, formData.postalCode])
+
+  // Géocodage de l'adresse (via proxy serveur)
   const geocodeAddress = async (address: string, city: string, postalCode: string) => {
     try {
       const query = `${address}, ${postalCode} ${city}, France`
+      const baseUrl = API.BASE_URL || ''
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
-        {
-          headers: {
-            'User-Agent': 'GoChineur/1.0'
-          }
-        }
+        `${baseUrl}/api/geo/geocode?q=${encodeURIComponent(query)}&limit=1`
       )
 
       if (response.ok) {
@@ -116,20 +133,8 @@ export default function SubmitEventPage() {
     setError(null)
   }
 
-  const handleAddressChange = async (address: string) => {
+  const handleAddressChange = (address: string) => {
     handleInputChange('address', address)
-
-    // Si l'adresse est complète (avec ville et code postal), géocoder automatiquement
-    if (formData.city && formData.postalCode && address) {
-      const coords = await geocodeAddress(address, formData.city, formData.postalCode)
-      if (coords) {
-        setFormData(prev => ({
-          ...prev,
-          latitude: coords.latitude.toString(),
-          longitude: coords.longitude.toString()
-        }))
-      }
-    }
   }
 
   const validateStep = (step: number): boolean => {
@@ -345,20 +350,7 @@ export default function SubmitEventPage() {
                 <input
                   type="text"
                   value={formData.city}
-                  onChange={(e) => {
-                    handleInputChange('city', e.target.value)
-                    if (formData.address && formData.postalCode) {
-                      geocodeAddress(formData.address, e.target.value, formData.postalCode).then(coords => {
-                        if (coords) {
-                          setFormData(prev => ({
-                            ...prev,
-                            latitude: coords.latitude.toString(),
-                            longitude: coords.longitude.toString()
-                          }))
-                        }
-                      })
-                    }
-                  }}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
                   placeholder="Ex: Paris"
                   className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
@@ -370,20 +362,7 @@ export default function SubmitEventPage() {
                 <input
                   type="text"
                   value={formData.postalCode}
-                  onChange={(e) => {
-                    handleInputChange('postalCode', e.target.value)
-                    if (formData.address && formData.city) {
-                      geocodeAddress(formData.address, formData.city, e.target.value).then(coords => {
-                        if (coords) {
-                          setFormData(prev => ({
-                            ...prev,
-                            latitude: coords.latitude.toString(),
-                            longitude: coords.longitude.toString()
-                          }))
-                        }
-                      })
-                    }
-                  }}
+                  onChange={(e) => handleInputChange('postalCode', e.target.value)}
                   placeholder="Ex: 75001"
                   className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
