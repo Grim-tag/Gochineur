@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { checkAuth, redirectToGoogleAuth } from '../utils/authUtils'
 import { submitEvent } from '../services/api'
+import Header from '../components/Header'
 
 interface FormData {
   // Étape 1
@@ -198,10 +199,10 @@ export default function SubmitEventPage() {
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Vérification de l'authentification...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Vérification de l'authentification...</p>
         </div>
       </div>
     )
@@ -213,16 +214,16 @@ export default function SubmitEventPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="bg-background-paper rounded-lg shadow-lg p-8 max-w-md text-center border border-gray-700">
           <div className="text-6xl mb-4">✅</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Événement soumis avec succès !</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold text-text-primary mb-4">Événement soumis avec succès !</h1>
+          <p className="text-text-secondary mb-6">
             Votre événement est en attente de validation. Il sera visible une fois approuvé.
           </p>
           <Link
             to="/"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block"
+            className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-hover transition-colors inline-block font-semibold"
           >
             Retour à l'accueil
           </Link>
@@ -232,44 +233,29 @@ export default function SubmitEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition-colors">
-              🛍️ GoChineur
-            </Link>
-            <Link
-              to="/"
-              className="text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              ← Retour
-            </Link>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
 
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Ajouter un événement</h1>
-        <p className="text-gray-600 mb-8">Partagez votre vide-grenier, brocante ou bourse avec la communauté</p>
+        <h1 className="text-3xl font-bold text-text-primary mb-2">Ajouter un événement</h1>
+        <p className="text-text-secondary mb-8">Partagez votre vide-grenier, brocante ou bourse avec la communauté</p>
 
         {/* Indicateur de progression */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-medium ${currentStep >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium ${currentStep >= 1 ? 'text-primary' : 'text-gray-500'}`}>
               Étape 1: Rôle et Catégorie
             </span>
-            <span className={`text-sm font-medium ${currentStep >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium ${currentStep >= 2 ? 'text-primary' : 'text-gray-500'}`}>
               Étape 2: Lieu et Date
             </span>
-            <span className={`text-sm font-medium ${currentStep >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
+            <span className={`text-sm font-medium ${currentStep >= 3 ? 'text-primary' : 'text-gray-500'}`}>
               Étape 3: Détails
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-background-lighter rounded-full h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / 3) * 100}%` }}
             />
           </div>
@@ -277,53 +263,53 @@ export default function SubmitEventPage() {
 
         {/* Messages d'erreur */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600">{error}</p>
+          <div className="bg-red-900/20 border border-red-800 rounded-lg p-4 mb-6">
+            <p className="text-red-400">{error}</p>
           </div>
         )}
 
         {/* Étape 1 : Rôle et Catégorie */}
         {currentStep === 1 && (
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Rôle et Catégorie</h2>
+          <div className="bg-background-paper rounded-lg shadow-md p-6 space-y-6 border border-gray-700">
+            <h2 className="text-xl font-bold text-text-primary mb-4">Rôle et Catégorie</h2>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-secondary mb-3">
                 Quel est votre rôle ? <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {['Organisateur', 'Chargé de promotion', 'Autre'].map((role) => (
-                  <label key={role} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label key={role} className="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-background-lighter transition-colors">
                     <input
                       type="radio"
                       name="role"
                       value={role}
                       checked={formData.role === role}
                       onChange={(e) => handleInputChange('role', e.target.value)}
-                      className="mr-3"
+                      className="mr-3 accent-primary"
                     />
-                    <span className="text-gray-700">{role}</span>
+                    <span className="text-text-primary">{role}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-secondary mb-3">
                 Type de manifestation <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {['Vide-greniers', 'Brocante', 'Bourse d\'objets', 'Bourse de collectionneurs'].map((type) => (
-                  <label key={type} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label key={type} className="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-background-lighter transition-colors">
                     <input
                       type="radio"
                       name="type"
                       value={type.toLowerCase()}
                       checked={formData.type === type.toLowerCase()}
                       onChange={(e) => handleInputChange('type', e.target.value)}
-                      className="mr-3"
+                      className="mr-3 accent-primary"
                     />
-                    <span className="text-gray-700">{type}</span>
+                    <span className="text-text-primary">{type}</span>
                   </label>
                 ))}
               </div>
@@ -333,11 +319,11 @@ export default function SubmitEventPage() {
 
         {/* Étape 2 : Lieu et Date */}
         {currentStep === 2 && (
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Lieu et Date</h2>
+          <div className="bg-background-paper rounded-lg shadow-md p-6 space-y-6 border border-gray-700">
+            <h2 className="text-xl font-bold text-text-primary mb-4">Lieu et Date</h2>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Adresse <span className="text-red-500">*</span>
               </label>
               <input
@@ -345,13 +331,13 @@ export default function SubmitEventPage() {
                 value={formData.address}
                 onChange={(e) => handleAddressChange(e.target.value)}
                 placeholder="Ex: 123 Rue de la République"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Ville <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -372,11 +358,11 @@ export default function SubmitEventPage() {
                     }
                   }}
                   placeholder="Ex: Paris"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Code postal <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -397,14 +383,14 @@ export default function SubmitEventPage() {
                     }
                   }}
                   placeholder="Ex: 75001"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
               </div>
             </div>
 
             {(formData.latitude && formData.longitude) && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <p className="text-green-700 text-sm">
+              <div className="bg-green-900/20 border border-green-800 rounded-lg p-3">
+                <p className="text-green-400 text-sm">
                   ✅ Coordonnées GPS détectées : {parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}
                 </p>
               </div>
@@ -412,7 +398,7 @@ export default function SubmitEventPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Date de début <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -420,11 +406,11 @@ export default function SubmitEventPage() {
                   value={formData.date_debut}
                   onChange={(e) => handleInputChange('date_debut', e.target.value)}
                   min={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Date de fin
                 </label>
                 <input
@@ -432,32 +418,32 @@ export default function SubmitEventPage() {
                   value={formData.date_fin}
                   onChange={(e) => handleInputChange('date_fin', e.target.value)}
                   min={formData.date_debut || new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Heure de début
                 </label>
                 <input
                   type="time"
                   value={formData.heure_debut}
                   onChange={(e) => handleInputChange('heure_debut', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Heure de fin
                 </label>
                 <input
                   type="time"
                   value={formData.heure_fin}
                   onChange={(e) => handleInputChange('heure_fin', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
             </div>
@@ -466,11 +452,11 @@ export default function SubmitEventPage() {
 
         {/* Étape 3 : Détails */}
         {currentStep === 3 && (
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Détails de l'événement</h2>
+          <div className="bg-background-paper rounded-lg shadow-md p-6 space-y-6 border border-gray-700">
+            <h2 className="text-xl font-bold text-text-primary mb-4">Détails de l'événement</h2>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Titre de l'événement <span className="text-red-500">*</span>
               </label>
               <input
@@ -478,13 +464,13 @@ export default function SubmitEventPage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Ex: Vide-grenier de Noël"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Téléphone
                 </label>
                 <input
@@ -492,17 +478,17 @@ export default function SubmitEventPage() {
                   value={formData.telephone}
                   onChange={(e) => handleInputChange('telephone', e.target.value)}
                   placeholder="Ex: +33 6 12 34 56 78"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   Pays
                 </label>
                 <select
                   value={formData.pays}
                   onChange={(e) => handleInputChange('pays', e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 >
                   <option value="France">France</option>
                   <option value="Belgique">Belgique</option>
@@ -514,27 +500,27 @@ export default function SubmitEventPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-text-secondary mb-3">
                 Prix pour les visiteurs <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
                 {['Gratuite', 'Payante'].map((prix) => (
-                  <label key={prix} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <label key={prix} className="flex items-center p-3 border border-gray-600 rounded-lg cursor-pointer hover:bg-background-lighter transition-colors">
                     <input
                       type="radio"
                       name="prix_visiteur"
                       value={prix}
                       checked={formData.prix_visiteur === prix}
                       onChange={(e) => handleInputChange('prix_visiteur', e.target.value)}
-                      className="mr-3"
+                      className="mr-3 accent-primary"
                     />
-                    <span className="text-gray-700">{prix}</span>
+                    <span className="text-text-primary">{prix}</span>
                   </label>
                 ))}
               </div>
               {formData.prix_visiteur === 'Payante' && (
                 <div className="mt-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
                     Montant (€)
                   </label>
                   <input
@@ -544,14 +530,14 @@ export default function SubmitEventPage() {
                     placeholder="Ex: 2.50"
                     step="0.01"
                     min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                   />
                 </div>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Informations visiteurs / Complémentaires
               </label>
               <textarea
@@ -559,12 +545,12 @@ export default function SubmitEventPage() {
                 onChange={(e) => handleInputChange('description_visiteurs', e.target.value)}
                 placeholder="Décrivez votre événement, les produits disponibles, les animations..."
                 rows={5}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-text-secondary mb-2">
                 Modalités d'inscription / Horaires Exposants
               </label>
               <textarea
@@ -572,7 +558,7 @@ export default function SubmitEventPage() {
                 onChange={(e) => handleInputChange('description_exposants', e.target.value)}
                 placeholder="Tarifs pour les exposants, horaires d'installation, modalités d'inscription..."
                 rows={5}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
               />
             </div>
           </div>
@@ -584,8 +570,8 @@ export default function SubmitEventPage() {
             onClick={handlePrevious}
             disabled={currentStep === 1}
             className={`px-6 py-3 rounded-lg font-semibold transition-colors ${currentStep === 1
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-background-lighter text-gray-500 cursor-not-allowed'
+              : 'bg-background-lighter text-text-primary hover:bg-gray-700'
               }`}
           >
             Précédent
@@ -594,7 +580,7 @@ export default function SubmitEventPage() {
           {currentStep < 3 ? (
             <button
               onClick={handleNext}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-hover transition-colors"
             >
               Suivant
             </button>
@@ -603,7 +589,7 @@ export default function SubmitEventPage() {
               onClick={handleSubmit}
               disabled={loading}
               className={`px-6 py-3 rounded-lg font-semibold transition-colors ${loading
-                ? 'bg-gray-400 text-white cursor-not-allowed'
+                ? 'bg-gray-600 text-white cursor-not-allowed'
                 : 'bg-green-600 text-white hover:bg-green-700'
                 }`}
             >
