@@ -11,17 +11,12 @@ import type { Event } from '../types';
  */
 function getAuthHeaders(): HeadersInit {
   const token = getToken();
-  console.log('🔑 getAuthHeaders - Token présent:', !!token, 'Token:', token ? token.substring(0, 20) + '...' : 'null');
-
   const headers: HeadersInit = {
     'Content-Type': 'application/json'
   };
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
-    console.log('✅ Authorization header ajouté');
-  } else {
-    console.warn('⚠️ Aucun token trouvé dans localStorage');
   }
 
   return headers;

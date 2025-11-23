@@ -15,9 +15,7 @@ export function setToken(token: string): void {
  * Récupère le JWT depuis localStorage
  */
 export function getToken(): string | null {
-    const token = localStorage.getItem(TOKEN_KEY);
-    console.log('🔍 getToken - Clé:', TOKEN_KEY, 'Token trouvé:', !!token);
-    return token;
+    return localStorage.getItem(TOKEN_KEY);
 }
 
 /**
