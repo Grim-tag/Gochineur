@@ -57,7 +57,27 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
     try {
       const geocodeResult = await forwardGeocode(searchTerm.trim())
       if (geocodeResult && geoData) {
-        // Trouver la ville dans geo-data pour obtenir le slug
+        // D'abord, vérifier si c'est un département
+        const searchNormalized = searchTerm.trim().toLowerCase()
+        const department = geoData.departments?.find((d: any) =>
+          d.name.toLowerCase() === searchNormalized ||
+          d.slug === searchNormalized ||
+          d.code === searchTerm.trim()
+        )
+
+        if (department) {
+          // C'est un département - naviguer vers l'URL de département
+          const region = geoData.regions?.find((r: any) => r.code === department.region)
+          if (region) {
+            const currentCategory = eventType === 'tous' ? 'vide-grenier' : eventType
+            const targetUrl = `/${currentCategory}/${region.slug}/${department.slug}/`
+            console.log('Department search detected, navigating to:', targetUrl)
+            window.location.href = targetUrl
+            return
+          }
+        }
+
+        // Sinon, chercher une ville dans geo-data pour obtenir le slug
         const citySlug = searchTerm.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
         const cityData = geoData.cities?.find((c: any) =>
           c.name.toLowerCase() === searchTerm.trim().toLowerCase() ||
