@@ -18,14 +18,15 @@ export default function CategoryRouteWrapper() {
             return true
         }
 
-        // Fallback: if it's very long and not a known location pattern
-        // Departments are short
-        if (p.length <= 3) return false
+        // Check for UUID pattern (approximate)
+        // e.g. 550e8400-e29b-41d4-a716-446655440000
+        if (/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}/.test(p)) {
+            return true
+        }
 
-        // If it starts with 'region-', it's a region (handled by specific route usually, but let's be safe)
-        if (p.startsWith('region-')) return false
-
-        return true
+        // Default to FALSE (it's likely a city or department)
+        // This fixes the issue where long city names were treated as events
+        return false
     }
 
     if (isEvent(param)) {
