@@ -28,6 +28,11 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
         <div className="flex-1">
           <h3 className="text-xl font-bold text-text-primary mb-2 group-hover:text-primary transition-colors">{event.name}</h3>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
+            {event.cancelled && (
+              <span className="px-3 py-1 bg-red-900/30 text-red-400 rounded-full text-sm font-bold border border-red-800/50">
+                ANNULÉ
+              </span>
+            )}
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${eventTypeClass}`}>
               {event.type}
             </span>

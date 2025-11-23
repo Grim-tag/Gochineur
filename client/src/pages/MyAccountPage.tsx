@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { calculateDistance, generateChronologicalCircuitUrl, generateEventNavigationUrl } from '../utils/appUtils'
-import { fetchEvents, fetchMyEvents, deleteAccount } from '../services/api'
+import { fetchEvents, fetchMyEvents, deleteAccount, cancelEvent } from '../services/api'
 import { checkAuth, logout, type User } from '../utils/authUtils'
 import Breadcrumbs from '../components/Breadcrumbs'
 import Header from '../components/Header'
@@ -152,6 +152,19 @@ export default function MyAccountPage() {
             } catch (error) {
                 console.error('Erreur suppression compte:', error)
                 alert('Une erreur est survenue lors de la suppression du compte.')
+            }
+        }
+    }
+
+    const handleCancelEvent = async (eventId: string) => {
+        if (confirm('Êtes-vous sûr de vouloir annuler cet événement ? Il sera marqué comme annulé mais restera visible.')) {
+            try {
+                await cancelEvent(eventId)
+                // Rafraîchir la liste
+                fetchMyEvents().then(setMyEvents)
+            } catch (error) {
+                console.error('Erreur annulation événement:', error)
+                alert('Erreur lors de l\'annulation de l\'événement')
             }
         }
     }
@@ -360,18 +373,43 @@ export default function MyAccountPage() {
                     ) : myEvents.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {myEvents.map(event => (
-                                <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4">
+                                <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4 flex flex-col h-full">
                                     <div className="flex justify-between items-start">
                                         <h3 className="font-bold text-lg text-text-primary">{event.name}</h3>
-                                        <span className={`text-xs px-2 py-1 rounded-full ${event.statut_validation === 'published' ? 'bg-green-900/30 text-green-400' : 'bg-yellow-900/30 text-yellow-400'
+                                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ml-2 ${event.cancelled ? 'bg-red-900/30 text-red-400' :
+                                            event.statut_validation === 'published' ? 'bg-green-900/30 text-green-400' : 'bg-yellow-900/30 text-yellow-400'
                                             }`}>
-                                            {event.statut_validation === 'published' ? 'Publié' : 'En attente'}
+                                            {event.cancelled ? 'Annulé' : (event.statut_validation === 'published' ? 'Publié' : 'En attente')}
                                         </span>
                                     </div>
                                     <p className="text-sm text-text-secondary mt-1">{event.city} ({event.postalCode})</p>
-                                    <p className="text-sm text-text-muted mt-2">
+                                    <p className="text-sm text-text-muted mt-2 mb-4">
                                         {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
                                     </p>
+
+                                    <div className="mt-auto pt-4 border-t border-gray-700 flex gap-2">
+                                        {!event.cancelled && (
+                                            <>
+                                                <Link
+                                                    to={`/edit-event/${event.id}`}
+                                                    className="flex-1 py-2 px-3 bg-blue-600/20 text-blue-400 border border-blue-800/50 rounded-lg hover:bg-blue-600/30 text-sm font-medium text-center transition-colors"
+                                                >
+                                                    Modifier
+                                                </Link>
+                                                <button
+                                                    onClick={() => handleCancelEvent(event.id.toString())}
+                                                    className="flex-1 py-2 px-3 bg-red-600/20 text-red-400 border border-red-800/50 rounded-lg hover:bg-red-600/30 text-sm font-medium transition-colors"
+                                                >
+                                                    Annuler
+                                                </button>
+                                            </>
+                                        )}
+                                        {event.cancelled && (
+                                            <span className="w-full text-center text-sm text-red-400 italic py-2">
+                                                Cet événement est annulé
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>

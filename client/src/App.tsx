@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage'
 
 import MyAccountPage from './pages/MyAccountPage'
 import SubmitEventPage from './pages/SubmitEventPage'
+import EditEventPage from './pages/EditEventPage'
 import LoginPage from './pages/LoginPage'
 import SetPseudoPage from './pages/SetPseudoPage'
 import AdminPage from './pages/AdminPage'
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="/mon-compte" element={<MyAccountPage />} />
             <Route path="/ma-liste" element={<Navigate to="/mon-compte" replace />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />
+            <Route path="/edit-event/:id" element={<EditEventPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/set-pseudo" element={<SetPseudoPage />} />
             <Route path="/admin/dashboard" element={<AdminPage />} />

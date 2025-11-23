@@ -185,11 +185,13 @@ module.exports = function () {
     try {
       const eventsCollection = getEventsCollection();
       const userId = req.user.id;
+      console.log(`🔍 Récupération des événements pour user_id: ${userId}`);
 
       const myEvents = await eventsCollection.find({ user_id: userId })
         .sort({ date_creation: -1 }) // Plus récents d'abord
         .toArray();
 
+      console.log(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
       res.json(myEvents);
     } catch (error) {
       console.error('Erreur lors de la récupération des événements utilisateur:', error);
@@ -337,6 +339,154 @@ module.exports = function () {
     }
   });
 
+  // Route pour modifier un événement (PUT /:id)
+  router.put('/:id', authenticateJWT, async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+      const eventId = req.params.id;
+      const userId = req.user.id;
+
+      // Vérifier si l'événement existe et appartient à l'utilisateur
+      const event = await eventsCollection.findOne({ id: eventId });
+
+      if (!event) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+
+      // Vérification de propriété (seul le créateur ou un admin peut modifier)
+      // TODO: Ajouter vérification admin si nécessaire
+      if (event.user_id !== userId) {
+        return res.status(403).json({ error: 'Vous n\'êtes pas autorisé à modifier cet événement' });
+      }
+
+      const {
+        role, type, address, city, postalCode, latitude, longitude,
+        date_debut, date_fin, heure_debut, heure_fin,
+        name, telephone, pays, prix_visiteur, prix_montant,
+        description_visiteurs, description_exposants
+      } = req.body;
+
+      // Validation des champs obligatoires (similaire à POST)
+      if (!name || !type || !date_debut || !city || !address || !latitude || !longitude) {
+        return res.status(400).json({
+          error: 'Champs obligatoires manquants.',
+          required: ['name', 'type', 'date_debut', 'city', 'address', 'latitude', 'longitude']
+        });
+      }
+
+      // Validation des coordonnées
+      const lat = parseFloat(latitude);
+      const lon = parseFloat(longitude);
+      if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+        return res.status(400).json({ error: 'Coordonnées GPS invalides.' });
+      }
+
+      // Construire les dates
+      let dateDebutISO = new Date(date_debut);
+      if (heure_debut) {
+        const [hours, minutes] = heure_debut.split(':');
+        dateDebutISO.setHours(parseInt(hours) || 6, parseInt(minutes) || 0, 0, 0);
+      } else {
+        dateDebutISO.setHours(6, 0, 0, 0);
+      }
+
+      let dateFinISO = date_fin ? new Date(date_fin) : new Date(dateDebutISO);
+      if (heure_fin) {
+        const [hours, minutes] = heure_fin.split(':');
+        dateFinISO.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+      } else {
+        dateFinISO.setHours(23, 59, 59, 999);
+      }
+
+      // Construire la description
+      let description = '';
+      if (description_visiteurs) {
+        description += `Informations visiteurs :\n${description_visiteurs}\n\n`;
+      }
+      if (description_exposants) {
+        description += `Modalités d'inscription / Horaires exposants :\n${description_exposants}`;
+      }
+
+      const normalizedType = normalizeEventType(type);
+
+      // Mise à jour de l'événement
+      const updateData = {
+        name: name.trim(),
+        type: normalizedType,
+        date: date_debut.split('T')[0],
+        date_debut: dateDebutISO.toISOString(),
+        date_fin: dateFinISO.toISOString(),
+        city: city.trim(),
+        postalCode: postalCode || '',
+        address: address.trim(),
+        latitude: lat,
+        longitude: lon,
+        description: description.trim(),
+        role: role || 'Autre',
+        telephone: telephone || '',
+        pays: pays || 'France',
+        prix_visiteur: prix_visiteur || 'Gratuite',
+        prix_montant: prix_montant ? parseFloat(prix_montant) : null,
+        updatedAt: new Date().toISOString(),
+        // Si l'événement était publié, il repasse en attente de validation (sauf si expert)
+        statut_validation: req.user.isExpert ? 'published' : 'pending_review'
+      };
+
+      await eventsCollection.updateOne(
+        { id: eventId },
+        { $set: updateData }
+      );
+
+      res.json({
+        success: true,
+        message: 'Événement mis à jour avec succès.',
+        event: { ...event, ...updateData }
+      });
+
+    } catch (error) {
+      console.error('Erreur lors de la modification de l\'événement:', error);
+      res.status(500).json({ error: 'Erreur serveur lors de la modification' });
+    }
+  });
+
+  // Route pour annuler un événement (PATCH /:id/cancel)
+  router.patch('/:id/cancel', authenticateJWT, async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+      const eventId = req.params.id;
+      const userId = req.user.id;
+
+      const event = await eventsCollection.findOne({ id: eventId });
+
+      if (!event) {
+        return res.status(404).json({ error: 'Événement non trouvé' });
+      }
+
+      if (event.user_id !== userId) {
+        return res.status(403).json({ error: 'Vous n\'êtes pas autorisé à annuler cet événement' });
+      }
+
+      await eventsCollection.updateOne(
+        { id: eventId },
+        {
+          $set: {
+            cancelled: true,
+            updatedAt: new Date().toISOString()
+          }
+        }
+      );
+
+      res.json({
+        success: true,
+        message: 'Événement annulé avec succès.',
+        eventId: eventId
+      });
+
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation de l\'événement:', error);
+      res.status(500).json({ error: 'Erreur serveur lors de l\'annulation' });
+    }
+  });
+
   return router;
 };
-

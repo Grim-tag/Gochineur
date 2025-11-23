@@ -102,6 +102,12 @@ export default function EventDetailsPage() {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-background-paper rounded-xl shadow-lg border border-gray-700 overflow-hidden">
                             <div className="p-6 md:p-8">
+                                {event.cancelled && (
+                                    <div className="bg-red-900/30 border border-red-800 rounded-lg p-4 mb-6 text-center">
+                                        <h2 className="text-xl font-bold text-red-400">⚠️ ÉVÉNEMENT ANNULÉ</h2>
+                                        <p className="text-red-300 mt-1">Cet événement a été annulé par l'organisateur.</p>
+                                    </div>
+                                )}
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
                                         {event.type}

@@ -24,6 +24,7 @@ export interface Event {
   role?: string
   email?: string
   website?: string
+  cancelled?: boolean
 }
 
 

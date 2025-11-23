@@ -205,4 +205,45 @@ export async function deleteAccount(): Promise<void> {
   }
 }
 
+/**
+ * Met à jour un événement existant
+ */
+export async function updateEvent(id: string, eventData: Partial<Event>): Promise<any> {
+  const endpoint = `${API.ENDPOINTS.EVENTS}/${id}`;
+  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(eventData)
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Erreur HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Annule un événement
+ */
+export async function cancelEvent(id: string): Promise<any> {
+  const endpoint = `${API.ENDPOINTS.EVENTS}/${id}/cancel`;
+  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `Erreur HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
 
