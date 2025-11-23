@@ -5,14 +5,14 @@
             "name": "Auvergne-Rhône-Alpes",
             "slug": "auvergne-rhone-alpes",
             "lat": 45.5,
-            "lon": 5.0
+            "lon": 5
         },
         {
             "code": "bourgogne-franche-comte",
             "name": "Bourgogne-Franche-Comté",
             "slug": "bourgogne-franche-comte",
             "lat": 47.3,
-            "lon": 5.0
+            "lon": 5
         },
         {
             "code": "bretagne",
@@ -32,8 +32,8 @@
             "code": "corse",
             "name": "Corse",
             "slug": "corse",
-            "lat": 42.0,
-            "lon": 9.0
+            "lat": 42,
+            "lon": 9
         },
         {
             "code": "grand-est",
@@ -46,8 +46,8 @@
             "code": "hauts-de-france",
             "name": "Hauts-de-France",
             "slug": "hauts-de-france",
-            "lat": 50.0,
-            "lon": 3.0
+            "lat": 50,
+            "lon": 3
         },
         {
             "code": "ile-de-france",
@@ -60,29 +60,29 @@
             "code": "normandie",
             "name": "Normandie",
             "slug": "normandie",
-            "lat": 49.0,
+            "lat": 49,
             "lon": 0.2
         },
         {
             "code": "nouvelle-aquitaine",
             "name": "Nouvelle-Aquitaine",
             "slug": "nouvelle-aquitaine",
-            "lat": 45.0,
-            "lon": 0.0
+            "lat": 45,
+            "lon": 0
         },
         {
             "code": "occitanie",
             "name": "Occitanie",
             "slug": "occitanie",
             "lat": 43.6,
-            "lon": 2.0
+            "lon": 2
         },
         {
             "code": "pays-de-la-loire",
             "name": "Pays de la Loire",
             "slug": "pays-de-la-loire",
             "lat": 47.5,
-            "lon": -1.0
+            "lon": -1
         },
         {
             "code": "provence-alpes-cote-dazur",
@@ -98,672 +98,768 @@
             "name": "Ain",
             "region": "auvergne-rhone-alpes",
             "lat": 46.1,
-            "lon": 5.2
+            "lon": 5.2,
+            "slug": "ain"
         },
         {
             "code": "02",
             "name": "Aisne",
             "region": "hauts-de-france",
             "lat": 49.6,
-            "lon": 3.6
+            "lon": 3.6,
+            "slug": "aisne"
         },
         {
             "code": "03",
             "name": "Allier",
             "region": "auvergne-rhone-alpes",
             "lat": 46.4,
-            "lon": 3.2
+            "lon": 3.2,
+            "slug": "allier"
         },
         {
             "code": "04",
             "name": "Alpes-de-Haute-Provence",
             "region": "provence-alpes-cote-dazur",
             "lat": 44.1,
-            "lon": 6.2
+            "lon": 6.2,
+            "slug": "alpes-de-haute-provence"
         },
         {
             "code": "05",
             "name": "Hautes-Alpes",
             "region": "provence-alpes-cote-dazur",
             "lat": 44.7,
-            "lon": 6.3
+            "lon": 6.3,
+            "slug": "hautes-alpes"
         },
         {
             "code": "06",
             "name": "Alpes-Maritimes",
             "region": "provence-alpes-cote-dazur",
             "lat": 43.9,
-            "lon": 7.1
+            "lon": 7.1,
+            "slug": "alpes-maritimes"
         },
         {
             "code": "07",
             "name": "Ardèche",
             "region": "auvergne-rhone-alpes",
             "lat": 44.7,
-            "lon": 4.4
+            "lon": 4.4,
+            "slug": "ardeche"
         },
         {
             "code": "08",
             "name": "Ardennes",
             "region": "grand-est",
             "lat": 49.6,
-            "lon": 4.6
+            "lon": 4.6,
+            "slug": "ardennes"
         },
         {
             "code": "09",
             "name": "Ariège",
             "region": "occitanie",
             "lat": 42.9,
-            "lon": 1.5
+            "lon": 1.5,
+            "slug": "ariege"
         },
         {
             "code": "10",
             "name": "Aube",
             "region": "grand-est",
             "lat": 48.3,
-            "lon": 4.1
+            "lon": 4.1,
+            "slug": "aube"
         },
         {
             "code": "11",
             "name": "Aude",
             "region": "occitanie",
             "lat": 43.1,
-            "lon": 2.5
+            "lon": 2.5,
+            "slug": "aude"
         },
         {
             "code": "12",
             "name": "Aveyron",
             "region": "occitanie",
             "lat": 44.3,
-            "lon": 2.7
+            "lon": 2.7,
+            "slug": "aveyron"
         },
         {
             "code": "13",
             "name": "Bouches-du-Rhône",
             "region": "provence-alpes-cote-dazur",
             "lat": 43.5,
-            "lon": 5.1
+            "lon": 5.1,
+            "slug": "bouches-du-rhone"
         },
         {
             "code": "14",
             "name": "Calvados",
             "region": "normandie",
-            "lat": 49.0,
-            "lon": -0.3
+            "lat": 49,
+            "lon": -0.3,
+            "slug": "calvados"
         },
         {
             "code": "15",
             "name": "Cantal",
             "region": "auvergne-rhone-alpes",
             "lat": 45.1,
-            "lon": 2.7
+            "lon": 2.7,
+            "slug": "cantal"
         },
         {
             "code": "16",
             "name": "Charente",
             "region": "nouvelle-aquitaine",
             "lat": 45.7,
-            "lon": 0.2
+            "lon": 0.2,
+            "slug": "charente"
         },
         {
             "code": "17",
             "name": "Charente-Maritime",
             "region": "nouvelle-aquitaine",
             "lat": 45.8,
-            "lon": -0.7
+            "lon": -0.7,
+            "slug": "charente-maritime"
         },
         {
             "code": "18",
             "name": "Cher",
             "region": "centre-val-de-loire",
-            "lat": 47.0,
-            "lon": 2.4
+            "lat": 47,
+            "lon": 2.4,
+            "slug": "cher"
         },
         {
             "code": "19",
             "name": "Corrèze",
             "region": "nouvelle-aquitaine",
             "lat": 45.3,
-            "lon": 1.8
+            "lon": 1.8,
+            "slug": "correze"
         },
         {
             "code": "21",
             "name": "Côte-d'Or",
             "region": "bourgogne-franche-comte",
             "lat": 47.4,
-            "lon": 4.8
+            "lon": 4.8,
+            "slug": "cote-d-or"
         },
         {
             "code": "22",
             "name": "Côtes-d'Armor",
             "region": "bretagne",
             "lat": 48.4,
-            "lon": -2.8
+            "lon": -2.8,
+            "slug": "cotes-d-armor"
         },
         {
             "code": "23",
             "name": "Creuse",
             "region": "nouvelle-aquitaine",
             "lat": 46.1,
-            "lon": 2.0
+            "lon": 2,
+            "slug": "creuse"
         },
         {
             "code": "24",
             "name": "Dordogne",
             "region": "nouvelle-aquitaine",
             "lat": 45.1,
-            "lon": 0.7
+            "lon": 0.7,
+            "slug": "dordogne"
         },
         {
             "code": "25",
             "name": "Doubs",
             "region": "bourgogne-franche-comte",
             "lat": 47.1,
-            "lon": 6.3
+            "lon": 6.3,
+            "slug": "doubs"
         },
         {
             "code": "26",
             "name": "Drôme",
             "region": "auvergne-rhone-alpes",
             "lat": 44.7,
-            "lon": 5.1
+            "lon": 5.1,
+            "slug": "drome"
         },
         {
             "code": "27",
             "name": "Eure",
             "region": "normandie",
             "lat": 49.1,
-            "lon": 1.0
+            "lon": 1,
+            "slug": "eure"
         },
         {
             "code": "28",
             "name": "Eure-et-Loir",
             "region": "centre-val-de-loire",
             "lat": 48.4,
-            "lon": 1.5
+            "lon": 1.5,
+            "slug": "eure-et-loir"
         },
         {
             "code": "29",
             "name": "Finistère",
             "region": "bretagne",
             "lat": 48.2,
-            "lon": -4.0
+            "lon": -4,
+            "slug": "finistere"
         },
         {
             "code": "2A",
             "name": "Corse-du-Sud",
             "region": "corse",
             "lat": 41.8,
-            "lon": 9.0
+            "lon": 9,
+            "slug": "corse-du-sud"
         },
         {
             "code": "2B",
             "name": "Haute-Corse",
             "region": "corse",
             "lat": 42.4,
-            "lon": 9.2
+            "lon": 9.2,
+            "slug": "haute-corse"
         },
         {
             "code": "30",
             "name": "Gard",
             "region": "occitanie",
-            "lat": 44.0,
-            "lon": 4.2
+            "lat": 44,
+            "lon": 4.2,
+            "slug": "gard"
         },
         {
             "code": "31",
             "name": "Haute-Garonne",
             "region": "occitanie",
             "lat": 43.4,
-            "lon": 1.3
+            "lon": 1.3,
+            "slug": "haute-garonne"
         },
         {
             "code": "32",
             "name": "Gers",
             "region": "occitanie",
             "lat": 43.6,
-            "lon": 0.6
+            "lon": 0.6,
+            "slug": "gers"
         },
         {
             "code": "33",
             "name": "Gironde",
             "region": "nouvelle-aquitaine",
             "lat": 44.8,
-            "lon": -0.6
+            "lon": -0.6,
+            "slug": "gironde"
         },
         {
             "code": "34",
             "name": "Hérault",
             "region": "occitanie",
             "lat": 43.6,
-            "lon": 3.4
+            "lon": 3.4,
+            "slug": "herault"
         },
         {
             "code": "35",
             "name": "Ille-et-Vilaine",
             "region": "bretagne",
             "lat": 48.2,
-            "lon": -1.6
+            "lon": -1.6,
+            "slug": "ille-et-vilaine"
         },
         {
             "code": "36",
             "name": "Indre",
             "region": "centre-val-de-loire",
             "lat": 46.8,
-            "lon": 1.6
+            "lon": 1.6,
+            "slug": "indre"
         },
         {
             "code": "37",
             "name": "Indre-et-Loire",
             "region": "centre-val-de-loire",
             "lat": 47.3,
-            "lon": 0.7
+            "lon": 0.7,
+            "slug": "indre-et-loire"
         },
         {
             "code": "38",
             "name": "Isère",
             "region": "auvergne-rhone-alpes",
             "lat": 45.4,
-            "lon": 5.4
+            "lon": 5.4,
+            "slug": "isere"
         },
         {
             "code": "39",
             "name": "Jura",
             "region": "bourgogne-franche-comte",
             "lat": 46.7,
-            "lon": 5.7
+            "lon": 5.7,
+            "slug": "jura"
         },
         {
             "code": "40",
             "name": "Landes",
             "region": "nouvelle-aquitaine",
             "lat": 43.9,
-            "lon": -0.8
+            "lon": -0.8,
+            "slug": "landes"
         },
         {
             "code": "41",
             "name": "Loir-et-Cher",
             "region": "centre-val-de-loire",
             "lat": 47.6,
-            "lon": 1.4
+            "lon": 1.4,
+            "slug": "loir-et-cher"
         },
         {
             "code": "42",
             "name": "Loire",
             "region": "auvergne-rhone-alpes",
             "lat": 45.7,
-            "lon": 4.2
+            "lon": 4.2,
+            "slug": "loire"
         },
         {
             "code": "43",
             "name": "Haute-Loire",
             "region": "auvergne-rhone-alpes",
             "lat": 45.1,
-            "lon": 3.8
+            "lon": 3.8,
+            "slug": "haute-loire"
         },
         {
             "code": "44",
             "name": "Loire-Atlantique",
             "region": "pays-de-la-loire",
             "lat": 47.4,
-            "lon": -1.7
+            "lon": -1.7,
+            "slug": "loire-atlantique"
         },
         {
             "code": "45",
             "name": "Loiret",
             "region": "centre-val-de-loire",
             "lat": 47.9,
-            "lon": 2.2
+            "lon": 2.2,
+            "slug": "loiret"
         },
         {
             "code": "46",
             "name": "Lot",
             "region": "occitanie",
             "lat": 44.6,
-            "lon": 1.6
+            "lon": 1.6,
+            "slug": "lot"
         },
         {
             "code": "47",
             "name": "Lot-et-Garonne",
             "region": "nouvelle-aquitaine",
             "lat": 44.4,
-            "lon": 0.4
+            "lon": 0.4,
+            "slug": "lot-et-garonne"
         },
         {
             "code": "48",
             "name": "Lozère",
             "region": "occitanie",
             "lat": 44.5,
-            "lon": 3.5
+            "lon": 3.5,
+            "slug": "lozere"
         },
         {
             "code": "49",
             "name": "Maine-et-Loire",
             "region": "pays-de-la-loire",
             "lat": 47.4,
-            "lon": -0.5
+            "lon": -0.5,
+            "slug": "maine-et-loire"
         },
         {
             "code": "50",
             "name": "Manche",
             "region": "normandie",
-            "lat": 49.0,
-            "lon": -1.3
+            "lat": 49,
+            "lon": -1.3,
+            "slug": "manche"
         },
         {
             "code": "51",
             "name": "Marne",
             "region": "grand-est",
-            "lat": 49.0,
-            "lon": 4.2
+            "lat": 49,
+            "lon": 4.2,
+            "slug": "marne"
         },
         {
             "code": "52",
             "name": "Haute-Marne",
             "region": "grand-est",
             "lat": 48.1,
-            "lon": 5.2
+            "lon": 5.2,
+            "slug": "haute-marne"
         },
         {
             "code": "53",
             "name": "Mayenne",
             "region": "pays-de-la-loire",
             "lat": 48.1,
-            "lon": -0.7
+            "lon": -0.7,
+            "slug": "mayenne"
         },
         {
             "code": "54",
             "name": "Meurthe-et-Moselle",
             "region": "grand-est",
             "lat": 48.7,
-            "lon": 6.1
+            "lon": 6.1,
+            "slug": "meurthe-et-moselle"
         },
         {
             "code": "55",
             "name": "Meuse",
             "region": "grand-est",
-            "lat": 49.0,
-            "lon": 5.4
+            "lat": 49,
+            "lon": 5.4,
+            "slug": "meuse"
         },
         {
             "code": "56",
             "name": "Morbihan",
             "region": "bretagne",
             "lat": 47.8,
-            "lon": -2.8
+            "lon": -2.8,
+            "slug": "morbihan"
         },
         {
             "code": "57",
             "name": "Moselle",
             "region": "grand-est",
-            "lat": 49.0,
-            "lon": 6.5
+            "lat": 49,
+            "lon": 6.5,
+            "slug": "moselle"
         },
         {
             "code": "58",
             "name": "Nièvre",
             "region": "bourgogne-franche-comte",
             "lat": 47.1,
-            "lon": 3.5
+            "lon": 3.5,
+            "slug": "nievre"
         },
         {
             "code": "59",
             "name": "Nord",
             "region": "hauts-de-france",
             "lat": 50.5,
-            "lon": 3.3
+            "lon": 3.3,
+            "slug": "nord"
         },
         {
             "code": "60",
             "name": "Oise",
             "region": "hauts-de-france",
             "lat": 49.4,
-            "lon": 2.4
+            "lon": 2.4,
+            "slug": "oise"
         },
         {
             "code": "61",
             "name": "Orne",
             "region": "normandie",
             "lat": 48.6,
-            "lon": 0.1
+            "lon": 0.1,
+            "slug": "orne"
         },
         {
             "code": "62",
             "name": "Pas-de-Calais",
             "region": "hauts-de-france",
             "lat": 50.5,
-            "lon": 2.3
+            "lon": 2.3,
+            "slug": "pas-de-calais"
         },
         {
             "code": "63",
             "name": "Puy-de-Dôme",
             "region": "auvergne-rhone-alpes",
             "lat": 45.7,
-            "lon": 3.1
+            "lon": 3.1,
+            "slug": "puy-de-dome"
         },
         {
             "code": "64",
             "name": "Pyrénées-Atlantiques",
             "region": "nouvelle-aquitaine",
             "lat": 43.3,
-            "lon": -0.8
+            "lon": -0.8,
+            "slug": "pyrenees-atlantiques"
         },
         {
             "code": "65",
             "name": "Hautes-Pyrénées",
             "region": "occitanie",
             "lat": 43.1,
-            "lon": 0.1
+            "lon": 0.1,
+            "slug": "hautes-pyrenees"
         },
         {
             "code": "66",
             "name": "Pyrénées-Orientales",
             "region": "occitanie",
             "lat": 42.6,
-            "lon": 2.6
+            "lon": 2.6,
+            "slug": "pyrenees-orientales"
         },
         {
             "code": "67",
             "name": "Bas-Rhin",
             "region": "grand-est",
             "lat": 48.6,
-            "lon": 7.6
+            "lon": 7.6,
+            "slug": "bas-rhin"
         },
         {
             "code": "68",
             "name": "Haut-Rhin",
             "region": "grand-est",
             "lat": 47.9,
-            "lon": 7.3
+            "lon": 7.3,
+            "slug": "haut-rhin"
         },
         {
             "code": "69",
             "name": "Rhône",
             "region": "auvergne-rhone-alpes",
             "lat": 45.8,
-            "lon": 4.7
+            "lon": 4.7,
+            "slug": "rhone"
         },
         {
             "code": "70",
             "name": "Haute-Saône",
             "region": "bourgogne-franche-comte",
             "lat": 47.6,
-            "lon": 6.1
+            "lon": 6.1,
+            "slug": "haute-saone"
         },
         {
             "code": "71",
             "name": "Saône-et-Loire",
             "region": "bourgogne-franche-comte",
             "lat": 46.6,
-            "lon": 4.5
+            "lon": 4.5,
+            "slug": "saone-et-loire"
         },
         {
             "code": "72",
             "name": "Sarthe",
             "region": "pays-de-la-loire",
-            "lat": 48.0,
-            "lon": 0.2
+            "lat": 48,
+            "lon": 0.2,
+            "slug": "sarthe"
         },
         {
             "code": "73",
             "name": "Savoie",
             "region": "auvergne-rhone-alpes",
             "lat": 45.5,
-            "lon": 6.4
+            "lon": 6.4,
+            "slug": "savoie"
         },
         {
             "code": "74",
             "name": "Haute-Savoie",
             "region": "auvergne-rhone-alpes",
-            "lat": 46.0,
-            "lon": 6.4
+            "lat": 46,
+            "lon": 6.4,
+            "slug": "haute-savoie"
         },
         {
             "code": "75",
             "name": "Paris",
             "region": "ile-de-france",
             "lat": 48.8566,
-            "lon": 2.3522
+            "lon": 2.3522,
+            "slug": "paris"
         },
         {
             "code": "76",
             "name": "Seine-Maritime",
             "region": "normandie",
             "lat": 49.6,
-            "lon": 1.0
+            "lon": 1,
+            "slug": "seine-maritime"
         },
         {
             "code": "77",
             "name": "Seine-et-Marne",
             "region": "ile-de-france",
             "lat": 48.6,
-            "lon": 2.9
+            "lon": 2.9,
+            "slug": "seine-et-marne"
         },
         {
             "code": "78",
             "name": "Yvelines",
             "region": "ile-de-france",
             "lat": 48.8,
-            "lon": 1.9
+            "lon": 1.9,
+            "slug": "yvelines"
         },
         {
             "code": "79",
             "name": "Deux-Sèvres",
             "region": "nouvelle-aquitaine",
             "lat": 46.5,
-            "lon": -0.3
+            "lon": -0.3,
+            "slug": "deux-sevres"
         },
         {
             "code": "80",
             "name": "Somme",
             "region": "hauts-de-france",
             "lat": 49.9,
-            "lon": 2.3
+            "lon": 2.3,
+            "slug": "somme"
         },
         {
             "code": "81",
             "name": "Tarn",
             "region": "occitanie",
             "lat": 43.8,
-            "lon": 2.1
+            "lon": 2.1,
+            "slug": "tarn"
         },
         {
             "code": "82",
             "name": "Tarn-et-Garonne",
             "region": "occitanie",
             "lat": 44.1,
-            "lon": 1.3
+            "lon": 1.3,
+            "slug": "tarn-et-garonne"
         },
         {
             "code": "83",
             "name": "Var",
             "region": "provence-alpes-cote-dazur",
             "lat": 43.4,
-            "lon": 6.2
+            "lon": 6.2,
+            "slug": "var"
         },
         {
             "code": "84",
             "name": "Vaucluse",
             "region": "provence-alpes-cote-dazur",
-            "lat": 44.0,
-            "lon": 5.1
+            "lat": 44,
+            "lon": 5.1,
+            "slug": "vaucluse"
         },
         {
             "code": "85",
             "name": "Vendée",
             "region": "pays-de-la-loire",
             "lat": 46.7,
-            "lon": -1.2
+            "lon": -1.2,
+            "slug": "vendee"
         },
         {
             "code": "86",
             "name": "Vienne",
             "region": "nouvelle-aquitaine",
             "lat": 46.6,
-            "lon": 0.4
+            "lon": 0.4,
+            "slug": "vienne"
         },
         {
             "code": "87",
             "name": "Haute-Vienne",
             "region": "nouvelle-aquitaine",
             "lat": 45.8,
-            "lon": 1.2
+            "lon": 1.2,
+            "slug": "haute-vienne"
         },
         {
             "code": "88",
             "name": "Vosges",
             "region": "grand-est",
             "lat": 48.2,
-            "lon": 6.4
+            "lon": 6.4,
+            "slug": "vosges"
         },
         {
             "code": "89",
             "name": "Yonne",
             "region": "bourgogne-franche-comte",
             "lat": 47.8,
-            "lon": 3.5
+            "lon": 3.5,
+            "slug": "yonne"
         },
         {
             "code": "90",
             "name": "Territoire de Belfort",
             "region": "bourgogne-franche-comte",
             "lat": 47.6,
-            "lon": 6.9
+            "lon": 6.9,
+            "slug": "territoire-de-belfort"
         },
         {
             "code": "91",
             "name": "Essonne",
             "region": "ile-de-france",
             "lat": 48.5,
-            "lon": 2.2
+            "lon": 2.2,
+            "slug": "essonne"
         },
         {
             "code": "92",
             "name": "Hauts-de-Seine",
             "region": "ile-de-france",
             "lat": 48.8,
-            "lon": 2.2
+            "lon": 2.2,
+            "slug": "hauts-de-seine"
         },
         {
             "code": "93",
             "name": "Seine-Saint-Denis",
             "region": "ile-de-france",
             "lat": 48.9,
-            "lon": 2.5
+            "lon": 2.5,
+            "slug": "seine-saint-denis"
         },
         {
             "code": "94",
             "name": "Val-de-Marne",
             "region": "ile-de-france",
             "lat": 48.8,
-            "lon": 2.5
+            "lon": 2.5,
+            "slug": "val-de-marne"
         },
         {
             "code": "95",
             "name": "Val-d'Oise",
             "region": "ile-de-france",
             "lat": 49.1,
-            "lon": 2.1
+            "lon": 2.1,
+            "slug": "val-d-oise"
         }
     ],
     "cities": [
@@ -785,7 +881,7 @@
             "name": "Lyon",
             "slug": "lyon",
             "department": "69",
-            "lat": 45.7640,
+            "lat": 45.764,
             "lon": 4.8357
         },
         {
@@ -800,7 +896,7 @@
             "slug": "nice",
             "department": "06",
             "lat": 43.7102,
-            "lon": 7.2620
+            "lon": 7.262
         },
         {
             "name": "Nantes",
@@ -870,7 +966,7 @@
             "slug": "toulon",
             "department": "83",
             "lat": 43.1242,
-            "lon": 5.9280
+            "lon": 5.928
         },
         {
             "name": "Grenoble",
@@ -883,7 +979,7 @@
             "name": "Dijon",
             "slug": "dijon",
             "department": "21",
-            "lat": 47.3220,
+            "lat": 47.322,
             "lon": 5.0415
         },
         {
@@ -933,7 +1029,7 @@
             "slug": "clermont-ferrand",
             "department": "63",
             "lat": 45.7772,
-            "lon": 3.0870
+            "lon": 3.087
         },
         {
             "name": "Brest",
@@ -960,7 +1056,7 @@
             "name": "Amiens",
             "slug": "amiens",
             "department": "80",
-            "lat": 49.8940,
+            "lat": 49.894,
             "lon": 2.2958
         },
         {
@@ -995,7 +1091,7 @@
             "name": "Orléans",
             "slug": "orleans",
             "department": "45",
-            "lat": 47.9030,
+            "lat": 47.903,
             "lon": 1.9093
         },
         {
@@ -1024,7 +1120,7 @@
             "slug": "nancy",
             "department": "54",
             "lat": 48.6921,
-            "lon": 6.1840
+            "lon": 6.184
         },
         {
             "name": "Argenteuil",

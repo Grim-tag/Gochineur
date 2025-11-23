@@ -23,11 +23,11 @@ interface GeoData {
 
 export default function HomePage() {
   const location = useLocation()
-  const { departmentCode, citySlug, regionSlug, departmentSlug } = useParams<{
-    departmentCode?: string;
-    citySlug?: string;
+  const { category, regionSlug, departmentSlug, param } = useParams<{
+    category?: string;
     regionSlug?: string;
     departmentSlug?: string;
+    param?: string;
   }>()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])

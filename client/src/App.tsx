@@ -19,18 +19,30 @@ export default function App() {
       <div className="flex flex-col min-h-screen">
         <div className="flex-grow">
           <Routes>
+            {/* Homepage - all types, all locations */}
             <Route path="/" element={<HomePage />} />
-            <Route path="/vide-grenier/region/:regionSlug" element={<HomePage />} />
 
-            {/* Routes hybrides : peuvent être une recherche (département/ville) ou un événement */}
-            <Route path="/vide-grenier/:param" element={<CategoryRouteWrapper />} />
-            <Route path="/brocantes/:departmentSlug/:citySlug" element={<HomePage />} />
-            <Route path="/brocantes/:param" element={<CategoryRouteWrapper />} />
+            {/* Category root - all locations for this type */}
+            <Route path="/vide-grenier" element={<HomePage />} />
+            <Route path="/brocante" element={<HomePage />} />
+            <Route path="/puces" element={<HomePage />} />
+            <Route path="/bourse" element={<HomePage />} />
+            <Route path="/vide-maison" element={<HomePage />} />
+            <Route path="/troc" element={<HomePage />} />
 
-            {/* Route générique pour les autres types d'événements (ex: /puces-et-antiquites/slug-event) */}
-            <Route path="/:category/:param" element={<CategoryRouteWrapper />} />
+            {/* Region level: /{category}/{region} */}
+            <Route path="/:category/:regionSlug" element={<HomePage />} />
 
+            {/* Department level: /{category}/{region}/{department} */}
+            <Route path="/:category/:regionSlug/:departmentSlug" element={<HomePage />} />
+
+            {/* City level OR Event details: /{category}/{region}/{department}/{param} */}
+            <Route path="/:category/:regionSlug/:departmentSlug/:param" element={<CategoryRouteWrapper />} />
+
+            {/* Direct event access */}
             <Route path="/event/:id" element={<EventDetailsPage />} />
+
+            {/* User routes */}
             <Route path="/mon-compte" element={<MyAccountPage />} />
             <Route path="/ma-liste" element={<Navigate to="/mon-compte" replace />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />
@@ -46,4 +58,3 @@ export default function App() {
     </BrowserRouter>
   )
 }
-
