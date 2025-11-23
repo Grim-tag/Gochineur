@@ -76,6 +76,32 @@ module.exports = function () {
         }
     });
 
+    // GET /api/geo/geocode - Proxy pour le géocodage Nominatim (évite CORS et ajoute User-Agent)
+    router.get('/geocode', async (req, res) => {
+        try {
+            const { q, limit = 1 } = req.query;
+
+            if (!q) {
+                return res.status(400).json({ success: false, error: 'Query parameter "q" is required' });
+            }
+
+            const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+                params: {
+                    q,
+                    format: 'json',
+                    limit,
+                    addressdetails: 1
+                },
+                headers: { 'User-Agent': 'GoChineur/1.0' }
+            });
+
+            res.json(response.data);
+        } catch (error) {
+            console.error('Erreur proxy géocodage:', error.message);
+            res.status(500).json({ success: false, error: 'Erreur lors du géocodage' });
+        }
+    });
+
     // POST /api/geo/add-city - Ajoute une ville dynamiquement
     router.post('/add-city', async (req, res) => {
         try {
