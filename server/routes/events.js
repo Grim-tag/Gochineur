@@ -161,6 +161,26 @@ module.exports = function () {
     }
   });
 
+  // Route pour récupérer les événements de l'utilisateur connecté
+  // IMPORTANT: Doit être AVANT /:id pour éviter l'interception par le route paramétré
+  router.get('/my-events', authenticateJWT, async (req, res) => {
+    try {
+      const eventsCollection = getEventsCollection();
+      const userId = req.user.id;
+      console.log(`🔍 Récupération des événements pour user_id: ${userId}`);
+
+      const myEvents = await eventsCollection.find({ user_id: userId })
+        .sort({ date_creation: -1 }) // Plus récents d'abord
+        .toArray();
+
+      console.log(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
+      res.json(myEvents);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des événements utilisateur:', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+    }
+  });
+
   // Route pour obtenir un événement par son ID
   router.get('/:id', async (req, res) => {
     try {
@@ -176,25 +196,6 @@ module.exports = function () {
       res.json(event);
     } catch (error) {
       console.error('Erreur lors de la récupération de l\'événement:', error);
-      res.status(500).json({ error: 'Erreur serveur' });
-    }
-  });
-
-  // Route pour récupérer les événements de l'utilisateur connecté
-  router.get('/my-events', authenticateJWT, async (req, res) => {
-    try {
-      const eventsCollection = getEventsCollection();
-      const userId = req.user.id;
-      console.log(`🔍 Récupération des événements pour user_id: ${userId}`);
-
-      const myEvents = await eventsCollection.find({ user_id: userId })
-        .sort({ date_creation: -1 }) // Plus récents d'abord
-        .toArray();
-
-      console.log(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
-      res.json(myEvents);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des événements utilisateur:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
