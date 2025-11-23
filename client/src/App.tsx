@@ -10,6 +10,7 @@ import AdminPage from './pages/AdminPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import EventDetailsPage from './pages/EventDetailsPage'
 import CategoryRouteWrapper from './components/CategoryRouteWrapper'
+import DepartmentCodeRedirect from './components/DepartmentCodeRedirect'
 import './index.css'
 import Footer from './components/Footer'
 
@@ -29,6 +30,10 @@ export default function App() {
             <Route path="/bourse" element={<HomePage />} />
             <Route path="/vide-maison" element={<HomePage />} />
             <Route path="/troc" element={<HomePage />} />
+
+            {/* Legacy department code redirect: /{category}/{deptCode} where deptCode is 01, 2A, etc. */}
+            {/* Must be BEFORE region-level route to catch department codes */}
+            <Route path="/:category/:deptCode" element={<DepartmentCodeRedirect />} />
 
             {/* Region level: /{category}/{region} */}
             <Route path="/:category/:regionSlug" element={<HomePage />} />
