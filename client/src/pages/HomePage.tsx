@@ -17,7 +17,7 @@ interface UserPosition {
 
 interface GeoData {
   regions: { code: string; name: string; slug: string; lat: number; lon: number }[]
-  departments: { code: string; name: string; region: string; lat: number; lon: number }[]
+  departments: { code: string; name: string; slug: string; region: string; lat: number; lon: number }[]
   cities: { name: string; slug: string; department: string; lat: number; lon: number }[]
 }
 
@@ -100,23 +100,23 @@ export default function HomePage() {
   // Géolocalisation de l'utilisateur - SUPPRIMÉ (maintenant manuel via bouton)
   // Ne plus charger automatiquement la position au chargement de la page
   useEffect(() => {
-    if (departmentCode || citySlug || regionSlug || departmentSlug) {
-      setLocationLoading(false)
+    if (regionSlug || departmentSlug || param) {
+      // On est sur une page de recherche géographique, ne pas charger le circuit
       return
     }
 
     // Pas de géolocalisation automatique - l'utilisateur doit cliquer sur le bouton
     setLocationLoading(false)
-  }, [departmentCode, citySlug, regionSlug, departmentSlug])
+  }, [regionSlug, departmentSlug, param])
 
 
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
   useEffect(() => {
     console.log('🔍 URL Params useEffect triggered:', {
-      departmentCode,
-      citySlug,
+      category,
       regionSlug,
       departmentSlug,
+      param,
       pathname: location.pathname,
       hasGeoData: !!geoData
     })
@@ -130,15 +130,17 @@ export default function HomePage() {
       let targetRadius: number = EVENTS.DEFAULT_RADIUS
       let deptCodeStr = ''
 
-      if (citySlug) {
-        console.log('🏙️ Looking for city with slug:', citySlug, 'in geoData.cities:', geoData.cities?.length)
+      // param can be either a city slug or an event ID
+      // If it's a city, we're on the city level
+      if (param && departmentSlug) {
+        console.log('🏙️ Looking for city with slug:', param, 'in geoData.cities:', geoData.cities?.length)
 
         // Vérifier d'abord si les données de la ville sont passées via navigate state
         let cityData = (location.state as any)?.cityData
 
         if (!cityData) {
           // Sinon, chercher dans geoData
-          cityData = geoData.cities.find(c => c.slug === citySlug)
+          cityData = geoData.cities.find(c => c.slug === param)
         }
 
         console.log('🏙️ City found:', cityData)
@@ -154,15 +156,10 @@ export default function HomePage() {
         } else {
           console.log('❌ City not found in geoData')
         }
-      } else if (departmentCode || departmentSlug) {
-        let dept = null
-        if (departmentCode) {
-          dept = geoData.departments.find(d => d.code === departmentCode)
-        } else if (departmentSlug) {
-          dept = geoData.departments.find(d =>
-            d.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === departmentSlug
-          )
-        }
+      } else if (departmentSlug && !param) {
+        console.log('🏛️ Looking for department with slug:', departmentSlug)
+        // Recherche par slug de département (ex: "aveyron", "corse-du-sud")
+        const dept = geoData.departments.find(d => d.slug === departmentSlug)
         if (dept) {
           targetLat = dept.lat
           targetLon = dept.lon
@@ -231,7 +228,7 @@ export default function HomePage() {
     }
 
     handleUrlParams()
-  }, [departmentCode, citySlug, regionSlug, departmentSlug, geoData, location.pathname])
+  }, [category, regionSlug, departmentSlug, param, geoData, location.pathname])
 
   // Fonction pour charger les événements avec une période donnée
   const loadEvents = async (
@@ -282,7 +279,7 @@ export default function HomePage() {
 
   // Charger les événements initiaux (2 premiers mois) - UNIQUEMENT SI PAS DE PARAMS URL
   useEffect(() => {
-    if (departmentCode || citySlug || regionSlug || departmentSlug) return
+    if (regionSlug || departmentSlug || param) return
 
     // Sur la page d'accueil, charger tous les événements (position par défaut)
     const today = new Date()
@@ -307,7 +304,7 @@ export default function HomePage() {
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, [departmentCode, citySlug, regionSlug, departmentSlug, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
+  }, [regionSlug, departmentSlug, param, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -334,7 +331,7 @@ export default function HomePage() {
   // Recharger les événements quand le rayon change (pour les pages ville/département)
   useEffect(() => {
     // Ne se déclencher que si on est sur une page ville/département ET que le rayon a changé
-    if ((citySlug || departmentSlug) && userPosition && currentRadius && currentEndDate) {
+    if ((param || departmentSlug) && userPosition && currentRadius && currentEndDate) {
       console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
       // Debounce: attendre 500ms après le dernier changement avant de recharger
@@ -367,7 +364,7 @@ export default function HomePage() {
       // Cleanup: annuler le timeout si le rayon change à nouveau avant les 500ms
       return () => clearTimeout(timeoutId)
     }
-  }, [currentRadius, citySlug, departmentSlug, userPosition, currentEndDate, currentEventType])
+  }, [currentRadius, param, departmentSlug, userPosition, currentEndDate, currentEventType])
 
 
   // Charger le circuit depuis localStorage
@@ -498,42 +495,45 @@ export default function HomePage() {
     }
   }
 
-  // Construction du fil d'ariane
+  // Construction du fil d'ariane avec structure hiérarchique SEO
   const breadcrumbsItems: { label: string; path?: string; onClick?: () => void }[] = [
     { label: 'Accueil', path: '/' }
   ]
 
+  // Déterminer la catégorie depuis l'URL ou utiliser vide-grenier par défaut
+  const currentCategory = category || 'vide-grenier'
+
+  // Construire le breadcrumb hiérarchique
   if (regionSlug && geoData) {
     const region = geoData.regions.find(r => r.slug === regionSlug)
     if (region) {
-      breadcrumbsItems.push({ label: region.name, path: `/vide-grenier/region/${region.slug}` })
-    }
-  } else if (departmentCode && geoData) {
-    const dept = geoData.departments.find(d => d.code === departmentCode)
-    if (dept) {
-      // Ajouter la région parente
-      const region = geoData.regions.find(r => r.code === dept.region)
-      if (region) {
-        breadcrumbsItems.push({ label: region.name, path: `/vide-grenier/region/${region.slug}` })
-      }
-      breadcrumbsItems.push({ label: `${dept.code} - ${dept.name}`, path: `/vide-grenier/${dept.code}` })
-    }
-  } else if (citySlug && geoData) {
-    const cityData = geoData.cities.find(c => c.slug === citySlug)
-    if (cityData) {
-      // Trouver le département de la ville
-      const dept = geoData.departments.find(d => d.code === cityData.department)
-      if (dept) {
-        // Ajouter la région
-        const region = geoData.regions.find(r => r.code === dept.region)
-        if (region) {
-          breadcrumbsItems.push({ label: region.name, path: `/vide-grenier/region/${region.slug}` })
+      // Niveau région: /{category}/{region}
+      breadcrumbsItems.push({
+        label: region.name,
+        path: `/${currentCategory}/${region.slug}`
+      })
+
+      if (departmentSlug) {
+        const dept = geoData.departments.find(d => d.slug === departmentSlug)
+        if (dept) {
+          // Niveau département: /{category}/{region}/{department}
+          breadcrumbsItems.push({
+            label: `${dept.code} - ${dept.name}`,
+            path: `/${currentCategory}/${region.slug}/${dept.slug}`
+          })
+
+          if (param) {
+            // Niveau ville: /{category}/{region}/{department}/{city}
+            const cityData = geoData.cities.find(c => c.slug === param)
+            if (cityData) {
+              breadcrumbsItems.push({
+                label: cityData.name,
+                path: `/${currentCategory}/${region.slug}/${dept.slug}/${cityData.slug}`
+              })
+            }
+          }
         }
-        // Ajouter le département
-        breadcrumbsItems.push({ label: `${dept.code} - ${dept.name}`, path: `/vide-grenier/${dept.code}` })
       }
-      // Ajouter la ville
-      breadcrumbsItems.push({ label: cityData.name, path: `/brocantes/${cityData.slug}` })
     }
   } else if (city && !locationLoading) {
     // Si on est géolocalisé ou recherche manuelle sans URL
