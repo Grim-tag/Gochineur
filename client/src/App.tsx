@@ -14,9 +14,12 @@ import DepartmentCodeRedirect from './components/DepartmentCodeRedirect'
 import './index.css'
 import Footer from './components/Footer'
 
+import AnalyticsTracker from './components/AnalyticsTracker'
+
 export default function App() {
   return (
     <BrowserRouter>
+      <AnalyticsTracker />
       <div className="flex flex-col min-h-screen">
         <div className="flex-grow">
           <Routes>
