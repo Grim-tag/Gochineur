@@ -7,7 +7,7 @@ const AnalyticsTracker = () => {
 
     useEffect(() => {
         // Initialize Google Analytics with the user's Measurement ID
-        ReactGA.initialize("G-N15HKDVFC9");
+        ReactGA.initialize("G-JYGK8NJJ8X");
     }, []);
 
     useEffect(() => {
