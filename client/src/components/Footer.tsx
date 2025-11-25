@@ -66,6 +66,11 @@ export default function Footer() {
 
                 <div className="border-t border-gray-700 mt-8 pt-8 text-center text-xs">
                     <p>&copy; {new Date().getFullYear()} GoChineur. Tous droits réservés.</p>
+                    <div className="mt-2 space-x-4">
+                        <Link to="/mentions-legales" className="hover:text-white">Mentions Légales</Link>
+                        <span>•</span>
+                        <Link to="/cgu" className="hover:text-white">CGU</Link>
+                    </div>
                 </div>
             </div>
         </footer>

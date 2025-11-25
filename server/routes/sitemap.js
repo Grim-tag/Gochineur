@@ -14,7 +14,9 @@ module.exports = function () {
             const staticPages = [
                 { url: '/', priority: '1.0' },
                 { url: '/login', priority: '0.5' },
-                { url: '/soumettre', priority: '0.8' }
+                { url: '/soumettre', priority: '0.8' },
+                { url: '/mentions-legales', priority: '0.6' },
+                { url: '/cgu', priority: '0.6' }
             ];
 
             staticPages.forEach(page => {

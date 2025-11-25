@@ -12,6 +12,8 @@ import EventDetailsPage from './pages/EventDetailsPage'
 import AddObjectPage from './pages/AddObjectPage'
 import CSVImportPage from './pages/CSVImportPage'
 import CollectionShowcasePage from './pages/CollectionShowcasePage'
+import MentionsLegalesPage from './pages/MentionsLegalesPage'
+import CGUPage from './pages/CGUPage'
 import CategoryRouteWrapper from './components/CategoryRouteWrapper'
 import './index.css'
 import Footer from './components/Footer'
@@ -63,6 +65,10 @@ export default function App() {
             <Route path="/set-pseudo" element={<SetPseudoPage />} />
             <Route path="/admin/dashboard" element={<AdminPage />} />
             <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+
+            {/* Legal pages */}
+            <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
+            <Route path="/cgu" element={<CGUPage />} />
           </Routes>
         </div>
         <Footer />
