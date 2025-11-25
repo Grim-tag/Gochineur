@@ -13,7 +13,6 @@ import AddObjectPage from './pages/AddObjectPage'
 import CSVImportPage from './pages/CSVImportPage'
 import CollectionShowcasePage from './pages/CollectionShowcasePage'
 import CategoryRouteWrapper from './components/CategoryRouteWrapper'
-import CategoryRouteWrapper from './components/CategoryRouteWrapper'
 import './index.css'
 import Footer from './components/Footer'
 
