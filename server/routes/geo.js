@@ -116,7 +116,8 @@ module.exports = function () {
                     lat,
                     lon,
                     format: 'json',
-                    addressdetails: 1
+                    addressdetails: 1,
+                    zoom: 18
                 },
                 headers: { 'User-Agent': 'GoChineur/1.0' }
             });

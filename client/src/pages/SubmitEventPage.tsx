@@ -182,6 +182,14 @@ export default function SubmitEventPage() {
         setError('Veuillez saisir le titre de l\'événement.')
         return false
       }
+      if (!formData.email) {
+        setError('L\'adresse email est obligatoire.')
+        return false
+      }
+      if (!formData.prix_visiteur) {
+        setError('Veuillez indiquer le prix pour les visiteurs.')
+        return false
+      }
     }
 
     return true
