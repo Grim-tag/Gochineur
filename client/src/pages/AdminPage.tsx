@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { API } from '../config/constants'
 import { getToken, removeToken } from '../services/auth'
+import NoIndex from '../components/NoIndex'
 
 interface User {
   id: string
@@ -379,6 +380,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NoIndex title="Administration - GoChineur" />
       {/* Header */}
       <div className="bg-background-paper shadow-md border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">

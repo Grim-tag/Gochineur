@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { getCurrentUser } from '../services/api'
 import { API } from '../config/constants'
 import Header from '../components/Header'
+import NoIndex from '../components/NoIndex'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -43,6 +44,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <NoIndex title="Connexion - GoChineur" />
       <Header />
 
       <div className="flex items-center justify-center py-12 px-4">

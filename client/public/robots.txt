@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /mon-compte
+Disallow: /login
+Disallow: /oauth/
 Disallow: /soumettre
 Disallow: /set-pseudo
 Disallow: /api/
