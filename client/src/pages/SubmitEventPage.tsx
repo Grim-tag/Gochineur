@@ -220,7 +220,6 @@ export default function SubmitEventPage() {
         ...formData,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
-        longitude: parseFloat(formData.longitude),
         prix_montant: formData.prix_montant ? parseFloat(formData.prix_montant) : undefined,
         nombre_exposants: formData.nombre_exposants ? parseInt(formData.nombre_exposants) : undefined
       }
