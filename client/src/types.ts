@@ -27,8 +27,22 @@ export interface Event {
   cancelled?: boolean
 }
 
+export interface CollectionStats {
+  totalItems: number
+  totalValue: number
+  byStatus: {
+    keeper: number
+    for_sale: number
+    for_exchange: number
+  }
+  byCategory: Record<string, number>
+}
 
-
-
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
 
 

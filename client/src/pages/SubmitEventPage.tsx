@@ -5,6 +5,7 @@ import { checkAuth, redirectToGoogleAuth } from '../utils/authUtils'
 import { submitEvent } from '../services/api'
 import { API } from '../config/constants'
 import Header from '../components/Header'
+import LocationPicker from '../components/LocationPicker'
 
 interface FormData {
   // Étape 1
@@ -39,6 +40,7 @@ export default function SubmitEventPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [isGeocoding, setIsGeocoding] = useState(false)
 
   const [formData, setFormData] = useState<FormData>({
     role: '',
@@ -89,6 +91,7 @@ export default function SubmitEventPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (formData.address && formData.city && formData.postalCode) {
+        setIsGeocoding(true)
         geocodeAddress(formData.address, formData.city, formData.postalCode).then(coords => {
           if (coords) {
             setFormData(prev => ({
@@ -97,9 +100,12 @@ export default function SubmitEventPage() {
               longitude: coords.longitude.toString()
             }))
           }
+          setIsGeocoding(false)
+        }).catch(() => {
+          setIsGeocoding(false)
         })
       }
-    }, 1000)
+    }, 400) // Réduit de 1000ms à 400ms pour une réponse plus rapide
 
     return () => clearTimeout(timer)
   }, [formData.address, formData.city, formData.postalCode])
@@ -135,6 +141,23 @@ export default function SubmitEventPage() {
 
   const handleAddressChange = (address: string) => {
     handleInputChange('address', address)
+  }
+
+  const handleLocationChange = (lat: number, lon: number, address?: string, city?: string, postalCode?: string) => {
+    const updates: any = {
+      latitude: lat.toString(),
+      longitude: lon.toString()
+    }
+
+    // Mettre à jour les champs d'adresse si fournis (même si vides)
+    if (address !== undefined) updates.address = address
+    if (city !== undefined) updates.city = city
+    if (postalCode !== undefined) updates.postalCode = postalCode
+
+    setFormData(prev => ({
+      ...prev,
+      ...updates
+    }))
   }
 
   const validateStep = (step: number): boolean => {
@@ -368,6 +391,26 @@ export default function SubmitEventPage() {
                 />
               </div>
             </div>
+
+            {/* Loading indicator for geocoding */}
+            {isGeocoding && !formData.latitude && (
+              <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3 flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <p className="text-blue-400 text-sm">
+                  🔍 Recherche de l'emplacement...
+                </p>
+              </div>
+            )}
+
+            {/* Interactive Map */}
+            <LocationPicker
+              latitude={formData.latitude ? parseFloat(formData.latitude) : null}
+              longitude={formData.longitude ? parseFloat(formData.longitude) : null}
+              onLocationChange={handleLocationChange}
+              address={formData.address}
+              city={formData.city}
+              postalCode={formData.postalCode}
+            />
 
             {(formData.latitude && formData.longitude) && (
               <div className="bg-green-900/20 border border-green-800 rounded-lg p-3">

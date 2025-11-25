@@ -37,7 +37,6 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
-  const [locationLoading, setLocationLoading] = useState(true)
   const [city, setCity] = useState<string>('')
   const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
   const [currentEventType, setCurrentEventType] = useState<string>('tous')
@@ -96,18 +95,6 @@ export default function HomePage() {
     setSeoTitle(title)
     document.title = `${title} - GoChineur`
   }
-
-  // Géolocalisation de l'utilisateur - SUPPRIMÉ (maintenant manuel via bouton)
-  // Ne plus charger automatiquement la position au chargement de la page
-  useEffect(() => {
-    if (regionSlug || departmentSlug || param) {
-      // On est sur une page de recherche géographique, ne pas charger le circuit
-      return
-    }
-
-    // Pas de géolocalisation automatique - l'utilisateur doit cliquer sur le bouton
-    setLocationLoading(false)
-  }, [regionSlug, departmentSlug, param])
 
 
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
@@ -535,7 +522,7 @@ export default function HomePage() {
         }
       }
     }
-  } else if (city && !locationLoading) {
+  } else if (city) {
     // Si on est géolocalisé ou recherche manuelle sans URL
     breadcrumbsItems.push({ label: city })
   }
@@ -561,20 +548,10 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-6">
         <Breadcrumbs items={breadcrumbsItems} />
 
-        {locationLoading && (
-          <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-3 mb-4">
-            <p className="text-blue-400 text-sm">
-              🌍 Recherche de votre position...
-            </p>
-          </div>
-        )}
-
         {/* Titre H1 principal pour le SEO */}
-        {!locationLoading && (
-          <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
-            {seoTitle}
-          </h1>
-        )}
+        <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
+          {seoTitle}
+        </h1>
 
         {loading && (
           <div className="flex items-center justify-center py-12">

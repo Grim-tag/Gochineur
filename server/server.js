@@ -116,6 +116,10 @@ app.use('/api/events', eventsRoutes());
 const geoRoutes = require('./routes/geo');
 app.use('/api/geo', geoRoutes());
 
+// Routes de collection utilisateur (V2)
+const collectionRoutes = require('./routes/collection');
+app.use('/api/collection', collectionRoutes());
+
 // Routes d'administration
 app.use('/api/admin', adminRoutes());
 

@@ -12,6 +12,7 @@ let client = null;
 let db = null;
 let eventsCollection = null;
 let usersCollection = null;
+let userItemsCollection = null;
 
 /**
  * Établit la connexion à MongoDB Atlas
@@ -39,6 +40,7 @@ async function connectDB() {
     // Obtenir les collections
     eventsCollection = db.collection('events');
     usersCollection = db.collection('users');
+    userItemsCollection = db.collection('user_items');
 
     // Créer des index pour améliorer les performances
     await eventsCollection.createIndex({ date_debut: 1 });
@@ -47,6 +49,7 @@ async function connectDB() {
     await eventsCollection.createIndex({ eventHash: 1 }); // Pour la détection de doublons
     await usersCollection.createIndex({ googleId: 1 }, { unique: true });
     await usersCollection.createIndex({ email: 1 }, { unique: true });
+    await userItemsCollection.createIndex({ user_id: 1 });
 
     console.log('✅ Collections et index créés');
   } catch (error) {
@@ -67,6 +70,7 @@ async function closeDB() {
       db = null;
       eventsCollection = null;
       usersCollection = null;
+      userItemsCollection = null;
       console.log('✅ Connexion MongoDB fermée');
     }
   } catch (error) {
@@ -126,6 +130,12 @@ module.exports = {
       throw new Error('❌ Collection users non disponible. Appelez connectDB() d\'abord.');
     }
     return usersCollection;
+  },
+  getUserItemsCollection: () => {
+    if (!userItemsCollection) {
+      throw new Error('❌ Collection user_items non disponible. Appelez connectDB() d\'abord.');
+    }
+    return userItemsCollection;
   }
 };
 

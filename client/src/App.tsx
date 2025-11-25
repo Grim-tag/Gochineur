@@ -9,6 +9,9 @@ import SetPseudoPage from './pages/SetPseudoPage'
 import AdminPage from './pages/AdminPage'
 import OAuthCallbackPage from './pages/OAuthCallbackPage'
 import EventDetailsPage from './pages/EventDetailsPage'
+import AddObjectPage from './pages/AddObjectPage'
+import CSVImportPage from './pages/CSVImportPage'
+import CollectionShowcasePage from './pages/CollectionShowcasePage'
 import CategoryRouteWrapper from './components/CategoryRouteWrapper'
 import DepartmentCodeRedirect from './components/DepartmentCodeRedirect'
 import './index.css'
@@ -52,6 +55,9 @@ export default function App() {
 
             {/* User routes */}
             <Route path="/mon-compte" element={<MyAccountPage />} />
+            <Route path="/ma-collection/ajouter" element={<AddObjectPage />} />
+            <Route path="/ma-collection/importer-csv" element={<CSVImportPage />} />
+            <Route path="/collection/:userPseudo" element={<CollectionShowcasePage />} />
             <Route path="/ma-liste" element={<Navigate to="/mon-compte" replace />} />
             <Route path="/soumettre" element={<SubmitEventPage />} />
             <Route path="/edit-event/:id" element={<EditEventPage />} />

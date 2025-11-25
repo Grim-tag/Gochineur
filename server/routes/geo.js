@@ -102,6 +102,32 @@ module.exports = function () {
         }
     });
 
+    // GET /api/geo/reverse - Reverse geocoding (coordonnées → adresse)
+    router.get('/reverse', async (req, res) => {
+        try {
+            const { lat, lon } = req.query;
+
+            if (!lat || !lon) {
+                return res.status(400).json({ success: false, error: 'Parameters "lat" and "lon" are required' });
+            }
+
+            const response = await axios.get('https://nominatim.openstreetmap.org/reverse', {
+                params: {
+                    lat,
+                    lon,
+                    format: 'json',
+                    addressdetails: 1
+                },
+                headers: { 'User-Agent': 'GoChineur/1.0' }
+            });
+
+            res.json(response.data);
+        } catch (error) {
+            console.error('Erreur reverse geocoding:', error.message);
+            res.status(500).json({ success: false, error: 'Erreur lors du reverse geocoding' });
+        }
+    });
+
     // POST /api/geo/add-city - Ajoute une ville dynamiquement
     router.post('/add-city', async (req, res) => {
         try {

@@ -9,6 +9,7 @@ import { fetchEvents, fetchMyEvents, deleteAccount, cancelEvent } from '../servi
 import { checkAuth, logout, type User } from '../utils/authUtils'
 import Breadcrumbs from '../components/Breadcrumbs'
 import Header from '../components/Header'
+import CollectionSection from '../components/CollectionSection'
 
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -360,6 +361,9 @@ export default function MyAccountPage() {
                         </div>
                     )}
                 </section>
+
+                {/* Section Ma Collection */}
+                <CollectionSection user={user} />
 
                 <hr className="border-gray-700" />
 
