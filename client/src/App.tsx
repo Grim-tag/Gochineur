@@ -41,8 +41,9 @@ export default function App() {
             {/* Must be BEFORE region-level route to catch department codes */}
             <Route path="/:category/:deptCode" element={<DepartmentCodeRedirect />} />
 
-            {/* Region level: /{category}/{region} */}
-            <Route path="/:category/:regionSlug" element={<HomePage />} />
+            {/* Region level OR Event details: /{category}/{param} */}
+            {/* We use CategoryRouteWrapper to distinguish between a region slug and an event slug */}
+            <Route path="/:category/:param" element={<CategoryRouteWrapper />} />
 
             {/* Department level: /{category}/{region}/{department} */}
             <Route path="/:category/:regionSlug/:departmentSlug" element={<HomePage />} />

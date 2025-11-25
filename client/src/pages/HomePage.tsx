@@ -21,14 +21,21 @@ interface GeoData {
   cities: { name: string; slug: string; department: string; lat: number; lon: number }[]
 }
 
-export default function HomePage() {
+interface HomePageProps {
+  regionSlugOverride?: string
+}
+
+export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const location = useLocation()
-  const { category, regionSlug, departmentSlug, param } = useParams<{
+  const params = useParams<{
     category?: string;
     regionSlug?: string;
     departmentSlug?: string;
     param?: string;
   }>()
+
+  const { category, departmentSlug, param } = params
+  const regionSlug = regionSlugOverride || params.regionSlug
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])

@@ -33,5 +33,13 @@ export default function CategoryRouteWrapper() {
         return <EventDetailsPage />
     }
 
+    // If we are in the 2-segment route (no departmentSlug), then param is a region
+    // We need to pass it as an override because HomePage expects regionSlug param
+    const { departmentSlug } = useParams()
+
+    if (!departmentSlug && param) {
+        return <HomePage regionSlugOverride={param} />
+    }
+
     return <HomePage />
 }
