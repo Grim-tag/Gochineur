@@ -491,7 +491,7 @@ module.exports = () => {
             const userId = req.user.id;
             const { parse } = require('csv-parse/sync');
             const axios = require('axios');
-            const xlsx = require('xlsx');
+            const ExcelJS = require('exceljs');
 
             if (!req.file) {
                 return res.status(400).json({ success: false, error: 'No file provided' });
@@ -500,10 +500,43 @@ module.exports = () => {
             let records = [];
 
             if (req.file.originalname.endsWith('.xlsx')) {
-                const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                records = xlsx.utils.sheet_to_json(sheet);
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(req.file.buffer);
+                const worksheet = workbook.worksheets[0];
+
+                if (worksheet) {
+                    // Get headers from first row
+                    const headers = [];
+                    worksheet.getRow(1).eachCell((cell, colNumber) => {
+                        headers[colNumber] = cell.value;
+                    });
+
+                    // Iterate over rows starting from 2
+                    worksheet.eachRow((row, rowNumber) => {
+                        if (rowNumber === 1) return; // Skip header row
+
+                        const record = {};
+                        row.eachCell((cell, colNumber) => {
+                            const header = headers[colNumber];
+                            if (header) {
+                                // Handle rich text or simple values
+                                let value = cell.value;
+                                if (typeof value === 'object' && value !== null) {
+                                    if (value.richText) {
+                                        value = value.richText.map(rt => rt.text).join('');
+                                    } else if (value.text) {
+                                        value = value.text;
+                                    } else if (value.result !== undefined) {
+                                        // Formula result
+                                        value = value.result;
+                                    }
+                                }
+                                record[header] = value;
+                            }
+                        });
+                        records.push(record);
+                    });
+                }
             } else {
                 const csvContent = req.file.buffer.toString('utf-8');
                 records = parse(csvContent, {
