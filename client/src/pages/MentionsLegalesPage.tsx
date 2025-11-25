@@ -32,7 +32,7 @@ export default function MentionsLegalesPage() {
                             <p><strong className="text-text-primary">Forme juridique :</strong> Entrepreneur Individuel</p>
                             <p><strong className="text-text-primary">Directeur de la publication :</strong> Charles RONCHAIN</p>
                             <p><strong className="text-text-primary">Siège social :</strong> Rue des Pyrénées, 40390 SAINT-MARTIN-DE-HINX, France</p>
-                            <p><strong className="text-text-primary">Contact :</strong> <a href="mailto:contact@gochineur.fr" className="text-primary hover:text-primary-hover">contact@gochineur.fr</a></p>
+                            <p><strong className="text-text-primary">Contact :</strong> <a href="mailto:gochineur@gmail.com" className="text-primary hover:text-primary-hover">gochineur@gmail.com</a></p>
                         </div>
                     </section>
 
@@ -74,7 +74,7 @@ export default function MentionsLegalesPage() {
                                 d'accès, de rectification, de suppression et d'opposition aux données personnelles vous concernant.
                             </p>
                             <p>
-                                Pour exercer ces droits, vous pouvez nous contacter à l'adresse : <a href="mailto:contact@gochineur.fr" className="text-primary hover:text-primary-hover">contact@gochineur.fr</a>
+                                Pour exercer ces droits, vous pouvez nous contacter à l'adresse : <a href="mailto:gochineur@gmail.com" className="text-primary hover:text-primary-hover">gochineur@gmail.com</a>
                             </p>
                             <p>
                                 Les données collectées via la connexion Google (nom, email, photo de profil) sont utilisées uniquement pour la gestion de votre compte

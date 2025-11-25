@@ -43,7 +43,7 @@ export default function Footer() {
                         <h3 className="text-white font-bold text-lg mb-4">Contact</h3>
                         <p className="text-sm">
                             Une question ? Une suggestion ?<br />
-                            Contactez-nous sur contact@gochineur.fr
+                            Contactez-nous sur gochineur@gmail.com
                         </p>
                     </div>
                 </div>
