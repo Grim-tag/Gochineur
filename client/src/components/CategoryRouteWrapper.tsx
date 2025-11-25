@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import HomePage from '../pages/HomePage'
 import EventDetailsPage from '../pages/EventDetailsPage'
+import DepartmentCodeRedirect from './DepartmentCodeRedirect'
 
 export default function CategoryRouteWrapper() {
     const { param } = useParams<{ category: string; param: string }>()
@@ -31,6 +32,11 @@ export default function CategoryRouteWrapper() {
 
     if (isEvent(param)) {
         return <EventDetailsPage />
+    }
+
+    // Check if it looks like a department code (legacy redirect)
+    if (param && /^(\d{1,3}|2[AB])$/.test(param)) {
+        return <DepartmentCodeRedirect code={param} />
     }
 
     // If we are in the 2-segment route (no departmentSlug), then param is a region

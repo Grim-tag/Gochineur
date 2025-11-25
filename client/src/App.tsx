@@ -13,7 +13,7 @@ import AddObjectPage from './pages/AddObjectPage'
 import CSVImportPage from './pages/CSVImportPage'
 import CollectionShowcasePage from './pages/CollectionShowcasePage'
 import CategoryRouteWrapper from './components/CategoryRouteWrapper'
-import DepartmentCodeRedirect from './components/DepartmentCodeRedirect'
+import CategoryRouteWrapper from './components/CategoryRouteWrapper'
 import './index.css'
 import Footer from './components/Footer'
 
@@ -37,9 +37,7 @@ export default function App() {
             <Route path="/vide-maison" element={<HomePage />} />
             <Route path="/troc" element={<HomePage />} />
 
-            {/* Legacy department code redirect: /{category}/{deptCode} where deptCode is 01, 2A, etc. */}
-            {/* Must be BEFORE region-level route to catch department codes */}
-            <Route path="/:category/:deptCode" element={<DepartmentCodeRedirect />} />
+            {/* Legacy department code redirect is now handled by CategoryRouteWrapper */}
 
             {/* Region level OR Event details: /{category}/{param} */}
             {/* We use CategoryRouteWrapper to distinguish between a region slug and an event slug */}
