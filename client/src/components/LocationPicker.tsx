@@ -61,10 +61,7 @@ function DraggableMarker({
 export default function LocationPicker({
     latitude,
     longitude,
-    onLocationChange,
-    address,
-    city,
-    postalCode
+    onLocationChange
 }: LocationPickerProps) {
     const [isGeocoding, setIsGeocoding] = useState(false)
     const [geocodingError, setGeocodingError] = useState<string | null>(null)
