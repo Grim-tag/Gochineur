@@ -7,6 +7,7 @@ import {
     getCollectionStats,
     bulkDeleteItems,
     bulkUpdateStatus,
+    importCSV,
     type CollectionItem
 } from '../services/collectionApi'
 import type { User } from '../utils/authUtils'
@@ -17,6 +18,7 @@ import CollectionFilters from './CollectionFilters'
 import CollectionTable from './CollectionTable'
 import BulkActionsBar from './BulkActionsBar'
 import QuickViewModal from './QuickViewModal'
+import { useRef } from 'react'
 
 interface CollectionSectionProps {
     user: User | null
@@ -28,6 +30,8 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
     const [stats, setStats] = useState<CollectionStats | null>(null)
     const [loadingCollection, setLoadingCollection] = useState(false)
     const [loadingStats, setLoadingStats] = useState(false)
+    const [isImporting, setIsImporting] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // Search & Filter states
     const [searchQuery, setSearchQuery] = useState('')
@@ -87,6 +91,31 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
             console.error('Erreur chargement stats:', error)
         } finally {
             setLoadingStats(false)
+        }
+    }
+
+    const handleImportClick = () => {
+        fileInputRef.current?.click()
+    }
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+
+        setIsImporting(true)
+        try {
+            const result = await importCSV(file)
+            alert(`Import terminé avec succès ! ${result.success} objets importés.`)
+            await loadCollection()
+            await loadStats()
+        } catch (error: any) {
+            console.error('Erreur import:', error)
+            alert(`Erreur lors de l'import: ${error.message}`)
+        } finally {
+            setIsImporting(false)
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
         }
     }
 
@@ -225,6 +254,20 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
                     🏺 Ma Collection
                 </h2>
                 <div className="flex gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept=".csv,.xlsx"
+                        className="hidden"
+                    />
+                    <button
+                        onClick={handleImportClick}
+                        disabled={isImporting}
+                        className="bg-background-paper border border-gray-600 text-text-primary px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors font-semibold flex items-center gap-2"
+                    >
+                        <span>{isImporting ? 'Importation...' : '📥 Importer CSV'}</span>
+                    </button>
                     {user?.displayName && (
                         <Link
                             to={`/collection/${user.displayName}`}
