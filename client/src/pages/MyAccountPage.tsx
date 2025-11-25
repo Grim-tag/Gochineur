@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import type { Event } from '../types'
-import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { calculateDistance, generateChronologicalCircuitUrl, generateEventNavigationUrl } from '../utils/appUtils'
-import { fetchEvents, fetchMyEvents, deleteAccount, cancelEvent } from '../services/api'
+import Header from '../components/Header'
+import type { Event } from '../types'
+import { fetchMyEvents, cancelEvent, deleteAccount } from '../services/api'
+import { fetchEvents } from '../services/api'
+import {
+    calculateDistance,
+    generateChronologicalCircuitUrl,
+    generateEventNavigationUrl,
+    groupEventsByDay,
+    cleanExpiredEventsFromCircuit,
+    type GroupedEvents
+} from '../utils/appUtils'
 import { checkAuth, logout, type User } from '../utils/authUtils'
 import Breadcrumbs from '../components/Breadcrumbs'
-import Header from '../components/Header'
 import CollectionSection from '../components/CollectionSection'
 
 // Fix pour les icônes par défaut de Leaflet
@@ -109,7 +117,15 @@ export default function MyAccountPage() {
             endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         })
             .then((allEvents: Event[]) => {
-                let eventsInCircuit = allEvents.filter(event => circuit.includes(event.id))
+                // 🧹 Nettoyer les événements expirés (après 22h le jour même)
+                const cleanedCircuit = cleanExpiredEventsFromCircuit(circuit, allEvents)
+
+                // Mettre à jour les IDs si le nettoyage a retiré des événements
+                if (cleanedCircuit.length !== circuit.length) {
+                    setCircuitIds(cleanedCircuit)
+                }
+
+                let eventsInCircuit = allEvents.filter(event => cleanedCircuit.includes(event.id))
 
                 eventsInCircuit = eventsInCircuit.map(event => {
                     const distance = calculateDistance(
@@ -186,11 +202,6 @@ export default function MyAccountPage() {
         }
     }
 
-    const launchChronologicalCircuit = () => {
-        if (!userPosition) return
-        const url = generateChronologicalCircuitUrl(userPosition, circuitEvents)
-        if (url) window.open(url, '_blank')
-    }
 
     const navigateToEvent = (event: Event) => {
         if (!userPosition) return
@@ -319,44 +330,66 @@ export default function MyAccountPage() {
                                 </MapContainer>
                             </div>
 
-                            {/* Liste Circuit */}
+                            {/* Liste Circuit - Groupée par jour */}
                             <div className="lg:w-1/3 flex flex-col gap-4 h-[500px] overflow-y-auto pr-2">
-                                {userPosition && (
-                                    <button
-                                        onClick={launchChronologicalCircuit}
-                                        className="w-full bg-primary text-white px-4 py-3 rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center gap-2 font-semibold shadow-lg shadow-orange-900/20 sticky top-0 z-10"
-                                    >
-                                        <span>▶️ Lancer le Circuit (GPS)</span>
-                                    </button>
-                                )}
+                                {groupEventsByDay(circuitEvents).map((group: GroupedEvents) => {
+                                    const dayEvents = group.events
 
-                                {circuitEvents.map((event) => (
-                                    <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4">
-                                        <h3 className="font-bold text-text-primary">{event.name}</h3>
-                                        <p className="text-sm text-text-secondary">{event.city} ({event.postalCode})</p>
-                                        <p className="text-sm text-text-muted mb-3">
-                                            {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
-                                            {event.distance !== undefined && ` • ${event.distance} km`}
-                                        </p>
+                                    const launchDayCircuit = () => {
+                                        if (!userPosition) return
+                                        const url = generateChronologicalCircuitUrl(userPosition, dayEvents)
+                                        if (url) window.open(url, '_blank')
+                                    }
 
-                                        <div className="flex gap-2">
-                                            {userPosition && (
-                                                <button
-                                                    onClick={() => navigateToEvent(event)}
-                                                    className="flex-1 py-1.5 px-2 bg-primary/20 text-primary rounded hover:bg-primary/30 text-sm font-medium flex items-center justify-center gap-1"
-                                                >
-                                                    <span>📍 Y aller</span>
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleRemoveFromCircuit(event.id)}
-                                                className="py-1.5 px-3 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50 text-sm font-medium"
-                                            >
-                                                Retirer
-                                            </button>
+                                    return (
+                                        <div key={group.date} className="bg-background-paper/50 rounded-lg border border-gray-600 p-3">
+                                            {/* En-tête du jour avec bouton circuit */}
+                                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-600">
+                                                <h3 className="font-bold text-primary capitalize">{group.label}</h3>
+                                                {userPosition && dayEvents.length > 0 && (
+                                                    <button
+                                                        onClick={launchDayCircuit}
+                                                        className="bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-1.5 text-sm font-semibold shadow-lg shadow-orange-900/20"
+                                                        title={`Lancer le circuit pour ${group.label}`}
+                                                    >
+                                                        <span>▶️</span>
+                                                        <span className="hidden sm:inline">Circuit</span>
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {/* Liste des événements du jour */}
+                                            <div className="space-y-2">
+                                                {dayEvents.map((event) => (
+                                                    <div key={event.id} className="bg-background-paper rounded-lg border border-gray-700 p-3">
+                                                        <h4 className="font-semibold text-text-primary text-sm">{event.name}</h4>
+                                                        <p className="text-xs text-text-secondary">{event.city} ({event.postalCode})</p>
+                                                        {event.distance !== undefined && (
+                                                            <p className="text-xs text-text-muted">📍 {event.distance} km</p>
+                                                        )}
+
+                                                        <div className="flex gap-2 mt-2">
+                                                            {userPosition && (
+                                                                <button
+                                                                    onClick={() => navigateToEvent(event)}
+                                                                    className="flex-1 py-1 px-2 bg-primary/20 text-primary rounded hover:bg-primary/30 text-xs font-medium flex items-center justify-center gap-1"
+                                                                >
+                                                                    <span>📍 Y aller</span>
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleRemoveFromCircuit(event.id)}
+                                                                className="py-1 px-2 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50 text-xs font-medium"
+                                                            >
+                                                                Retirer
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
                     )}

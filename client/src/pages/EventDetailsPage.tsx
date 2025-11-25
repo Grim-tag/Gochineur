@@ -5,6 +5,7 @@ import type { Event } from '../types'
 import Breadcrumbs from '../components/Breadcrumbs'
 import Header from '../components/Header'
 import { extractIdFromSlug } from '../utils/appUtils'
+import MiniMap from '../components/MiniMap'
 
 export default function EventDetailsPage() {
     const { id, param } = useParams<{ id?: string; param?: string }>()
@@ -136,6 +137,20 @@ export default function EventDetailsPage() {
                                     </div>
                                 </div>
 
+                                {/* Nombre d'exposants */}
+                                <div className="mb-8 p-4 bg-background rounded-lg border border-gray-700 flex items-center gap-3">
+                                    <span className="text-2xl">👥</span>
+                                    <div>
+                                        <p className="text-sm text-text-muted mb-0.5">Capacité</p>
+                                        <p className="font-semibold text-text-primary text-lg">
+                                            {event.nombre_exposants
+                                                ? `${event.nombre_exposants} places d'exposants`
+                                                : "Nombre d'exposants non renseigné"
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div className="prose prose-invert max-w-none">
                                     <h3 className="text-xl font-semibold text-text-primary mb-3">Description</h3>
                                     <div className="whitespace-pre-line text-text-secondary leading-relaxed">
@@ -202,7 +217,10 @@ export default function EventDetailsPage() {
                                     </div>
                                 )}
 
-                                <div className="mt-6 pt-6 border-t border-gray-700">
+                                <div className="mt-6 pt-6 border-t border-gray-700 space-y-3">
+                                    {/* Mini Map */}
+                                    <MiniMap latitude={event.latitude} longitude={event.longitude} />
+
                                     <a
                                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`}
                                         target="_blank"

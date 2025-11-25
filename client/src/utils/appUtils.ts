@@ -304,4 +304,54 @@ export function extractIdFromSlug(slug: string): string {
   return parts[parts.length - 1]
 }
 
+/**
+ * Nettoie les événements expirés du circuit
+ * Supprime automatiquement les événements dont la date est passée après 22h
+ * @param circuitEventIds - Liste des IDs d'événements dans le circuit
+ * @param allEvents - Liste complète des événements pour vérifier les dates
+ * @returns Liste nettoyée des IDs d'événements
+ */
+export function cleanExpiredEventsFromCircuit(
+  circuitEventIds: (string | number)[],
+  allEvents: Event[]
+): (string | number)[] {
+  const now = new Date()
+  const currentHour = now.getHours()
+
+  // Créer un Set des IDs d'événements expirés
+  const expiredIds = new Set<string | number>()
+
+  allEvents.forEach(event => {
+    if (!circuitEventIds.includes(event.id)) return
+
+    const eventDateString = event.date_debut || event.date
+    if (!eventDateString) return
+
+    const eventDate = new Date(eventDateString)
+    const eventStartOfDay = getStartOfDay(eventDate)
+    const todayStartOfDay = getStartOfDay(now)
+
+    // Si l'événement est aujourd'hui et qu'il est après 22h, on le retire
+    if (eventStartOfDay.getTime() === todayStartOfDay.getTime() && currentHour >= 22) {
+      expiredIds.add(event.id)
+    }
+
+    // Si l'événement est dans le passé (avant aujourd'hui), on le retire aussi
+    if (eventStartOfDay.getTime() < todayStartOfDay.getTime()) {
+      expiredIds.add(event.id)
+    }
+  })
+
+  // Filtrer les IDs expirés
+  const cleanedIds = circuitEventIds.filter(id => !expiredIds.has(id))
+
+  // Si des événements ont été retirés, mettre à jour le localStorage
+  if (cleanedIds.length !== circuitEventIds.length) {
+    console.log(`🧹 Nettoyage du circuit: ${circuitEventIds.length - cleanedIds.length} événement(s) expiré(s) retiré(s)`)
+    localStorage.setItem('gochineur-circuit', JSON.stringify(cleanedIds))
+  }
+
+  return cleanedIds
+}
+
 
