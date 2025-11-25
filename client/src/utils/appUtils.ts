@@ -133,6 +133,65 @@ export function groupEventsByDay(events: Event[]): GroupedEvents[] {
 }
 
 /**
+ * Optimise l'ordre des événements en utilisant l'algorithme du Plus Proche Voisin (Nearest Neighbor)
+ * @param userPosition - Point de départ
+ * @param eventsList - Liste des événements à optimiser
+ * @returns Liste des événements triés dans l'ordre optimisé
+ */
+export function optimizeNearestNeighbor(
+  userPosition: UserPosition,
+  eventsList: Event[]
+): Event[] {
+  if (!eventsList || eventsList.length === 0) {
+    return []
+  }
+
+  if (eventsList.length === 1) {
+    return eventsList
+  }
+
+  // Copie pour ne pas modifier l'original
+  const unvisited = [...eventsList]
+  const optimizedRoute: Event[] = []
+  let currentPoint = userPosition
+
+  // Tant qu'il reste des événements non visités
+  while (unvisited.length > 0) {
+    let nearestIndex = 0
+    let nearestDistance = Infinity
+
+    // Trouver l'événement le plus proche du point actuel
+    for (let i = 0; i < unvisited.length; i++) {
+      const event = unvisited[i]
+      const distance = calculateDistance(
+        currentPoint.latitude,
+        currentPoint.longitude,
+        event.latitude,
+        event.longitude
+      )
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = i
+      }
+    }
+
+    // Ajouter l'événement le plus proche à la route optimisée
+    const nearestEvent = unvisited.splice(nearestIndex, 1)[0]
+    optimizedRoute.push(nearestEvent)
+
+    // Le prochain point de départ est cet événement
+    currentPoint = {
+      latitude: nearestEvent.latitude,
+      longitude: nearestEvent.longitude
+    }
+  }
+
+  console.log(`🗺️ Circuit optimisé : ${optimizedRoute.length} événements ordonnés par proximité`)
+  return optimizedRoute
+}
+
+/**
  * Génère l'URL Google Maps pour un circuit chronologique
  */
 export function generateChronologicalCircuitUrl(

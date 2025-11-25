@@ -337,7 +337,9 @@ export default function MyAccountPage() {
 
                                     const launchDayCircuit = () => {
                                         if (!userPosition) return
-                                        const url = generateChronologicalCircuitUrl(userPosition, dayEvents)
+                                        // 🗺️ Optimiser le circuit avec l'algorithme du Plus Proche Voisin
+                                        const optimizedEvents = optimizeNearestNeighbor(userPosition, dayEvents)
+                                        const url = generateChronologicalCircuitUrl(userPosition, optimizedEvents)
                                         if (url) window.open(url, '_blank')
                                     }
 
