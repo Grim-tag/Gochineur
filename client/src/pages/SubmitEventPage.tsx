@@ -30,6 +30,7 @@ interface FormData {
   prix_montant: string
   description_visiteurs: string
   description_exposants: string
+  nombre_exposants: string
 }
 
 export default function SubmitEventPage() {
