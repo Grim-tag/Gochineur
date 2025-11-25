@@ -13,6 +13,7 @@ import {
     generateEventNavigationUrl,
     groupEventsByDay,
     cleanExpiredEventsFromCircuit,
+    optimizeNearestNeighbor,
     type GroupedEvents
 } from '../utils/appUtils'
 import { checkAuth, logout, type User } from '../utils/authUtils'
