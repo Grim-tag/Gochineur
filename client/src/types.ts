@@ -25,6 +25,7 @@ export interface Event {
   email?: string
   website?: string
   cancelled?: boolean
+  nombre_exposants?: number
 }
 
 export interface CollectionStats {

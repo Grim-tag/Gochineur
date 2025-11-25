@@ -61,7 +61,8 @@ export default function SubmitEventPage() {
     prix_visiteur: 'Gratuite',
     prix_montant: '',
     description_visiteurs: '',
-    description_exposants: ''
+    description_exposants: '',
+    nombre_exposants: ''
   })
 
   // Vérification d'authentification
@@ -218,7 +219,9 @@ export default function SubmitEventPage() {
         ...formData,
         latitude: parseFloat(formData.latitude),
         longitude: parseFloat(formData.longitude),
-        prix_montant: formData.prix_montant ? parseFloat(formData.prix_montant) : undefined
+        longitude: parseFloat(formData.longitude),
+        prix_montant: formData.prix_montant ? parseFloat(formData.prix_montant) : undefined,
+        nombre_exposants: formData.nombre_exposants ? parseInt(formData.nombre_exposants) : undefined
       }
 
       await submitEvent(eventData)
@@ -515,7 +518,7 @@ export default function SubmitEventPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -525,6 +528,20 @@ export default function SubmitEventPage() {
                   className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Nombre d'exposants (optionnel)
+              </label>
+              <input
+                type="number"
+                value={formData.nombre_exposants}
+                onChange={(e) => handleInputChange('nombre_exposants', e.target.value)}
+                placeholder="Ex: 50"
+                min="0"
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-gray-500"
+              />
             </div>
 
             <div>

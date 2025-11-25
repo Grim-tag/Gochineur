@@ -210,7 +210,7 @@ module.exports = function () {
         role, type, address, city, postalCode, latitude, longitude,
         date_debut, date_fin, heure_debut, heure_fin,
         name, telephone, pays, prix_visiteur, prix_montant,
-        description_visiteurs, description_exposants
+        description_visiteurs, description_exposants, nombre_exposants
       } = req.body;
 
       // Validation des champs obligatoires
@@ -310,6 +310,7 @@ module.exports = function () {
         pays: pays || 'France',
         prix_visiteur: prix_visiteur || 'Gratuite',
         prix_montant: prix_montant ? parseFloat(prix_montant) : null,
+        nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,
         user_id: req.user.id,
         submitted_by_pseudo: req.user.displayName, // Utiliser uniquement displayName (pseudo)
         eventHash: eventHash // Ajouter le hash pour la détection de doublons
@@ -364,7 +365,7 @@ module.exports = function () {
         role, type, address, city, postalCode, latitude, longitude,
         date_debut, date_fin, heure_debut, heure_fin,
         name, telephone, pays, prix_visiteur, prix_montant,
-        description_visiteurs, description_exposants
+        description_visiteurs, description_exposants, nombre_exposants
       } = req.body;
 
       // Validation des champs obligatoires (similaire à POST)
@@ -427,7 +428,9 @@ module.exports = function () {
         telephone: telephone || '',
         pays: pays || 'France',
         prix_visiteur: prix_visiteur || 'Gratuite',
+        prix_visiteur: prix_visiteur || 'Gratuite',
         prix_montant: prix_montant ? parseFloat(prix_montant) : null,
+        nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,
         updatedAt: new Date().toISOString(),
         // Si l'événement était publié, il repasse en attente de validation (sauf si expert)
         statut_validation: req.user.isExpert ? 'published' : 'pending_review'
