@@ -314,7 +314,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
               id="eventType"
               value={eventType}
               onChange={(e) => handleTypeChange(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-text-primary"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:outline-none focus:border-primary bg-background text-text-primary"
             >
               <option value="tous">Tous les types</option>
               <option value="Vide-Grenier">Vide-Grenier</option>
