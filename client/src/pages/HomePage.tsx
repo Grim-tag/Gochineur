@@ -400,8 +400,9 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
 
   // Recharger les événements quand le rayon change (pour les pages ville/département)
   useEffect(() => {
-    // Ne se déclencher que si on est sur une page ville/département ET que le rayon a changé
-    if ((param || departmentSlug) && userPosition && currentRadius && currentEndDate) {
+    // Ne se déclencher que si on est sur une page ville/département OU si on a une position utilisateur définie (ex: Autour de moi sur homepage)
+    // ET que le rayon a changé
+    if ((param || departmentSlug || userPosition) && currentRadius && currentEndDate) {
       console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
       // Debounce: attendre 500ms après le dernier changement avant de recharger
@@ -412,7 +413,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         const today = new Date()
         const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
 
-        loadEvents(start, end, false, currentEventType, currentRadius, userPosition)
+        loadEvents(start, end, false, currentEventType, currentRadius, userPosition || undefined)
           .then((data: Event[]) => {
             // loadEvents retourne [] si la requête a été annulée (race condition)
             // Dans ce cas, on ne met pas à jour l'UI pour éviter d'effacer les résultats
@@ -659,7 +660,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
           <>
             <div className="mb-4 flex justify-between items-center">
               <p className="text-text-secondary">
-                {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} trouvé{filteredEvents.length > 1 ? 's' : ''}
+                {filteredEvents.length > 0 ? `${filteredEvents.length} événement${filteredEvents.length > 1 ? 's' : ''} trouvé${filteredEvents.length > 1 ? 's' : ''}` : ''}
               </p>
               {userPosition && (
                 <p className="text-sm text-text-muted">
@@ -737,10 +738,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
                 <p className="text-text-muted text-sm mt-1">
                   Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
                 </p>
-                {/* Message spécial si la base est probablement vide */}
-                {filteredEvents.length === 0 && !loading && (
+                {/* Message spécial si la base est probablement vide - UNIQUEMENT EN DEV */}
+                {filteredEvents.length === 0 && !loading && import.meta.env.DEV && (
                   <div className="mt-4 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
-                    <p className="text-blue-400 text-sm font-semibold">💡 Information</p>
+                    <p className="text-blue-400 text-sm font-semibold">💡 Information (Visible uniquement en DEV)</p>
                     <p className="text-blue-300 text-sm mt-1">
                       Si vous êtes administrateur, vérifiez que la base de données contient des événements.
                     </p>
