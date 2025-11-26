@@ -263,13 +263,15 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 px-4 py-3 md:py-2 bg-background text-text-primary border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary placeholder-gray-500"
+            className={`flex-1 px-4 py-3 md:py-2 bg-background text-text-primary border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary placeholder-gray-500 ${showFilters ? 'block' : 'hidden md:block'
+              }`}
             disabled={geocoding}
           />
           <button
             onClick={handleSearch}
             disabled={geocoding}
-            className="w-full md:w-auto px-6 py-3 md:py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed font-semibold"
+            className={`w-full md:w-auto px-6 py-3 md:py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:bg-gray-700 disabled:cursor-not-allowed font-semibold ${showFilters ? 'block' : 'hidden md:block'
+              }`}
           >
             {geocoding ? 'Recherche...' : 'Rechercher'}
           </button>
