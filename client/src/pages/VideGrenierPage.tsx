@@ -164,7 +164,7 @@ export default function VideGrenierPage() {
 
         if (coordinates) {
             setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
-            
+
         }
 
         const today = new Date()
@@ -223,9 +223,7 @@ export default function VideGrenierPage() {
             <SearchBar
                 onSearch={handleSearch}
                 onRadiusChange={setCurrentRadius}
-                onReset={() => {
-                    setCity('')
-                }}
+                onReset={() => { }}
                 geoData={null}
                 events={events}
                 currentRadius={currentRadius}
