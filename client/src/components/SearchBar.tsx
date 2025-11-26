@@ -19,6 +19,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
   const [eventType, setEventType] = useState('tous')
   const [geocoding, setGeocoding] = useState(false)
   const [geolocating, setGeolocating] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
 
   // Helper function to build hierarchical SEO URLs
   const buildHierarchicalUrl = (citySlug: string, deptCode: string, category: string = 'vide-grenier') => {
@@ -272,10 +273,17 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
           >
             {geocoding ? 'Recherche...' : 'Rechercher'}
           </button>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="md:hidden w-full px-4 py-3 bg-background-lighter text-text-primary border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 font-semibold"
+          >
+            <span>⚙️</span> {showFilters ? 'Masquer les filtres' : 'Filtres'}
+          </button>
         </div>
 
         {/* Filtres */}
-        <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className={`flex-col md:flex-row gap-4 items-center transition-all duration-300 overflow-hidden ${showFilters ? 'flex mt-4' : 'hidden md:flex'
+          }`}>
           <div className="w-full md:w-1/2">
             <label htmlFor="radius" className="block text-sm font-medium text-text-secondary mb-1">
               Rayon de recherche: <span className="text-primary font-bold">{radius} km</span>

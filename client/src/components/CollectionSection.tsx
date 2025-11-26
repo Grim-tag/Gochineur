@@ -253,7 +253,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
                 <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
                     🏺 Ma Collection
                 </h2>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     <input
                         type="file"
                         ref={fileInputRef}
@@ -264,24 +264,27 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
                     <button
                         onClick={handleImportClick}
                         disabled={isImporting}
-                        className="bg-background-paper border border-gray-600 text-text-primary px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors font-semibold flex items-center gap-2"
+                        className="bg-background-paper border border-gray-600 text-text-primary px-3 md:px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors font-semibold flex items-center justify-center gap-1 md:gap-2 text-sm md:text-base"
                     >
-                        <span>{isImporting ? 'Importation...' : '📥 Importer CSV'}</span>
+                        <span className="hidden md:inline">{isImporting ? 'Importation...' : '📥 Importer CSV'}</span>
+                        <span className="md:hidden">{isImporting ? '...' : '📥 CSV'}</span>
                     </button>
                     {user?.displayName && (
                         <Link
                             to={`/collection/${user.displayName}`}
-                            className="bg-background-paper border border-primary text-primary px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors font-semibold flex items-center gap-2"
+                            className="bg-background-paper border border-primary text-primary px-3 md:px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors font-semibold flex items-center justify-center gap-1 md:gap-2 text-sm md:text-base"
                             target="_blank"
                         >
-                            <span>👁️ Voir ma vitrine</span>
+                            <span className="hidden md:inline">👁️ Voir ma vitrine</span>
+                            <span className="md:hidden">👁️ Vitrine</span>
                         </Link>
                     )}
                     <Link
                         to="/ma-collection/ajouter"
-                        className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-orange-900/20 font-semibold flex items-center gap-2"
+                        className="bg-primary text-white px-3 md:px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-orange-900/20 font-semibold flex items-center justify-center gap-1 md:gap-2 text-sm md:text-base col-span-2 md:col-span-1"
                     >
-                        <span>+ Ajouter un objet</span>
+                        <span className="hidden md:inline">+ Ajouter un objet</span>
+                        <span className="md:hidden">+ Ajouter</span>
                     </Link>
                 </div>
             </div>
