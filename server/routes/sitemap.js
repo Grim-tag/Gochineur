@@ -13,6 +13,12 @@ module.exports = function () {
 
             const staticPages = [
                 { url: '/', priority: '1.0' },
+                { url: '/vide-grenier', priority: '0.95' },
+                { url: '/brocante', priority: '0.95' },
+                { url: '/puces', priority: '0.95' },
+                { url: '/bourse', priority: '0.95' },
+                { url: '/vide-maison', priority: '0.95' },
+                { url: '/troc', priority: '0.95' },
                 { url: '/login', priority: '0.5' },
                 { url: '/soumettre', priority: '0.8' },
                 { url: '/mentions-legales', priority: '0.6' },

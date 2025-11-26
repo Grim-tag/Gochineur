@@ -1,5 +1,11 @@
 User-agent: *
 Allow: /
+Allow: /vide-grenier
+Allow: /brocante
+Allow: /puces
+Allow: /bourse
+Allow: /vide-maison
+Allow: /troc
 Disallow: /admin/
 Disallow: /mon-compte
 Disallow: /login
