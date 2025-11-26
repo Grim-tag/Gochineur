@@ -24,7 +24,7 @@ export default function VideGrenierPage() {
     const [error, setError] = useState<string | null>(null)
     const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
     const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
-    const [city, setCity] = useState<string>('')
+
     const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
     const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
     const [hasMoreEvents, setHasMoreEvents] = useState(true)
@@ -157,14 +157,14 @@ export default function VideGrenierPage() {
     const handleSearch = (
         searchTerm: string,
         radius: number,
-        eventType: string,
+        _eventType: string,
         coordinates?: { latitude: number; longitude: number; city: string }
     ) => {
         setCurrentRadius(radius)
 
         if (coordinates) {
             setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
-            setCity(coordinates.city)
+            
         }
 
         const today = new Date()
