@@ -25,6 +25,58 @@ interface HomePageProps {
   regionSlugOverride?: string
 }
 
+// Mapping des catégories URL vers les types d'événements
+const CATEGORY_CONFIG: Record<string, {
+  eventType: string;
+  h1: string;
+  metaTitle: string;
+  metaDescription: string;
+  seoText: string;
+}> = {
+  'vide-grenier': {
+    eventType: 'Vide-Grenier',
+    h1: 'Vide-Greniers et Brocantes : L\'agenda autour de moi',
+    metaTitle: 'Vide-Greniers autour de moi - Agenda complet - GoChineur',
+    metaDescription: 'Trouvez tous les vide-greniers près de chez vous. Agenda complet et à jour des vide-greniers en France avec dates, horaires et localisation.',
+    seoText: 'GoChineur est l\'agenda de référence pour trouver les vide-greniers autour de vous. Que vous cherchiez un vide-grenier aujourd\'hui, ce week-end ou dans les semaines à venir, notre plateforme vous permet de localiser instantanément tous les événements près de chez vous. Grâce à notre outil de géolocalisation, découvrez les vide-greniers à Paris, en Île-de-France et partout en France. Planifiez votre circuit optimisé et ne manquez plus aucune bonne affaire !'
+  },
+  'brocante': {
+    eventType: 'Brocante',
+    h1: 'Brocantes et Antiquités : Où chiner autour de moi ?',
+    metaTitle: 'Brocantes et Antiquités autour de moi - GoChineur',
+    metaDescription: 'Découvrez toutes les brocantes et foires aux antiquités près de chez vous. Agenda complet des brocantes en France pour les passionnés de chine.',
+    seoText: 'Passionnés de brocante et d\'antiquités, GoChineur centralise tous les événements de brocante en France. Trouvez facilement les brocantes autour de vous, que ce soit des brocantes professionnelles, des braderies ou des foires aux antiquités. Notre plateforme vous permet de découvrir les meilleures adresses pour chiner des objets anciens, du mobilier vintage et des pièces de collection. Planifiez vos sorties brocante et dénicher les perles rares !'
+  },
+  'puces': {
+    eventType: 'Puces et Antiquités',
+    h1: 'Marchés aux Puces : Trouvailles et Antiquités autour de moi',
+    metaTitle: 'Marchés aux Puces autour de moi - Trouvailles - GoChineur',
+    metaDescription: 'Agenda complet des marchés aux puces en France. Trouvez les meilleurs marchés aux puces et ventes d\'antiquités près de chez vous.',
+    seoText: 'Les marchés aux puces sont le paradis des chineurs ! GoChineur vous aide à localiser tous les marchés aux puces et ventes d\'antiquités autour de vous. Que vous recherchiez des objets vintage, des antiquités, des livres anciens ou du mobilier de collection, notre agenda centralise tous les événements. Découvrez les marchés aux puces permanents et occasionnels dans votre région et partez à la chasse aux trésors !'
+  },
+  'bourse': {
+    eventType: 'Bourse',
+    h1: 'Bourses aux Collections : Événements autour de moi',
+    metaTitle: 'Bourses aux Collections autour de moi - GoChineur',
+    metaDescription: 'Trouvez toutes les bourses aux collections près de chez vous : bourses aux jouets, cartes postales, vinyles, BD et plus encore.',
+    seoText: 'Collectionneurs, GoChineur est votre agenda de référence pour les bourses aux collections en France. Découvrez toutes les bourses spécialisées : bourses aux jouets anciens, bourses aux cartes postales, bourses aux vinyles, bourses aux BD et bien plus. Notre plateforme centralise tous les événements dédiés aux collectionneurs passionnés. Trouvez la bourse qui correspond à votre collection et enrichissez votre passion !'
+  },
+  'vide-maison': {
+    eventType: 'Vide Maison',
+    h1: 'Vide-Maisons et Ventes de Succession autour de moi',
+    metaTitle: 'Vide-Maisons et Ventes de Succession - GoChineur',
+    metaDescription: 'Agenda des vide-maisons et ventes de succession en France. Trouvez les meilleures opportunités d\'achat près de chez vous.',
+    seoText: 'Les vide-maisons et ventes de succession offrent des opportunités uniques pour acquérir du mobilier, des objets de décoration et des pièces authentiques. GoChineur centralise tous les vide-maisons organisés en France. Que vous soyez à la recherche de meubles anciens, de vaisselle vintage ou d\'objets de collection, notre plateforme vous permet de trouver facilement les vide-maisons autour de vous. Ne manquez plus aucune vente !'
+  },
+  'troc': {
+    eventType: 'Troc',
+    h1: 'Troc et Échange : Événements gratuits autour de moi',
+    metaTitle: 'Troc et Échange gratuit autour de moi - GoChineur',
+    metaDescription: 'Découvrez tous les événements de troc et d\'échange gratuit en France. Donnez une seconde vie à vos objets et faites des économies.',
+    seoText: 'Le troc est une alternative écologique et économique pour renouveler vos objets ! GoChineur recense tous les événements de troc et d\'échange en France : troc de vêtements, troc de livres, troc de jouets, troc de plantes et bien plus. Participez aux événements de troc autour de vous, donnez une seconde vie à vos objets et repartez avec de nouvelles trouvailles sans dépenser un euro. Le troc, c\'est bon pour la planète et pour votre porte-monnaie !'
+  }
+}
+
 export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const location = useLocation()
   const params = useParams<{
@@ -36,6 +88,12 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
 
   const { category, departmentSlug, param } = params
   const regionSlug = regionSlugOverride || params.regionSlug
+
+  // Déterminer le type d'événement depuis la catégorie URL
+  const categoryConfig = category ? CATEGORY_CONFIG[category] : null
+  const initialEventType = categoryConfig ? categoryConfig.eventType : 'tous'
+  const initialSeoTitle = categoryConfig ? categoryConfig.h1 : 'Vide-greniers et brocantes l\'agenda des chineurs'
+
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
@@ -46,11 +104,11 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
   const [city, setCity] = useState<string>('')
   const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
-  const [currentEventType, setCurrentEventType] = useState<string>('tous')
+  const [currentEventType, setCurrentEventType] = useState<string>(initialEventType)
   const [_currentStartDate, setCurrentStartDate] = useState<Date | null>(null)
   const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
-  const [seoTitle, setSeoTitle] = useState<string>('Vide-greniers et brocantes l\'agenda des chineurs')
+  const [seoTitle, setSeoTitle] = useState<string>(initialSeoTitle)
   const lastRequestId = useRef<number>(0)
 
   // Coordonnées de test (Landes/Pays Basque Sud)
@@ -104,6 +162,23 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   }
 
 
+  // Appliquer le SEO thématique au chargement de la page
+  useEffect(() => {
+    if (category && CATEGORY_CONFIG[category]) {
+      const config = CATEGORY_CONFIG[category]
+      setSeoTitle(config.h1)
+      document.title = config.metaTitle
+      const metaDesc = document.querySelector('meta[name="description"]')
+      if (metaDesc) metaDesc.setAttribute('content', config.metaDescription)
+      setCurrentEventType(config.eventType)
+    } else if (!category && !regionSlug && !departmentSlug && !param) {
+      // Page d'accueil par défaut
+      setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
+      document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
+      setCurrentEventType('tous')
+    }
+  }, [category, regionSlug, departmentSlug, param])
+
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
   useEffect(() => {
     console.log('🔍 URL Params useEffect triggered:', {
@@ -112,7 +187,8 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       departmentSlug,
       param,
       pathname: location.pathname,
-      hasGeoData: !!geoData
+      hasGeoData: !!geoData,
+      currentEventType
     })
 
     if (!geoData) return
@@ -688,13 +764,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         <section className="mt-16 mb-8 px-4 py-8 bg-background-lighter rounded-lg border border-gray-800">
           <div className="max-w-4xl mx-auto">
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              GoChineur est l'agenda complet et indispensable pour tous les passionnés de vide grenier et de brocante en France.
-              Fini les recherches fastidieuses ! Notre plateforme vous permet de localiser instantanément les marchés aux puces
-              et les bourses aux jouets ou vide maison les plus proches de vous, que vous cherchiez un événement aujourd'hui ou
-              ce week-end. Grâce à notre outil de géolocalisation unique, trouvez rapidement les meilleures trouvailles autour
-              de moi et planifiez votre circuit optimisé. Que vous soyez un chineur occasionnel à Paris, en Île-de-France ou
-              dans les départements côtiers, GoChineur centralise toutes les informations de troc et de vente d'occasion pour
-              vous faire gagner du temps. Votre chasse au trésor commence ici.
+              {category && CATEGORY_CONFIG[category]
+                ? CATEGORY_CONFIG[category].seoText
+                : "GoChineur est l'agenda complet et indispensable pour tous les passionnés de vide grenier et de brocante en France. Fini les recherches fastidieuses ! Notre plateforme vous permet de localiser instantanément les marchés aux puces et les bourses aux jouets ou vide maison les plus proches de vous, que vous cherchiez un événement aujourd'hui ou ce week-end. Grâce à notre outil de géolocalisation unique, trouvez rapidement les meilleures trouvailles autour de moi et planifiez votre circuit optimisé. Que vous soyez un chineur occasionnel à Paris, en Île-de-France ou dans les départements côtiers, GoChineur centralise toutes les informations de troc et de vente d'occasion pour vous faire gagner du temps. Votre chasse au trésor commence ici."
+              }
             </p>
           </div>
         </section>
