@@ -22,7 +22,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
   const [showFilters, setShowFilters] = useState(false)
 
   // Helper function to build hierarchical SEO URLs
-  const buildHierarchicalUrl = (citySlug: string, deptCode: string, category: string = 'vide-grenier') => {
+  const buildHierarchicalUrl = (citySlug: string, deptCode: string, category: string = 'vide-greniers-brocantes') => {
     const dept = geoData?.departments?.find((d: any) => d.code === deptCode)
     if (!dept) return null
 
@@ -87,7 +87,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
 
         if (cityData) {
           // Build hierarchical URL
-          const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+          const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-greniers-brocantes' : eventType)
           if (targetUrl) {
             console.log('Navigating to:', targetUrl)
             window.location.href = targetUrl
@@ -115,7 +115,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
               const dept = geoData.departments?.find((d: any) => d.code === city.department)
 
               if (dept) {
-                const targetUrl = buildHierarchicalUrl(city.slug, city.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+                const targetUrl = buildHierarchicalUrl(city.slug, city.department, eventType === 'tous' ? 'vide-greniers-brocantes' : eventType)
                 if (targetUrl) {
                   console.log('City added successfully, navigating to:', targetUrl)
                   window.location.href = targetUrl
@@ -147,7 +147,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
         })
 
         if (dept) {
-          const targetUrl = buildHierarchicalUrl(citySlugFallback, dept.code, eventType === 'tous' ? 'vide-grenier' : eventType)
+          const targetUrl = buildHierarchicalUrl(citySlugFallback, dept.code, eventType === 'tous' ? 'vide-greniers-brocantes' : eventType)
           if (targetUrl) {
             console.log('Navigating to fallback:', targetUrl)
             window.location.href = targetUrl
@@ -213,7 +213,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             }
 
             if (cityData) {
-              const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-grenier' : eventType)
+              const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-greniers-brocantes' : eventType)
               if (targetUrl) {
                 navigate(targetUrl)
                 setGeolocating(false)

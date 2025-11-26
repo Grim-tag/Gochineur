@@ -74,6 +74,13 @@ const CATEGORY_CONFIG: Record<string, {
     metaTitle: 'Troc et Échange gratuit autour de moi - GoChineur',
     metaDescription: 'Découvrez tous les événements de troc et d\'échange gratuit en France. Donnez une seconde vie à vos objets et faites des économies.',
     seoText: 'Participez à l\'économie circulaire avec l\'agenda des événements de troc et d\'échange de GoChineur. Trouvez facilement les bourses d\'échange, les foires au troc, ou les initiatives de réemploi près de chez vous. Ces événements sont idéaux pour donner une seconde vie à vos objets (vêtements, livres, matériel de sport) sans transaction financière. Notre plateforme vous guide vers les événements de troc autour de moi pour une journée conviviale et écologique. Si vous préférez vendre, consultez notre agenda vide-greniers.'
+  },
+  'vide-greniers-brocantes': {
+    eventType: 'tous',
+    h1: 'Vide-greniers, Brocantes et Bourses : L\'agenda complet',
+    metaTitle: 'Agenda complet Vide-Greniers et Brocantes - GoChineur',
+    metaDescription: 'Retrouvez tous les événements : vide-greniers, brocantes, bourses, vide-maisons et troc partout en France.',
+    seoText: 'GoChineur est l\'agenda de référence pour tous les chineurs. Que vous cherchiez un vide-grenier, une brocante, un marché aux puces ou une bourse de collectionneurs, vous trouverez ici tous les événements référencés. Utilisez notre carte interactive pour localiser les manifestations autour de vous. Notre agenda complet regroupe toutes les dates pour ne manquer aucune occasion de chiner, que ce soit pour meubler votre intérieur, compléter une collection ou simplement flâner le week-end.'
   }
 }
 
