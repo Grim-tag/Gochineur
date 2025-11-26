@@ -321,6 +321,17 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
     const typeToUse = eventType === 'tous' ? undefined : eventType
 
+    console.log('📡 loadEvents called:', {
+      requestId: currentRequestId,
+      append,
+      lat: position.latitude,
+      lon: position.longitude,
+      radius: radiusToUse,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      eventType: typeToUse
+    })
+
     const data = await fetchEvents({
       lat: position.latitude,
       lon: position.longitude,
@@ -328,6 +339,12 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       startDate,
       endDate,
       eventType: typeToUse
+    })
+
+    console.log('✅ loadEvents result:', {
+      requestId: currentRequestId,
+      count: data.length,
+      firstEvent: data[0]?.name
     })
 
     // Si une nouvelle recherche a été lancée entre temps, on ignore ce résultat
@@ -409,6 +426,13 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
 
     // Ne se déclencher que si on est sur une page ville/département OU si on a une position utilisateur définie (ex: Autour de moi sur homepage)
     if ((param || departmentSlug || userPosition) && currentRadius && currentEndDate) {
+      console.log('🔄 Radius useEffect triggered:', {
+        currentRadius,
+        prevRadius: prevRadius.current,
+        userPosition,
+        param,
+        departmentSlug
+      })
       console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
       // Debounce: attendre 500ms après le dernier changement avant de recharger
