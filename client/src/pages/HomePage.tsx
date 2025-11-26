@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useLocation, Link } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
@@ -38,42 +38,42 @@ const CATEGORY_CONFIG: Record<string, {
     h1: 'Vide-Greniers et Brocantes : L\'agenda autour de moi',
     metaTitle: 'Vide-Greniers autour de moi - Agenda complet - GoChineur',
     metaDescription: 'Trouvez tous les vide-greniers près de chez vous. Agenda complet et à jour des vide-greniers en France avec dates, horaires et localisation.',
-    seoText: 'GoChineur est l\'agenda de référence pour trouver les vide-greniers autour de vous. Que vous cherchiez un vide-grenier aujourd\'hui, ce week-end ou dans les semaines à venir, notre plateforme vous permet de localiser instantanément tous les événements près de chez vous. Grâce à notre outil de géolocalisation, découvrez les vide-greniers à Paris, en Île-de-France et partout en France. Planifiez votre circuit optimisé et ne manquez plus aucune bonne affaire !'
+    seoText: 'Bienvenue sur GoChineur, l\'agenda national des vide-greniers et vide-garages. Nous centralisons tous les événements pour vous permettre de trouver instantanément les meilleures affaires autour de vous. Que vous soyez en ville ou à la campagne, notre filtre de proximité vous affiche tous les vide-greniers ouverts ce week-end ou aujourd\'hui. Ne perdez plus votre temps à chercher : planifiez votre circuit de chine sur notre carte. Envie de monter en gamme ? Découvrez notre agenda des brocantes et des marchés aux puces.'
   },
   'brocante': {
     eventType: 'Brocante',
     h1: 'Brocantes et Antiquités : Où chiner autour de moi ?',
     metaTitle: 'Brocantes et Antiquités autour de moi - GoChineur',
     metaDescription: 'Découvrez toutes les brocantes et foires aux antiquités près de chez vous. Agenda complet des brocantes en France pour les passionnés de chine.',
-    seoText: 'Passionnés de brocante et d\'antiquités, GoChineur centralise tous les événements de brocante en France. Trouvez facilement les brocantes autour de vous, que ce soit des brocantes professionnelles, des braderies ou des foires aux antiquités. Notre plateforme vous permet de découvrir les meilleures adresses pour chiner des objets anciens, du mobilier vintage et des pièces de collection. Planifiez vos sorties brocante et dénicher les perles rares !'
+    seoText: 'Pour les collectionneurs et les passionnés de belles pièces, GoChineur est le guide indispensable des brocantes et salons d\'antiquaires. Contrairement au vide-grenier de quartier, la brocante est l\'endroit idéal pour dénicher du mobilier ancien et des objets de valeur. Notre agenda vous permet de localiser les événements de qualité autour de moi et dans les grandes villes. Utilisez nos filtres pour trouver le prochain marché professionnel où vous ferez des trouvailles d\'exception. Vous cherchez une vente plus décontractée ? Consultez notre agenda vide-greniers.'
   },
   'puces': {
     eventType: 'Puces et Antiquités',
     h1: 'Marchés aux Puces : Trouvailles et Antiquités autour de moi',
     metaTitle: 'Marchés aux Puces autour de moi - Trouvailles - GoChineur',
     metaDescription: 'Agenda complet des marchés aux puces en France. Trouvez les meilleurs marchés aux puces et ventes d\'antiquités près de chez vous.',
-    seoText: 'Les marchés aux puces sont le paradis des chineurs ! GoChineur vous aide à localiser tous les marchés aux puces et ventes d\'antiquités autour de vous. Que vous recherchiez des objets vintage, des antiquités, des livres anciens ou du mobilier de collection, notre agenda centralise tous les événements. Découvrez les marchés aux puces permanents et occasionnels dans votre région et partez à la chasse aux trésors !'
+    seoText: 'Le marché aux puces est l\'incontournable de la chine urbaine. GoChineur référence les grandes braderies et les marchés aux puces qui mélangent souvent professionnels et particuliers. Parfait pour une chine intensive et décontractée ! Notre agenda vous affiche tous les événements ouverts ce week-end. Trouvez facilement les puces près de chez vous pour dénicher des antiquités et des objets vintage. Notre outil de carte vous guide directement vers les meilleurs spots. Découvrez aussi nos bourses thématiques pour des recherches spécifiques.'
   },
   'bourse': {
     eventType: 'Bourse',
     h1: 'Bourses aux Collections : Événements autour de moi',
     metaTitle: 'Bourses aux Collections autour de moi - GoChineur',
     metaDescription: 'Trouvez toutes les bourses aux collections près de chez vous : bourses aux jouets, cartes postales, vinyles, BD et plus encore.',
-    seoText: 'Collectionneurs, GoChineur est votre agenda de référence pour les bourses aux collections en France. Découvrez toutes les bourses spécialisées : bourses aux jouets anciens, bourses aux cartes postales, bourses aux vinyles, bourses aux BD et bien plus. Notre plateforme centralise tous les événements dédiés aux collectionneurs passionnés. Trouvez la bourse qui correspond à votre collection et enrichissez votre passion !'
+    seoText: 'Spécialisé dans les bourses thématiques, GoChineur vous aide à trouver des articles spécifiques en excellent état. Consultez notre agenda pour les bourses aux jouets, les bourses aux vêtements, ou les ventes d\'articles de puériculture. Ces événements en salle sont parfaits pour les jeunes parents et les collectionneurs d\'articles ciblés. Localisez la bourse la plus proche autour de moi et consultez les horaires. Vous cherchez à vider une maison ? Découvrez notre agenda vide-maisons.'
   },
   'vide-maison': {
     eventType: 'Vide Maison',
     h1: 'Vide-Maisons et Ventes de Succession autour de moi',
     metaTitle: 'Vide-Maisons et Ventes de Succession - GoChineur',
     metaDescription: 'Agenda des vide-maisons et ventes de succession en France. Trouvez les meilleures opportunités d\'achat près de chez vous.',
-    seoText: 'Les vide-maisons et ventes de succession offrent des opportunités uniques pour acquérir du mobilier, des objets de décoration et des pièces authentiques. GoChineur centralise tous les vide-maisons organisés en France. Que vous soyez à la recherche de meubles anciens, de vaisselle vintage ou d\'objets de collection, notre plateforme vous permet de trouver facilement les vide-maisons autour de vous. Ne manquez plus aucune vente !'
+    seoText: 'Le vide-maison est la chasse au trésor ultime, offrant une chance unique d\'acheter des objets du quotidien, du mobilier et des collections entières directement à la source. GoChineur référence les ventes de succession et les vide-maisons partout en France. Utilisez notre agenda pour trouver les vide-maisons autour de moi qui se déroulent ce week-end. Chaque vide-maison est éphémère : planifiez votre visite rapidement pour ne pas manquer les bonnes affaires. Explorez également nos événements troc et échange.'
   },
   'troc': {
     eventType: 'Troc',
     h1: 'Troc et Échange : Événements gratuits autour de moi',
     metaTitle: 'Troc et Échange gratuit autour de moi - GoChineur',
     metaDescription: 'Découvrez tous les événements de troc et d\'échange gratuit en France. Donnez une seconde vie à vos objets et faites des économies.',
-    seoText: 'Le troc est une alternative écologique et économique pour renouveler vos objets ! GoChineur recense tous les événements de troc et d\'échange en France : troc de vêtements, troc de livres, troc de jouets, troc de plantes et bien plus. Participez aux événements de troc autour de vous, donnez une seconde vie à vos objets et repartez avec de nouvelles trouvailles sans dépenser un euro. Le troc, c\'est bon pour la planète et pour votre porte-monnaie !'
+    seoText: 'Participez à l\'économie circulaire avec l\'agenda des événements de troc et d\'échange de GoChineur. Trouvez facilement les bourses d\'échange, les foires au troc, ou les initiatives de réemploi près de chez vous. Ces événements sont idéaux pour donner une seconde vie à vos objets (vêtements, livres, matériel de sport) sans transaction financière. Notre plateforme vous guide vers les événements de troc autour de moi pour une journée conviviale et écologique. Si vous préférez vendre, consultez notre agenda vide-greniers.'
   }
 }
 
@@ -778,59 +778,59 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
             Découvrez nos agendas par type d'événement
           </h2>
           <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            <Link
-              to="/vide-grenier/"
+            <a
+              href="/vide-grenier/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des vide-greniers en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">📦</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Greniers</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/brocante/"
+            <a
+              href="/brocante/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des brocantes en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏺</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Brocantes</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/puces/"
+            <a
+              href="/puces/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des marchés aux puces en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🛍️</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Marchés aux Puces</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/bourse/"
+            <a
+              href="/bourse/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des bourses aux objets en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🎯</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Bourses aux Objets</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/vide-maison/"
+            <a
+              href="/vide-maison/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des vide-maisons en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏠</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Maisons</span>
-            </Link>
+            </a>
 
-            <Link
-              to="/troc/"
+            <a
+              href="/troc/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des événements troc et échange en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🔄</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Événements Troc et Échange</span>
-            </Link>
+            </a>
           </nav>
         </section>
       </div>
