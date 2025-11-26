@@ -683,6 +683,83 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
             )}
           </>
         )}
+
+        {/* Section SEO - Texte de contenu riche */}
+        <section className="mt-16 mb-8 px-4 py-8 bg-background-lighter rounded-lg border border-gray-800">
+          <div className="max-w-4xl mx-auto">
+            <p className="text-text-secondary leading-relaxed text-sm md:text-base">
+              GoChineur est l'agenda complet et indispensable pour tous les passionnés de vide grenier et de brocante en France.
+              Fini les recherches fastidieuses ! Notre plateforme vous permet de localiser instantanément les marchés aux puces
+              et les bourses aux jouets ou vide maison les plus proches de vous, que vous cherchiez un événement aujourd'hui ou
+              ce week-end. Grâce à notre outil de géolocalisation unique, trouvez rapidement les meilleures trouvailles autour
+              de moi et planifiez votre circuit optimisé. Que vous soyez un chineur occasionnel à Paris, en Île-de-France ou
+              dans les départements côtiers, GoChineur centralise toutes les informations de troc et de vente d'occasion pour
+              vous faire gagner du temps. Votre chasse au trésor commence ici.
+            </p>
+          </div>
+        </section>
+
+        {/* Maillage interne - Liens vers pages thématiques */}
+        <section className="mt-8 mb-12">
+          <h2 className="text-xl font-bold text-text-primary mb-4 text-center">
+            Découvrez nos agendas par type d'événement
+          </h2>
+          <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            <a
+              href="/vide-grenier/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des vide-greniers en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">📦</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Greniers</span>
+            </a>
+
+            <a
+              href="/brocante/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des brocantes en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🏺</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Brocantes</span>
+            </a>
+
+            <a
+              href="/puces/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des marchés aux puces en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🛍️</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Marchés aux Puces</span>
+            </a>
+
+            <a
+              href="/bourse/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des bourses aux objets en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🎯</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Bourses aux Objets</span>
+            </a>
+
+            <a
+              href="/vide-maison/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des vide-maisons en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🏠</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Maisons</span>
+            </a>
+
+            <a
+              href="/troc/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Agenda complet des événements troc et échange en France"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🔄</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Événements Troc et Échange</span>
+            </a>
+          </nav>
+        </section>
       </div>
     </div>
   )
