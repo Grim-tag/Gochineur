@@ -23,24 +23,24 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
         : 'bg-purple-100 text-purple-800'
 
   return (
-    <div className="bg-background-paper rounded-lg shadow-lg p-6 hover:shadow-xl transition-all border border-gray-700 hover:border-primary/50 group">
-      <div className="flex justify-between items-start mb-3">
+    <div className="bg-background-paper rounded-lg shadow-lg p-4 md:p-6 hover:shadow-xl transition-all border border-gray-700 hover:border-primary/50 group">
+      <div className="flex justify-between items-start mb-2 md:mb-3">
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-text-primary mb-2 group-hover:text-primary transition-colors">{event.name}</h3>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <h3 className="text-lg md:text-xl font-bold text-text-primary mb-1 md:mb-2 group-hover:text-primary transition-colors">{event.name}</h3>
+          <div className="flex items-center gap-1 md:gap-2 mb-2 flex-wrap">
             {event.cancelled && (
-              <span className="px-3 py-1 bg-red-900/30 text-red-400 rounded-full text-sm font-bold border border-red-800/50">
+              <span className="px-2 py-0.5 md:px-3 md:py-1 bg-red-900/30 text-red-400 rounded-full text-xs md:text-sm font-bold border border-red-800/50">
                 ANNULÉ
               </span>
             )}
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${eventTypeClass}`}>
+            <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-semibold ${eventTypeClass}`}>
               {event.type}
             </span>
-            <span className="text-text-secondary text-sm flex items-center gap-1">
+            <span className="text-text-secondary text-xs md:text-sm flex items-center gap-1">
               📍 {event.city} <span className="text-text-muted">({event.postalCode})</span>
             </span>
             {event.distance !== undefined && (
-              <span className="text-primary text-sm font-medium">
+              <span className="text-primary text-xs md:text-sm font-medium">
                 📏 {event.distance} km
               </span>
             )}
@@ -48,14 +48,14 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
         </div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-text-primary font-medium mb-1 flex items-center gap-2">
+      <div className="mb-3 md:mb-4">
+        <p className="text-text-primary font-medium mb-1 flex items-center gap-2 text-sm md:text-base">
           📅 {formattedDate}
         </p>
-        <p className="text-text-muted text-sm mb-2">
+        <p className="text-text-muted text-xs md:text-sm mb-1 md:mb-2">
           {event.address}
         </p>
-        <p className="text-text-secondary text-sm line-clamp-2">
+        <p className="text-text-secondary text-xs md:text-sm line-clamp-2">
           {event.description}
         </p>
       </div>
@@ -63,14 +63,14 @@ export default function EventCard({ event, onAddToCircuit, isInCircuit }: EventC
       <div className="flex gap-2">
         <Link
           to={generateEventSlug(event)}
-          className="flex-1 py-2 px-4 bg-background-lighter text-text-primary hover:bg-gray-700 rounded-lg font-semibold transition-colors text-center border border-gray-600"
+          className="flex-1 py-1.5 md:py-2 px-3 md:px-4 bg-background-lighter text-text-primary hover:bg-gray-700 rounded-lg font-semibold transition-colors text-center border border-gray-600 text-sm md:text-base"
         >
           Voir détails
         </Link>
         <button
           onClick={() => onAddToCircuit(event.id)}
           disabled={isInCircuit}
-          className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${isInCircuit
+          className={`flex-1 py-1.5 md:py-2 px-3 md:px-4 rounded-lg font-semibold transition-colors text-sm md:text-base ${isInCircuit
             ? 'bg-background-lighter text-text-muted cursor-not-allowed'
             : 'bg-primary text-white hover:bg-primary-hover shadow-md shadow-orange-900/20'
             }`}
