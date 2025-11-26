@@ -414,8 +414,8 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     if (currentRadius === prevRadius.current) return
     prevRadius.current = currentRadius
 
-    // Ne se déclencher que si on est sur une page ville/département OU si on a une position utilisateur définie (ex: Autour de moi sur homepage)
-    if ((param || departmentSlug || userPosition) && currentRadius && currentEndDate) {
+    // Recharger les événements quand le rayon change (pour toutes les pages)
+    if (currentRadius && currentEndDate) {
       // Debounce: attendre 500ms après le dernier changement avant de recharger
       const timeoutId = setTimeout(() => {
         console.log('🔄 Reloading events with radius:', currentRadius)
@@ -424,6 +424,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         const today = new Date()
         const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
 
+        // Si userPosition est null (homepage défaut), loadEvents utilisera testPositionFallback
         loadEvents(start, end, false, currentEventType, currentRadius, userPosition || undefined)
           .then((data: Event[]) => {
             // loadEvents retourne [] si la requête a été annulée (race condition)
