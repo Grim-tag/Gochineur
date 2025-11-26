@@ -1,6 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-
+import VideGrenierPage from './pages/VideGrenierPage'
+import BrocantePage from './pages/BrocantePage'
+import PucesPage from './pages/PucesPage'
+import BoursePage from './pages/BoursePage'
+import VideMaisonPage from './pages/VideMaisonPage'
+import TrocPage from './pages/TrocPage'
 import MyAccountPage from './pages/MyAccountPage'
 import SubmitEventPage from './pages/SubmitEventPage'
 import EditEventPage from './pages/EditEventPage'
@@ -32,13 +37,13 @@ export default function App() {
               {/* Homepage - all types, all locations */}
               <Route path="/" element={<HomePage />} />
 
-              {/* Category root - all locations for this type */}
-              <Route path="/vide-grenier" element={<HomePage />} />
-              <Route path="/brocante" element={<HomePage />} />
-              <Route path="/puces" element={<HomePage />} />
-              <Route path="/bourse" element={<HomePage />} />
-              <Route path="/vide-maison" element={<HomePage />} />
-              <Route path="/troc" element={<HomePage />} />
+              {/* Dedicated thematic pages */}
+              <Route path="/vide-grenier" element={<VideGrenierPage />} />
+              <Route path="/brocante" element={<BrocantePage />} />
+              <Route path="/puces" element={<PucesPage />} />
+              <Route path="/bourse" element={<BoursePage />} />
+              <Route path="/vide-maison" element={<VideMaisonPage />} />
+              <Route path="/troc" element={<TrocPage />} />
 
               {/* Legacy department code redirect is now handled by CategoryRouteWrapper */}
 
