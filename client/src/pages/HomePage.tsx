@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
+import { useParams, useLocation, Link } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
@@ -778,59 +778,59 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
             Découvrez nos agendas par type d'événement
           </h2>
           <nav className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            <a
-              href="/vide-grenier/"
+            <Link
+              to="/vide-grenier/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des vide-greniers en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">📦</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Greniers</span>
-            </a>
+            </Link>
 
-            <a
-              href="/brocante/"
+            <Link
+              to="/brocante/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des brocantes en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏺</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Brocantes</span>
-            </a>
+            </Link>
 
-            <a
-              href="/puces/"
+            <Link
+              to="/puces/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des marchés aux puces en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🛍️</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Marchés aux Puces</span>
-            </a>
+            </Link>
 
-            <a
-              href="/bourse/"
+            <Link
+              to="/bourse/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des bourses aux objets en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🎯</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Bourses aux Objets</span>
-            </a>
+            </Link>
 
-            <a
-              href="/vide-maison/"
+            <Link
+              to="/vide-maison/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des vide-maisons en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏠</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Maisons</span>
-            </a>
+            </Link>
 
-            <a
-              href="/troc/"
+            <Link
+              to="/troc/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
               title="Agenda complet des événements troc et échange en France"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🔄</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Événements Troc et Échange</span>
-            </a>
+            </Link>
           </nav>
         </section>
       </div>
