@@ -3,85 +3,18 @@ import { useParams, useLocation } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
-import type { Event } from '../types'
-import { groupEventsByDay, type GroupedEvents } from '../utils/appUtils'
-import { calculatePeriodDates } from '../utils/dateUtils'
-import { fetchEvents } from '../services/api'
-import { EVENTS, GEOLOCATION, API } from '../config/constants'
 import Header from '../components/Header'
-
-interface UserPosition {
-  latitude: number
-  longitude: number
-}
-
-interface GeoData {
-  regions: { code: string; name: string; slug: string; lat: number; lon: number }[]
-  departments: { code: string; name: string; slug: string; region: string; lat: number; lon: number }[]
-  cities: { name: string; slug: string; department: string; lat: number; lon: number }[]
-}
+import { groupEventsByDay } from '../utils/appUtils'
+import { calculatePeriodDates } from '../utils/dateUtils'
+import { EVENTS } from '../config/constants'
+import { CATEGORY_CONFIG } from '../config/seoConfig'
+import { useGeoData } from '../hooks/useGeoData'
+import { useSEO } from '../hooks/useSEO'
+import { useEventSearch } from '../hooks/useEventSearch'
+import { UserPosition } from '../types'
 
 interface HomePageProps {
   regionSlugOverride?: string
-}
-
-// Mapping des catégories URL vers les types d'événements
-const CATEGORY_CONFIG: Record<string, {
-  eventType: string;
-  h1: string;
-  metaTitle: string;
-  metaDescription: string;
-  seoText: string;
-}> = {
-  'vide-grenier': {
-    eventType: 'Vide-Grenier',
-    h1: 'Vide-Greniers et Brocantes : L\'agenda autour de moi',
-    metaTitle: 'Vide-Greniers autour de moi - Agenda complet - GoChineur',
-    metaDescription: 'Trouvez tous les vide-greniers près de chez vous. Agenda complet et à jour des vide-greniers en France avec dates, horaires et localisation.',
-    seoText: 'Bienvenue sur GoChineur, l\'agenda national des vide-greniers et vide-garages. Nous centralisons tous les événements pour vous permettre de trouver instantanément les meilleures affaires autour de vous. Que vous soyez en ville ou à la campagne, notre filtre de proximité vous affiche tous les vide-greniers ouverts ce week-end ou aujourd\'hui. Ne perdez plus votre temps à chercher : planifiez votre circuit de chine sur notre carte. Envie de monter en gamme ? Découvrez notre agenda des brocantes et des marchés aux puces.'
-  },
-  'brocante': {
-    eventType: 'Brocante',
-    h1: 'Brocantes et Antiquités : Où chiner autour de moi ?',
-    metaTitle: 'Brocantes et Antiquités autour de moi - GoChineur',
-    metaDescription: 'Découvrez toutes les brocantes et foires aux antiquités près de chez vous. Agenda complet des brocantes en France pour les passionnés de chine.',
-    seoText: 'Pour les collectionneurs et les passionnés de belles pièces, GoChineur est le guide indispensable des brocantes et salons d\'antiquaires. Contrairement au vide-grenier de quartier, la brocante est l\'endroit idéal pour dénicher du mobilier ancien et des objets de valeur. Notre agenda vous permet de localiser les événements de qualité autour de moi et dans les grandes villes. Utilisez nos filtres pour trouver le prochain marché professionnel où vous ferez des trouvailles d\'exception. Vous cherchez une vente plus décontractée ? Consultez notre agenda vide-greniers.'
-  },
-  'puces': {
-    eventType: 'Puces et Antiquités',
-    h1: 'Marchés aux Puces : Trouvailles et Antiquités autour de moi',
-    metaTitle: 'Marchés aux Puces autour de moi - Trouvailles - GoChineur',
-    metaDescription: 'Agenda complet des marchés aux puces en France. Trouvez les meilleurs marchés aux puces et ventes d\'antiquités près de chez vous.',
-    seoText: 'Le marché aux puces est l\'incontournable de la chine urbaine. GoChineur référence les grandes braderies et les marchés aux puces qui mélangent souvent professionnels et particuliers. Parfait pour une chine intensive et décontractée ! Notre agenda vous affiche tous les événements ouverts ce week-end. Trouvez facilement les puces près de chez vous pour dénicher des antiquités et des objets vintage. Notre outil de carte vous guide directement vers les meilleurs spots. Découvrez aussi nos bourses thématiques pour des recherches spécifiques.'
-  },
-  'bourse': {
-    eventType: 'Bourse',
-    h1: 'Bourses aux Collections : Événements autour de moi',
-    metaTitle: 'Bourses aux Collections autour de moi - GoChineur',
-    metaDescription: 'Trouvez toutes les bourses aux collections près de chez vous : bourses aux jouets, cartes postales, vinyles, BD et plus encore.',
-    seoText: 'Spécialisé dans les bourses thématiques, GoChineur vous aide à trouver des articles spécifiques en excellent état. Consultez notre agenda pour les bourses aux jouets, les bourses aux vêtements, ou les ventes d\'articles de puériculture. Ces événements en salle sont parfaits pour les jeunes parents et les collectionneurs d\'articles ciblés. Localisez la bourse la plus proche autour de moi et consultez les horaires. Vous cherchez à vider une maison ? Découvrez notre agenda vide-maisons.'
-  },
-  'vide-maison': {
-    eventType: 'Vide Maison',
-    h1: 'Vide-Maisons et Ventes de Succession autour de moi',
-    metaTitle: 'Vide-Maisons et Ventes de Succession - GoChineur',
-    metaDescription: 'Agenda des vide-maisons et ventes de succession en France. Trouvez les meilleures opportunités d\'achat près de chez vous.',
-    seoText: 'Le vide-maison est la chasse au trésor ultime, offrant une chance unique d\'acheter des objets du quotidien, du mobilier et des collections entières directement à la source. GoChineur référence les ventes de succession et les vide-maisons partout en France. Utilisez notre agenda pour trouver les vide-maisons autour de moi qui se déroulent ce week-end. Chaque vide-maison est éphémère : planifiez votre visite rapidement pour ne pas manquer les bonnes affaires. Explorez également nos événements troc et échange.'
-  },
-  'troc': {
-    eventType: 'Troc',
-    h1: 'Troc et Échange : Événements gratuits autour de moi',
-    metaTitle: 'Troc et Échange gratuit autour de moi - GoChineur',
-    metaDescription: 'Découvrez tous les événements de troc et d\'échange gratuit en France. Donnez une seconde vie à vos objets et faites des économies.',
-    seoText: 'Participez à l\'économie circulaire avec l\'agenda des événements de troc et d\'échange de GoChineur. Trouvez facilement les bourses d\'échange, les foires au troc, ou les initiatives de réemploi près de chez vous. Ces événements sont idéaux pour donner une seconde vie à vos objets (vêtements, livres, matériel de sport) sans transaction financière. Notre plateforme vous guide vers les événements de troc autour de moi pour une journée conviviale et écologique. Si vous préférez vendre, consultez notre agenda vide-greniers.'
-  },
-  'vide-greniers-brocantes': {
-    eventType: 'tous',
-    h1: 'Vide-greniers, Brocantes et Bourses : L\'agenda complet',
-    metaTitle: 'Agenda complet Vide-Greniers et Brocantes - GoChineur',
-    metaDescription: 'Retrouvez tous les événements : vide-greniers, brocantes, bourses, vide-maisons et troc partout en France.',
-    seoText: 'GoChineur est l\'agenda de référence pour tous les chineurs. Que vous cherchiez un vide-grenier, une brocante, un marché aux puces ou une bourse de collectionneurs, vous trouverez ici tous les événements référencés. Utilisez notre carte interactive pour localiser les manifestations autour de vous. Notre agenda complet regroupe toutes les dates pour ne manquer aucune occasion de chiner, que ce soit pour meubler votre intérieur, compléter une collection ou simplement flâner le week-end.'
-  }
 }
 
 export default function HomePage({ regionSlugOverride }: HomePageProps) {
@@ -96,109 +29,56 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const { category, departmentSlug, param } = params
   const regionSlug = regionSlugOverride || params.regionSlug
 
+  // Hooks
+  const { geoData } = useGeoData()
+  const { seoTitle, setSeoTitle, updateSeoTitle } = useSEO(category)
+
   // Déterminer le type d'événement depuis la catégorie URL
   const categoryConfig = category ? CATEGORY_CONFIG[category] : null
   const initialEventType = categoryConfig ? categoryConfig.eventType : 'tous'
-  const initialSeoTitle = categoryConfig ? categoryConfig.h1 : 'Vide-greniers et brocantes l\'agenda des chineurs'
 
-  const [events, setEvents] = useState<Event[]>([])
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
-  const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
-  const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
+  const [currentEventType, setCurrentEventType] = useState<string>(initialEventType)
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
   const [city, setCity] = useState<string>('')
   const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
-  const [currentEventType, setCurrentEventType] = useState<string>(initialEventType)
-  const [_currentStartDate, setCurrentStartDate] = useState<Date | null>(null)
-  const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
-  const [hasMoreEvents, setHasMoreEvents] = useState(true)
-  const [seoTitle, setSeoTitle] = useState<string>(initialSeoTitle)
-  const lastRequestId = useRef<number>(0)
+  const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
+
   const prevRadius = useRef<number>(EVENTS.DEFAULT_RADIUS)
 
-  // Coordonnées de test (Landes/Pays Basque Sud)
-  const testPositionFallback: UserPosition = {
-    latitude: GEOLOCATION.DEFAULT_LAT,
-    longitude: GEOLOCATION.DEFAULT_LON
-  }
-
-  // Charger les données géographiques (départements et villes)
-  const [geoData, setGeoData] = useState<GeoData | null>(null)
-
-  useEffect(() => {
-    Promise.all([
-      fetch(`${API.BASE_URL}/api/geo/data`).then(res => res.json()),
-      fetch(`${API.BASE_URL}/api/geo/cities-db`).then(res => res.json())
-    ])
-      .then(([geoDataRes, citiesRes]) => {
-        if (geoDataRes.success) {
-          const data = geoDataRes.data
-          // Fusionner les villes de geo-data.json avec celles de MongoDB
-          if (citiesRes.success && citiesRes.cities) {
-            data.cities = [...data.cities, ...citiesRes.cities]
-          }
-          setGeoData(data)
-        }
-      })
-      .catch(err => console.error('Erreur chargement geo data:', err))
-  }, [])
-
-  // Placeholder - I need to check SearchBar.tsx first. pour mettre à jour le titre SEO
-  const updateSeoTitle = (locationName: string, type: string, radius: number, deptCode?: string, isCity: boolean = false) => {
-    const typeLabel = type === 'tous' ? 'Vide-greniers et brocantes' : type + 's'
-    let title = ''
-
-    if (isCity) {
-      // Pour les villes : "Vide-greniers à Paris (25 km)"
-      title = `${typeLabel} à ${locationName}`
-      if (!deptCode) {
-        title += ` (${radius} km)`
-      }
-    } else if (deptCode) {
-      // Pour les départements : "Vide-greniers Landes (33)"
-      title = `${typeLabel} ${locationName} (${deptCode})`
-    } else {
-      // Pour les régions ou autres : "Vide-greniers Nouvelle-Aquitaine"
-      title = `${typeLabel} ${locationName}`
-    }
-
-    setSeoTitle(title)
-    document.title = `${title} - GoChineur`
-  }
-
+  const {
+    events,
+    filteredEvents,
+    groupedEvents,
+    loading,
+    loadingMore,
+    error,
+    hasMoreEvents,
+    currentStartDate,
+    currentEndDate,
+    setCurrentStartDate,
+    setCurrentEndDate,
+    loadEvents,
+    handleLoadMore: loadMoreEvents,
+    setFilteredEvents,
+    setGroupedEvents,
+    setLoading,
+    setError,
+    setHasMoreEvents
+  } = useEventSearch(initialEventType)
 
   // Appliquer le SEO thématique au chargement de la page
   useEffect(() => {
     if (category && CATEGORY_CONFIG[category]) {
       const config = CATEGORY_CONFIG[category]
-      setSeoTitle(config.h1)
-      document.title = config.metaTitle
-      const metaDesc = document.querySelector('meta[name="description"]')
-      if (metaDesc) metaDesc.setAttribute('content', config.metaDescription)
       setCurrentEventType(config.eventType)
     } else if (!category && !regionSlug && !departmentSlug && !param) {
       // Page d'accueil par défaut
-      setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
-      document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
       setCurrentEventType('tous')
     }
   }, [category, regionSlug, departmentSlug, param])
 
   // Gérer les paramètres d'URL pour le SEO (Région, Département ou Ville)
   useEffect(() => {
-    console.log('🔍 URL Params useEffect triggered:', {
-      category,
-      regionSlug,
-      departmentSlug,
-      param,
-      pathname: location.pathname,
-      hasGeoData: !!geoData,
-      currentEventType
-    })
-
     if (!geoData) return
 
     const handleUrlParams = async () => {
@@ -208,44 +88,32 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       let targetRadius: number = EVENTS.DEFAULT_RADIUS
       let deptCodeStr = ''
 
-      // param can be either a city slug or an event ID
-      // If it's a city, we're on the city level
       if (param && departmentSlug) {
-        console.log('🏙️ Looking for city with slug:', param, 'in geoData.cities:', geoData.cities?.length)
-
         // Vérifier d'abord si les données de la ville sont passées via navigate state
         let cityData = (location.state as any)?.cityData
 
         if (!cityData) {
-          // Sinon, chercher dans geoData
           cityData = geoData.cities.find(c => c.slug === param)
         }
 
-        console.log('🏙️ City found:', cityData)
         if (cityData) {
           targetLat = cityData.lat
           targetLon = cityData.lon
           targetName = cityData.name
-          targetRadius = 30 // Rayon standard pour une ville
-          console.log('✅ Setting city:', targetName, 'radius:', targetRadius)
+          targetRadius = 30
           updateSeoTitle(targetName, currentEventType, targetRadius, undefined, true)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Les meilleurs vide-greniers et brocantes à ${cityData.name} et aux alentours. Dates, horaires et infos pratiques pour chiner malin.`)
-        } else {
-          console.log('❌ City not found in geoData')
         }
       } else if (departmentSlug && !param) {
-        console.log('🏛️ Looking for department with slug:', departmentSlug)
-        // Recherche par slug de département (ex: "aveyron", "corse-du-sud")
         const dept = geoData.departments.find(d => d.slug === departmentSlug)
         if (dept) {
           targetLat = dept.lat
           targetLon = dept.lon
           targetName = dept.name
           deptCodeStr = dept.code
-          targetRadius = 50 // Rayon plus large pour un département
+          targetRadius = 50
           updateSeoTitle(targetName, currentEventType, targetRadius, deptCodeStr, false)
-          // Description meta dynamique (idéalement via Helmet, ici via DOM direct pour SPA simple)
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Trouvez tous les vide-greniers, brocantes et bourses aux collections dans le département ${dept.name} (${dept.code}). Agenda complet et à jour.`)
         }
@@ -255,35 +123,22 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
           targetLat = region.lat
           targetLon = region.lon
           targetName = region.name
-          targetRadius = 100 // Rayon très large pour une région
+          targetRadius = 100
           updateSeoTitle(targetName, currentEventType, targetRadius, undefined, false)
-
           const metaDesc = document.querySelector('meta[name="description"]')
           if (metaDesc) metaDesc.setAttribute('content', `Découvrez tous les vide-greniers, brocantes et bourses aux collections en ${region.name}. Agenda complet et à jour pour toute la région.`)
         }
       } else {
-        // Si aucun paramètre d'URL, on est sur la page d'accueil "pure"
-        // On réinitialise le titre et la position si nécessaire
-        // Note: On ne reset pas userPosition si on veut garder la dernière position connue,
-        // mais pour le H1, on veut le titre par défaut.
-        // Le comportement demandé est de revenir à l'état initial "Vide-greniers et brocantes l'agenda des chineurs"
-
         setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
         document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
-        setCity('') // On enlève la ville sélectionnée
-
-        // Si on veut aussi réinitialiser la liste d'événements à la vue par défaut (testPositionFallback ou autre)
-        // on peut le faire ici.
-        // Pour l'instant, on reset juste le titre comme demandé.
+        setCity('')
       }
 
       if (targetLat && targetLon) {
-        console.log('📍 Loading events for:', targetName, 'at', targetLat, targetLon, 'radius:', targetRadius)
         setUserPosition({ latitude: targetLat, longitude: targetLon })
         setCity(targetName)
         setCurrentRadius(targetRadius)
 
-        // Charger les événements pour cette position
         const today = new Date()
         const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
         setCurrentStartDate(start)
@@ -308,68 +163,18 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     handleUrlParams()
   }, [category, regionSlug, departmentSlug, param, geoData, location.pathname, currentEventType])
 
-  // Fonction pour charger les événements avec une période donnée
-  const loadEvents = async (
-    startDate: Date,
-    endDate: Date,
-    append: boolean = false,
-    eventType?: string,
-    customRadius?: number,
-    customPosition?: UserPosition
-  ): Promise<Event[]> => {
-    // Gestion des race conditions : si c'est une nouvelle recherche (!append), on incrémente l'ID
-    // Si c'est un chargement de plus (append), on garde l'ID actuel pour valider qu'on est toujours sur la même recherche
-    if (!append) {
-      lastRequestId.current = Date.now()
-    }
-    const currentRequestId = lastRequestId.current
-
-    const position = customPosition || userPosition || testPositionFallback
-    const radiusToUse = customRadius !== undefined ? customRadius : currentRadius
-    const typeToUse = eventType === 'tous' ? undefined : eventType
-
-    const data = await fetchEvents({
-      lat: position.latitude,
-      lon: position.longitude,
-      radius: radiusToUse,
-      startDate,
-      endDate,
-      eventType: typeToUse
-    })
-
-    // Si une nouvelle recherche a été lancée entre temps, on ignore ce résultat
-    if (lastRequestId.current !== currentRequestId) {
-      return []
-    }
-
-    if (append) {
-      setEvents(prev => {
-        const existingIds = new Set(prev.map(e => e.id))
-        const newEvents = data.filter(e => !existingIds.has(e.id))
-        return [...prev, ...newEvents]
-      })
-    } else {
-      setEvents(data)
-    }
-
-    return data
-  }
-
   // Charger les événements initiaux (2 premiers mois) - UNIQUEMENT SI PAS DE PARAMS URL
-  // Ce useEffect ne doit s'exécuter qu'au montage (ou changement de params URL majeurs)
-  // Il ne doit PAS réagir aux changements de filtres (rayon, type, position) qui sont gérés par handleSearch ou d'autres useEffects
   useEffect(() => {
     if (regionSlug || departmentSlug || param) return
 
-    // Sur la page d'accueil, charger tous les événements (position par défaut)
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
     setCurrentStartDate(start)
     setCurrentEndDate(end)
     setLoading(true)
 
-    // Utiliser position de test par défaut (Landes)
-    loadEvents(start, end, false, initialEventType, EVENTS.DEFAULT_RADIUS, testPositionFallback)
+    // Utiliser position de test par défaut (Landes) via loadEvents (qui utilise testPositionFallback si userPosition est null)
+    loadEvents(start, end, false, initialEventType, EVENTS.DEFAULT_RADIUS, undefined, null)
       .then((data: Event[]) => {
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
@@ -380,11 +185,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       .catch(err => {
         setError(err.message)
         setLoading(false)
-        setEvents([])
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, [regionSlug, departmentSlug, param]) // Retrait de userPosition, currentEventType, currentRadius pour éviter double-fetch
+  }, [regionSlug, departmentSlug, param])
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -396,7 +200,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   // Mettre à jour le H1 quand le rayon change
   useEffect(() => {
     if (city && currentRadius) {
-      // Déterminer si c'est une ville ou un département
       const isCity = geoData?.cities?.some(c => c.name === city)
       const dept = geoData?.departments?.find(d => d.name === city)
 
@@ -408,28 +211,19 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     }
   }, [currentRadius, city, currentEventType, geoData])
 
-  // Recharger les événements quand le rayon change (pour les pages ville/département ou homepage géolocalisée)
+  // Recharger les événements quand le rayon change
   useEffect(() => {
-    // Vérifier si le rayon a vraiment changé pour éviter les déclenchements parasites
     if (currentRadius === prevRadius.current) return
     prevRadius.current = currentRadius
 
-    // Recharger les événements quand le rayon change (pour toutes les pages)
     if (currentRadius && currentEndDate) {
-      // Debounce: attendre 500ms après le dernier changement avant de recharger
       const timeoutId = setTimeout(() => {
-        console.log('🔄 Reloading events with radius:', currentRadius)
         setLoading(true)
-
         const today = new Date()
         const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
 
-        // Si userPosition est null (homepage défaut), loadEvents utilisera testPositionFallback
-        loadEvents(start, end, false, currentEventType, currentRadius, userPosition || undefined)
+        loadEvents(start, end, false, currentEventType, currentRadius, userPosition || undefined, userPosition)
           .then((data: Event[]) => {
-            // loadEvents retourne [] si la requête a été annulée (race condition)
-            // Dans ce cas, on ne met pas à jour l'UI pour éviter d'effacer les résultats
-            // On vérifie aussi si loading est toujours true (sinon une autre requête a déjà mis à jour)
             if (data.length > 0 || filteredEvents.length === 0) {
               setFilteredEvents(data)
               const grouped = groupEventsByDay(data)
@@ -443,12 +237,9 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
             setLoading(false)
           })
       }, 500)
-
-      // Cleanup: annuler le timeout si le rayon change à nouveau avant les 500ms
       return () => clearTimeout(timeoutId)
     }
   }, [currentRadius, param, departmentSlug, userPosition, currentEndDate, currentEventType])
-
 
   // Charger le circuit depuis localStorage
   useEffect(() => {
@@ -461,43 +252,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     return () => window.removeEventListener('storage', loadCircuit)
   }, [])
 
-  // Fonction pour charger plus d'événements (2 mois suivants)
-  const handleLoadMore = async () => {
-    if (!currentEndDate || loadingMore) return
-
-    setLoadingMore(true)
-
-    // Calculer la nouvelle période (2 mois à partir de la fin actuelle)
-    const nextStartDate = new Date(currentEndDate)
-    nextStartDate.setDate(nextStartDate.getDate() + 1) // Jour suivant
-    nextStartDate.setHours(0, 0, 0, 0)
-
-    const { start, end } = calculatePeriodDates(nextStartDate)
-
-    try {
-      const newEvents = await loadEvents(start, end, true, currentEventType)
-
-      // Mettre à jour les dates courantes
-      setCurrentStartDate(start)
-      setCurrentEndDate(end)
-
-      // Vérifier s'il y a encore des événements à charger
-      setHasMoreEvents(newEvents.length > 0)
-
-      // Mettre à jour les événements filtrés
-      setFilteredEvents(prev => {
-        const existingIds = new Set(prev.map(e => e.id))
-        const uniqueNewEvents = newEvents.filter(e => !existingIds.has(e.id))
-        return [...prev, ...uniqueNewEvents]
-      })
-    } catch (err: any) {
-      setError(err.message)
-    } finally {
-      setLoadingMore(false)
-    }
+  const handleLoadMore = () => {
+    loadMoreEvents(currentEventType, currentRadius, userPosition)
   }
 
-  // Fonction de recherche et filtrage
   const handleSearch = (
     searchTerm: string,
     radius: number,
@@ -507,45 +265,29 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     setCurrentRadius(radius)
     setCurrentEventType(eventType)
 
-    // Si des coordonnées sont fournies (géocodage réussi), mettre à jour la position et la ville
     if (coordinates) {
       setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
       setCity(coordinates.city)
       updateSeoTitle(coordinates.city, eventType, radius, undefined, true)
     } else if (searchTerm === '' && !coordinates) {
-      // Si recherche vide, on reset potentiellement si c'était l'intention
-      // Mais ici on garde la position actuelle si on change juste le type ou le rayon
-      // Si on veut reset la position quand on vide le champ, il faut utiliser handleReset via le prop onReset du SearchBar
       updateSeoTitle(city || 'autour de moi', eventType, radius)
     } else {
       updateSeoTitle(city || 'autour de moi', eventType, radius)
     }
 
-    // Utiliser le rayon spécifié
-    const searchRadius = radius
-
-    // Recharger les événements avec le nouveau rayon et type depuis le serveur
-    // On réinitialise la période à 2 mois à partir d'aujourd'hui
     const today = new Date()
     const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
-
     setCurrentStartDate(start)
     setCurrentEndDate(end)
     setLoading(true)
 
-    // Utiliser les nouvelles coordonnées si disponibles, sinon la position actuelle
     const positionToUse = coordinates
       ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
-      : (userPosition || testPositionFallback)
+      : undefined
 
-    // Passer le type d'événement, le rayon personnalisé et la position à l'API
-    loadEvents(start, end, false, eventType, searchRadius, positionToUse)
+    loadEvents(start, end, false, eventType, radius, positionToUse, userPosition)
       .then((data: Event[]) => {
         let filtered = [...data]
-
-        // Filtre par nom, ville ou code postal (côté client) si recherche textuelle
-        // Note: si coordinates est présent, c'est qu'on a géocodé le terme, donc on ne filtre plus par texte
-        // Si coordinates est absent mais qu'il y a un searchTerm, c'est une recherche textuelle pure
         if (searchTerm.trim() && !coordinates) {
           const searchLower = searchTerm.toLowerCase()
           filtered = filtered.filter(
@@ -555,7 +297,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
               (event.postalCode && event.postalCode.includes(searchTerm))
           )
         }
-
         setFilteredEvents(filtered)
         const grouped = groupEventsByDay(filtered)
         setGroupedEvents(grouped)
@@ -568,7 +309,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       })
   }
 
-  // Ajouter un événement au circuit
   const handleAddToCircuit = (eventId: string | number) => {
     const circuit = JSON.parse(localStorage.getItem('gochineur-circuit') || '[]')
     if (!circuit.includes(eventId)) {
@@ -578,35 +318,27 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     }
   }
 
-  // Construction du fil d'ariane avec structure hiérarchique SEO
   const breadcrumbsItems: { label: string; path?: string; onClick?: () => void }[] = [
     { label: 'Accueil', path: '/' }
   ]
 
-  // Déterminer la catégorie depuis l'URL ou utiliser vide-grenier par défaut
   const currentCategory = category || 'vide-grenier'
 
-  // Construire le breadcrumb hiérarchique
   if (regionSlug && geoData) {
     const region = geoData.regions.find(r => r.slug === regionSlug)
     if (region) {
-      // Niveau région: /{category}/{region}
       breadcrumbsItems.push({
         label: region.name,
         path: `/${currentCategory}/${region.slug}`
       })
-
       if (departmentSlug) {
         const dept = geoData.departments.find(d => d.slug === departmentSlug)
         if (dept) {
-          // Niveau département: /{category}/{region}/{department}
           breadcrumbsItems.push({
             label: `${dept.code} - ${dept.name}`,
             path: `/${currentCategory}/${region.slug}/${dept.slug}`
           })
-
           if (param) {
-            // Niveau ville: /{category}/{region}/{department}/{city}
             const cityData = geoData.cities.find(c => c.slug === param)
             if (cityData) {
               breadcrumbsItems.push({
@@ -619,12 +351,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       }
     }
   } else if (city) {
-    // Si on est géolocalisé ou recherche manuelle sans URL
     breadcrumbsItems.push({ label: city })
   }
 
   return (
-
     <div className="min-h-screen bg-background">
       <Header />
       <SearchBar
@@ -634,7 +364,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
           setCity('')
           setSeoTitle('Vide-greniers et brocantes l\'agenda des chineurs')
           document.title = 'Vide-greniers et brocantes l\'agenda des chineurs - GoChineur'
-          // On pourrait aussi reset userPosition ici si voulu
         }}
         geoData={geoData}
         events={events}
@@ -644,7 +373,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       <div className="container mx-auto px-4 py-6">
         <Breadcrumbs items={breadcrumbsItems} />
 
-        {/* Titre H1 principal pour le SEO */}
         <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
           {seoTitle}
         </h1>
@@ -662,9 +390,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
           <div className="bg-red-900/20 border border-red-800 rounded-lg p-6 text-center">
             <p className="text-red-400 font-semibold">Erreur</p>
             <p className="text-red-300 mt-2">{error}</p>
-            <p className="text-sm text-gray-500 mt-4">
-              Assurez-vous que le serveur backend est démarré sur le port 5000
-            </p>
           </div>
         )}
 
@@ -681,18 +406,16 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
               )}
             </div>
 
-            {/* Affichage groupé par jour */}
-            {/* Message informatif (non bloquant) */}
             {import.meta.env.DEV && filteredEvents.length > 0 && (
               <div className="mb-4 p-2 bg-blue-900/20 border border-blue-800 rounded text-xs text-blue-400">
                 <p>ℹ️ {filteredEvents.length} événement{filteredEvents.length > 1 ? 's' : ''} affiché{filteredEvents.length > 1 ? 's' : ''} dans {groupedEvents.length} groupe{groupedEvents.length > 1 ? 's' : ''}</p>
               </div>
             )}
+
             {filteredEvents.length > 0 && groupedEvents.length > 0 ? (
               <>
                 <div className="space-y-8">
                   {groupedEvents.map((group) => {
-                    // Déterminer si c'est aujourd'hui
                     const isToday = group.label === 'Aujourd\'hui'
                     const h2Label = isToday ? 'Vide-greniers aujourd\'hui' : group.label
 
@@ -716,7 +439,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
                   })}
                 </div>
 
-                {/* Bouton "Voir Plus" */}
                 {hasMoreEvents && !loading && (
                   <div className="flex justify-center mt-8 mb-8">
                     <button
@@ -750,30 +472,19 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
                 <p className="text-text-muted text-sm mt-1">
                   Essayez de modifier vos critères de recherche ou d'augmenter le rayon de recherche.
                 </p>
-                {/* Message spécial si la base est probablement vide - UNIQUEMENT EN DEV */}
                 {filteredEvents.length === 0 && !loading && import.meta.env.DEV && (
                   <div className="mt-4 p-4 bg-blue-900/20 border border-blue-800 rounded-lg">
                     <p className="text-blue-400 text-sm font-semibold">💡 Information (Visible uniquement en DEV)</p>
                     <p className="text-blue-300 text-sm mt-1">
                       Si vous êtes administrateur, vérifiez que la base de données contient des événements.
                     </p>
-                    <p className="text-blue-300 text-xs mt-1">
-                      Testez la connexion MongoDB: <a href="http://localhost:5000/api/test-mongodb" target="_blank" rel="noopener noreferrer" className="underline">http://localhost:5000/api/test-mongodb</a>
-                    </p>
                   </div>
-                )}
-                {/* Debug: Afficher le nombre d'événements filtrés */}
-                {import.meta.env.DEV && (
-                  <p className="text-gray-600 text-xs mt-4">
-                    Debug: {filteredEvents.length} événement(s) filtré(s), {groupedEvents.length} groupe(s) créé(s)
-                  </p>
                 )}
               </div>
             )}
           </>
         )}
 
-        {/* Section SEO - Texte de contenu riche */}
         <section className="mt-16 mb-8 px-4 py-8 bg-background-lighter rounded-lg border border-gray-800">
           <div className="max-w-4xl mx-auto">
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
@@ -785,7 +496,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
           </div>
         </section>
 
-        {/* Maillage interne - Liens vers pages thématiques */}
         <section className="mt-8 mb-12">
           <h2 className="text-xl font-bold text-text-primary mb-4 text-center">
             Découvrez nos agendas par type d'événement
@@ -799,50 +509,45 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
               <span className="text-primary group-hover:text-primary-hover font-semibold">📦</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Greniers</span>
             </a>
-
             <a
               href="/brocante/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
-              title="Agenda complet des brocantes en France"
+              title="Agenda des brocantes et antiquités"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏺</span>
               <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Brocantes</span>
             </a>
-
             <a
               href="/puces/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
-              title="Agenda complet des marchés aux puces en France"
+              title="Marchés aux puces et braderies"
             >
-              <span className="text-primary group-hover:text-primary-hover font-semibold">🛍️</span>
-              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Marchés aux Puces</span>
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🏷️</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Marchés aux Puces</span>
             </a>
-
-            <a
-              href="/bourse/"
-              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
-              title="Agenda complet des bourses aux objets en France"
-            >
-              <span className="text-primary group-hover:text-primary-hover font-semibold">🎯</span>
-              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Bourses aux Objets</span>
-            </a>
-
             <a
               href="/vide-maison/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
-              title="Agenda complet des vide-maisons en France"
+              title="Vide-maisons et ventes de succession"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🏠</span>
-              <span className="ml-2 text-text-primary group-hover:text-primary">Agenda Vide-Maisons</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Vide-Maisons</span>
             </a>
-
+            <a
+              href="/bourse/"
+              className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
+              title="Bourses aux collections et jouets"
+            >
+              <span className="text-primary group-hover:text-primary-hover font-semibold">🧸</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Bourses aux Collections</span>
+            </a>
             <a
               href="/troc/"
               className="block p-4 bg-background-lighter hover:bg-background-hover border border-gray-800 hover:border-primary rounded-lg transition-all group"
-              title="Agenda complet des événements troc et échange en France"
+              title="Événements de troc et échange"
             >
               <span className="text-primary group-hover:text-primary-hover font-semibold">🔄</span>
-              <span className="ml-2 text-text-primary group-hover:text-primary">Événements Troc et Échange</span>
+              <span className="ml-2 text-text-primary group-hover:text-primary">Troc et Échange</span>
             </a>
           </nav>
         </section>

@@ -47,3 +47,8 @@ export interface Pagination {
 }
 
 
+
+export interface UserPosition {
+  latitude: number
+  longitude: number
+}
