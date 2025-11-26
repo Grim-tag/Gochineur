@@ -56,7 +56,7 @@ export default function Footer() {
                                 key={dept.code}
                                 to={`/vide-grenier/${dept.code}`}
                                 className="hover:text-white truncate"
-                                title={`Vide-greniers ${dept.name}`}
+                                title={`vide grenier ${dept.code}`}
                             >
                                 {dept.code} - {dept.name}
                             </Link>
