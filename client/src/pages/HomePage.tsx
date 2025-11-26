@@ -110,6 +110,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const [hasMoreEvents, setHasMoreEvents] = useState(true)
   const [seoTitle, setSeoTitle] = useState<string>(initialSeoTitle)
   const lastRequestId = useRef<number>(0)
+  const prevRadius = useRef<number>(EVENTS.DEFAULT_RADIUS)
 
   // Coordonnées de test (Landes/Pays Basque Sud)
   const testPositionFallback: UserPosition = {
@@ -348,6 +349,8 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   }
 
   // Charger les événements initiaux (2 premiers mois) - UNIQUEMENT SI PAS DE PARAMS URL
+  // Ce useEffect ne doit s'exécuter qu'au montage (ou changement de params URL majeurs)
+  // Il ne doit PAS réagir aux changements de filtres (rayon, type, position) qui sont gérés par handleSearch ou d'autres useEffects
   useEffect(() => {
     if (regionSlug || departmentSlug || param) return
 
@@ -359,7 +362,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     setLoading(true)
 
     // Utiliser position de test par défaut (Landes)
-    loadEvents(start, end, false, currentEventType, currentRadius, testPositionFallback)
+    loadEvents(start, end, false, initialEventType, EVENTS.DEFAULT_RADIUS, testPositionFallback)
       .then((data: Event[]) => {
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
@@ -374,7 +377,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         setFilteredEvents([])
         setGroupedEvents([])
       })
-  }, [regionSlug, departmentSlug, param, userPosition, currentEventType, currentRadius]) // Dépendances ajoutées pour éviter double chargement
+  }, [regionSlug, departmentSlug, param]) // Retrait de userPosition, currentEventType, currentRadius pour éviter double-fetch
 
   // Mettre à jour les événements filtrés quand la liste change
   useEffect(() => {
@@ -398,10 +401,13 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     }
   }, [currentRadius, city, currentEventType, geoData])
 
-  // Recharger les événements quand le rayon change (pour les pages ville/département)
+  // Recharger les événements quand le rayon change (pour les pages ville/département ou homepage géolocalisée)
   useEffect(() => {
+    // Vérifier si le rayon a vraiment changé pour éviter les déclenchements parasites
+    if (currentRadius === prevRadius.current) return
+    prevRadius.current = currentRadius
+
     // Ne se déclencher que si on est sur une page ville/département OU si on a une position utilisateur définie (ex: Autour de moi sur homepage)
-    // ET que le rayon a changé
     if ((param || departmentSlug || userPosition) && currentRadius && currentEndDate) {
       console.log('🔄 Radius changed to:', currentRadius, '- waiting 500ms before reload...')
 
