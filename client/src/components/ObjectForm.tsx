@@ -17,6 +17,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
         initialData?.photos_principales || []
     )
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+    const [estimating, setEstimating] = useState(false)
 
     // Form states
     const [name, setName] = useState(initialData?.name || '')
@@ -57,6 +58,55 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             // It was a newly added file
             const fileIndex = index - (initialData?.photos_principales?.length || 0)
             setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex))
+        }
+    }
+
+    const handleEstimateValue = async () => {
+        if (selectedFiles.length === 0) {
+            setError("Veuillez ajouter au moins une photo pour l'estimation")
+            return
+        }
+
+        setEstimating(true)
+        setError(null)
+
+        try {
+            const formData = new FormData()
+            formData.append('image', selectedFiles[0])
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+            const response = await fetch(`${apiUrl}/api/value/photo`, {
+                method: 'POST',
+                body: formData
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'estimation')
+            }
+
+            if (data.success) {
+                if (data.estimatedMax > 0) {
+                    // Mettre à jour la valeur estimée avec la moyenne
+                    setEstimatedValue(data.averagePrice.toFixed(2))
+
+                    // Si le nom est vide, on peut suggérer des mots-clés
+                    if (!name && data.keywords.length > 0) {
+                        // On ne remplace pas, on suggère juste via placeholder ou alert?
+                        // Pour l'instant on ne touche pas au nom pour ne pas être intrusif
+                    }
+
+                    alert(`Estimation réussie !\nFourchette : ${data.estimatedMin}€ - ${data.estimatedMax}€\nMoyenne : ${data.averagePrice.toFixed(2)}€\nBasé sur ${data.itemCount} objets similaires trouvés sur eBay.`)
+                } else {
+                    alert("Aucun objet similaire avec prix trouvé, mais l'analyse visuelle a fonctionné.\nMots-clés : " + data.keywords.join(', '))
+                }
+            }
+        } catch (err: any) {
+            console.error('Erreur estimation:', err)
+            setError(err.message || "Erreur lors de l'estimation")
+        } finally {
+            setEstimating(false)
         }
     }
 
@@ -269,14 +319,30 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-1">Valeur estimée (€)</label>
-                        <input
-                            type="number"
-                            step="0.01"
-                            value={estimatedValue}
-                            onChange={e => setEstimatedValue(e.target.value)}
-                            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                            placeholder="0.00"
-                        />
+                        <div className="relative">
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={estimatedValue}
+                                onChange={e => setEstimatedValue(e.target.value)}
+                                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                                placeholder="0.00"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleEstimateValue}
+                                disabled={estimating || selectedFiles.length === 0}
+                                className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs rounded hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 shadow-md"
+                                title={selectedFiles.length === 0 ? "Ajoutez une photo d'abord" : "Estimer la valeur via IA"}
+                                style={{ top: '50%', right: '8px' }}
+                            >
+                                {estimating ? (
+                                    <span className="animate-spin">↻</span>
+                                ) : (
+                                    <span>✨ IA</span>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 

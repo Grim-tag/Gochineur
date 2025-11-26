@@ -120,6 +120,10 @@ app.use('/api/geo', geoRoutes());
 const collectionRoutes = require('./routes/collection');
 app.use('/api/collection', collectionRoutes());
 
+// Routes d'estimation de valeur (IA)
+const valueRoutes = require('./routes/value');
+app.use('/api/value', valueRoutes());
+
 // Routes d'administration
 app.use('/api/admin', adminRoutes());
 
