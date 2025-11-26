@@ -11,6 +11,7 @@ import { CATEGORY_CONFIG } from '../config/seoConfig'
 import { useGeoData } from '../hooks/useGeoData'
 import { useSEO } from '../hooks/useSEO'
 import { useEventSearch } from '../hooks/useEventSearch'
+import type { Event as AppEvent } from '../types'
 import { UserPosition } from '../types'
 
 interface HomePageProps {
@@ -53,7 +54,6 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     loadingMore,
     error,
     hasMoreEvents,
-    currentStartDate,
     currentEndDate,
     setCurrentStartDate,
     setCurrentEndDate,
@@ -146,7 +146,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         setLoading(true)
 
         loadEvents(start, end, false, undefined, targetRadius, { latitude: targetLat, longitude: targetLon })
-          .then((data: Event[]) => {
+          .then((data: AppEvent[]) => {
             setFilteredEvents(data)
             const grouped = groupEventsByDay(data)
             setGroupedEvents(grouped)
@@ -175,7 +175,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
 
     // Utiliser position de test par défaut (Landes) via loadEvents (qui utilise testPositionFallback si userPosition est null)
     loadEvents(start, end, false, initialEventType, EVENTS.DEFAULT_RADIUS, undefined, null)
-      .then((data: Event[]) => {
+      .then((data: AppEvent[]) => {
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
         setGroupedEvents(grouped)
@@ -223,7 +223,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
         const { start, end } = calculatePeriodDates(today, EVENTS.PERIOD_MONTHS)
 
         loadEvents(start, end, false, currentEventType, currentRadius, userPosition || undefined, userPosition)
-          .then((data: Event[]) => {
+          .then((data: AppEvent[]) => {
             if (data.length > 0 || filteredEvents.length === 0) {
               setFilteredEvents(data)
               const grouped = groupEventsByDay(data)
@@ -286,7 +286,7 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       : undefined
 
     loadEvents(start, end, false, eventType, radius, positionToUse, userPosition)
-      .then((data: Event[]) => {
+      .then((data: AppEvent[]) => {
         let filtered = [...data]
         if (searchTerm.trim() && !coordinates) {
           const searchLower = searchTerm.toLowerCase()

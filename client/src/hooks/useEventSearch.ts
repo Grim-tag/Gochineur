@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react'
 import { Event, UserPosition } from '../types'
-import { groupEventsByDay, GroupedEvents } from '../utils/appUtils'
+import { GroupedEvents } from '../utils/appUtils'
 import { calculatePeriodDates } from '../utils/dateUtils'
 import { fetchEvents } from '../services/api'
 import { EVENTS, GEOLOCATION } from '../config/constants'
 
-export const useEventSearch = (initialEventType: string = 'tous') => {
+export const useEventSearch = (_initialEventType: string = 'tous') => {
     const [events, setEvents] = useState<Event[]>([])
     const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
     const [groupedEvents, setGroupedEvents] = useState<GroupedEvents[]>([])
