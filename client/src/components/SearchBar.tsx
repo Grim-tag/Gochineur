@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event } from '../types'
 import { forwardGeocode } from '../utils/appUtils'
+import { saveUserLocation } from '../utils/locationStorage'
 
 interface SearchBarProps {
   onSearch: (searchTerm: string, radius: number, eventType: string, coordinates?: { latitude: number; longitude: number; city: string }) => void
@@ -217,6 +218,14 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
               if (targetUrl) {
                 // Set radius to 30km for geolocation
                 setRadius(30)
+                // Save GPS position to localStorage
+                saveUserLocation({
+                  type: 'gps',
+                  city: cityName,
+                  latitude: latitude,
+                  longitude: longitude,
+                  radius: 30
+                })
                 navigate(targetUrl)
                 setGeolocating(false)
                 return
@@ -226,6 +235,14 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
 
           // Fallback: appeler onSearch avec les coordonnées et rayon de 30km
           setRadius(30)
+          // Save GPS position to localStorage
+          saveUserLocation({
+            type: 'gps',
+            city: cityName,
+            latitude: latitude,
+            longitude: longitude,
+            radius: 30
+          })
           onSearch('', 30, eventType, { latitude, longitude, city: cityName })
           setGeolocating(false)
         } catch (error) {
