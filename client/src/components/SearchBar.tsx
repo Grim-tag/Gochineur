@@ -215,6 +215,8 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             if (cityData) {
               const targetUrl = buildHierarchicalUrl(cityData.slug, cityData.department, eventType === 'tous' ? 'vide-greniers-brocantes' : eventType)
               if (targetUrl) {
+                // Set radius to 30km for geolocation
+                setRadius(30)
                 navigate(targetUrl)
                 setGeolocating(false)
                 return
@@ -222,8 +224,9 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
             }
           }
 
-          // Fallback: appeler onSearch avec les coordonnées
-          onSearch('', radius, eventType, { latitude, longitude, city: cityName })
+          // Fallback: appeler onSearch avec les coordonnées et rayon de 30km
+          setRadius(30)
+          onSearch('', 30, eventType, { latitude, longitude, city: cityName })
           setGeolocating(false)
         } catch (error) {
           console.error('Erreur reverse geocoding:', error)
