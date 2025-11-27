@@ -114,6 +114,33 @@ function transformDataTourismeEventFromFile(apidaeEvent) {
   // Normaliser le type détecté
   type = normalizeEventType(type);
 
+  // FILTRE D'EXCLUSION : Rejeter immédiatement les événements hors-sujet
+  // Liste des mots-clés à exclure (carrière, emploi, business, etc.)
+  const excludeKeywords = [
+    // Carrière / Emploi / Recrutement
+    'career', 'carriere', 'carrière',
+    'entrepreneurship', 'entrepreneur',
+    'emploi', 'job', 'recrutement', 'recruitment',
+    'salon de l\'emploi', 'forum emploi', 'job fair',
+    'business', 'startup',
+    // Événements culturels non pertinents
+    'concert', 'spectacle', 'show',
+    'conférence', 'conference', 'séminaire', 'seminar',
+    'formation professionnelle', 'training',
+    // Autres événements hors-sujet
+    'exposition d\'art', 'art exhibition',
+    'salon professionnel' // Sauf si contient aussi un mot-clé pertinent
+  ];
+
+  // Vérifier si l'événement contient un mot-clé d'exclusion
+  const fullSearchTextForExclusion = `${searchText} ${typeStr}`;
+  const hasExcludeKeyword = excludeKeywords.some(keyword => fullSearchTextForExclusion.includes(keyword));
+
+  // Si un mot-clé d'exclusion est trouvé, rejeter immédiatement
+  if (hasExcludeKeyword) {
+    return null; // Événement hors-sujet, rejeter immédiatement
+  }
+
   // Validation ULTRA-STRICTE : ignorer TOUS les événements qui ne sont PAS des événements de "chine"
   // Liste exhaustive des mots-clés pertinents (selon spécifications)
   const chineKeywords = [
@@ -448,6 +475,32 @@ function transformOEDEvent(oedFeature) {
 
     // Validation ULTRA-STRICTE : ignorer TOUS les événements qui ne sont PAS des événements de "chine"
     const searchText = `${name} ${description} ${properties.what || ''}`.toLowerCase();
+
+    // FILTRE D'EXCLUSION : Rejeter immédiatement les événements hors-sujet
+    // Liste des mots-clés à exclure (carrière, emploi, business, etc.)
+    const excludeKeywords = [
+      // Carrière / Emploi / Recrutement
+      'career', 'carriere', 'carrière',
+      'entrepreneurship', 'entrepreneur',
+      'emploi', 'job', 'recrutement', 'recruitment',
+      'salon de l\'emploi', 'forum emploi', 'job fair',
+      'business', 'startup',
+      // Événements culturels non pertinents
+      'concert', 'spectacle', 'show',
+      'conférence', 'conference', 'séminaire', 'seminar',
+      'formation professionnelle', 'training',
+      // Autres événements hors-sujet
+      'exposition d\'art', 'art exhibition',
+      'salon professionnel'
+    ];
+
+    // Vérifier si l'événement contient un mot-clé d'exclusion
+    const hasExcludeKeyword = excludeKeywords.some(keyword => searchText.includes(keyword));
+
+    // Si un mot-clé d'exclusion est trouvé, rejeter immédiatement
+    if (hasExcludeKeyword) {
+      return null; // Événement hors-sujet, rejeter immédiatement
+    }
 
     // REJET EXPLICITE des déchets OED connus (traffic, culture générique sans titre, etc.)
     if (name.startsWith('traffic.') || name.startsWith('culture.') ||
