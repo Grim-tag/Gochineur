@@ -25,7 +25,7 @@ export default function VideGrenierPage() {
     const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
     const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
 
-    const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
+    const [currentRadius, setCurrentRadius] = useState<number>(100)
     const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
     const [hasMoreEvents, setHasMoreEvents] = useState(true)
     const lastRequestId = useRef<number>(0)
@@ -104,7 +104,7 @@ export default function VideGrenierPage() {
         setCurrentEndDate(end)
         setLoading(true)
 
-        loadEvents(start, end, false, currentRadius, testPositionFallback)
+        loadEvents(start, end, false, 100, testPositionFallback)
             .then((data: Event[]) => {
                 setFilteredEvents(data)
                 const grouped = groupEventsByDay(data)

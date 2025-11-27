@@ -25,7 +25,7 @@ export default function BoursePage() {
     const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
     const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
 
-    const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
+    const [currentRadius, setCurrentRadius] = useState<number>(100)
     const [currentEndDate, setCurrentEndDate] = useState<Date | null>(null)
     const [hasMoreEvents, setHasMoreEvents] = useState(true)
     const lastRequestId = useRef<number>(0)
@@ -100,7 +100,7 @@ export default function BoursePage() {
         setCurrentEndDate(end)
         setLoading(true)
 
-        loadEvents(start, end, false, currentRadius, testPositionFallback)
+        loadEvents(start, end, false, 100, testPositionFallback)
             .then((data: Event[]) => {
                 setFilteredEvents(data)
                 const grouped = groupEventsByDay(data)
@@ -157,7 +157,7 @@ export default function BoursePage() {
 
         if (coordinates) {
             setUserPosition({ latitude: coordinates.latitude, longitude: coordinates.longitude })
-            
+
         }
 
         const today = new Date()
@@ -215,7 +215,7 @@ export default function BoursePage() {
             <SearchBar
                 onSearch={handleSearch}
                 onRadiusChange={setCurrentRadius}
-                onReset={() => {}}
+                onReset={() => { }}
                 geoData={null}
                 events={events}
                 currentRadius={currentRadius}

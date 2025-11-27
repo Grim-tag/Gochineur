@@ -9,8 +9,8 @@ export const EVENTS = {
 } as const;
 
 export const GEOLOCATION = {
-  DEFAULT_LAT: 43.5716, // Landes/Pays Basque Sud
-  DEFAULT_LON: -1.2780,
+  DEFAULT_LAT: 46.7167, // Centre de la France
+  DEFAULT_LON: 2.5000,
   TIMEOUT: 10000,
   MAX_AGE: 0
 } as const;

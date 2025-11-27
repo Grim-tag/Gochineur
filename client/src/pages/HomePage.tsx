@@ -41,10 +41,10 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
   const [currentEventType, setCurrentEventType] = useState<string>(initialEventType)
   const [userPosition, setUserPosition] = useState<UserPosition | null>(null)
   const [city, setCity] = useState<string>('')
-  const [currentRadius, setCurrentRadius] = useState<number>(EVENTS.DEFAULT_RADIUS)
+  const [currentRadius, setCurrentRadius] = useState<number>(100)
   const [circuitIds, setCircuitIds] = useState<(string | number)[]>([])
 
-  const prevRadius = useRef<number>(EVENTS.DEFAULT_RADIUS)
+  const prevRadius = useRef<number>(100)
 
   const {
     events,
@@ -173,8 +173,8 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     setCurrentEndDate(end)
     setLoading(true)
 
-    // Utiliser position de test par défaut (Landes) via loadEvents (qui utilise testPositionFallback si userPosition est null)
-    loadEvents(start, end, false, initialEventType, EVENTS.DEFAULT_RADIUS, undefined, null)
+    // Utiliser position par défaut (Centre de la France) via loadEvents (qui utilise testPositionFallback si userPosition est null)
+    loadEvents(start, end, false, initialEventType, 100, undefined, null)
       .then((data: AppEvent[]) => {
         setFilteredEvents(data)
         const grouped = groupEventsByDay(data)
