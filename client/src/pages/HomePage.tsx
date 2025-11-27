@@ -13,6 +13,7 @@ import { useSEO } from '../hooks/useSEO'
 import { useEventSearch } from '../hooks/useEventSearch'
 import type { Event as AppEvent } from '../types'
 import { UserPosition } from '../types'
+import { getUserLocation } from '../utils/locationStorage'
 
 interface HomePageProps {
   regionSlugOverride?: string
@@ -173,21 +174,55 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     setCurrentEndDate(end)
     setLoading(true)
 
-    // Utiliser position par défaut (Centre de la France) via loadEvents (qui utilise testPositionFallback si userPosition est null)
-    loadEvents(start, end, false, initialEventType, 100, undefined, null)
-      .then((data: AppEvent[]) => {
-        setFilteredEvents(data)
-        const grouped = groupEventsByDay(data)
-        setGroupedEvents(grouped)
-        setLoading(false)
-        setHasMoreEvents(data.length > 0)
+    // Check for saved location in localStorage
+    const savedLocation = getUserLocation()
+
+    if (savedLocation && savedLocation.type === 'gps') {
+      // Restore saved GPS position
+      console.log('📍 Restoring saved GPS position:', savedLocation.city)
+      setUserPosition({
+        latitude: savedLocation.latitude!,
+        longitude: savedLocation.longitude!
       })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-        setFilteredEvents([])
-        setGroupedEvents([])
+      setCurrentRadius(savedLocation.radius)
+      prevRadius.current = savedLocation.radius
+      setCity(savedLocation.city || '')
+
+      // Load events with saved position
+      loadEvents(start, end, false, initialEventType, savedLocation.radius, undefined, {
+        latitude: savedLocation.latitude!,
+        longitude: savedLocation.longitude!
       })
+        .then((data: AppEvent[]) => {
+          setFilteredEvents(data)
+          const grouped = groupEventsByDay(data)
+          setGroupedEvents(grouped)
+          setLoading(false)
+          setHasMoreEvents(data.length > 0)
+        })
+        .catch(err => {
+          setError(err.message)
+          setLoading(false)
+          setFilteredEvents([])
+          setGroupedEvents([])
+        })
+    } else {
+      // No saved location - use default (Centre de la France)
+      loadEvents(start, end, false, initialEventType, 100, undefined, null)
+        .then((data: AppEvent[]) => {
+          setFilteredEvents(data)
+          const grouped = groupEventsByDay(data)
+          setGroupedEvents(grouped)
+          setLoading(false)
+          setHasMoreEvents(data.length > 0)
+        })
+        .catch(err => {
+          setError(err.message)
+          setLoading(false)
+          setFilteredEvents([])
+          setGroupedEvents([])
+        })
+    }
   }, [regionSlug, departmentSlug, param])
 
   // Mettre à jour les événements filtrés quand la liste change
