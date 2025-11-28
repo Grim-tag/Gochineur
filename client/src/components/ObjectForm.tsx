@@ -80,7 +80,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             const formData = new FormData()
             formData.append('image', selectedFiles[0])
 
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+            const apiUrl = import.meta.env.VITE_API_URL || ''
             const response = await fetch(`${apiUrl}/api/value/identify-photo`, {
                 method: 'POST',
                 body: formData
@@ -118,7 +118,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                 throw new Error("Vous devez être connecté pour utiliser cette fonctionnalité.");
             }
 
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+            const apiUrl = import.meta.env.VITE_API_URL || ''
             const response = await fetch(`${apiUrl}/api/value/estimate-by-title`, {
                 method: 'POST',
                 headers: {
