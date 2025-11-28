@@ -8,13 +8,18 @@ function authenticateJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   const token = extractTokenFromHeader(authHeader);
 
+  console.log('🔐 [Auth Debug] Header:', authHeader ? 'Present' : 'Missing');
+  console.log('🔐 [Auth Debug] Token:', token ? token.substring(0, 10) + '...' : 'Missing');
+
   if (!token) {
+    console.warn('⚠️ [Auth] Token manquant');
     return res.status(401).json({ error: 'Accès non autorisé. Token manquant.' });
   }
 
   const decoded = verifyToken(token);
 
   if (!decoded) {
+    console.error('❌ [Auth] Token invalide ou expiré');
     return res.status(403).json({ error: 'Accès interdit. Token invalide ou expiré.' });
   }
 
