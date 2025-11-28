@@ -1,175 +1,284 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
 const sharp = require('sharp');
 const axios = require('axios');
-const vision = require('@google-cloud/vision');
+const cloudinary = require('cloudinary').v2;
 
-// Configuration Multer (stockage en mémoire)
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
-});
+module.exports = function () {
+    const router = express.Router();
+    console.log('🔧 Initializing Value Routes...');
 
-// Configuration
-const GOOGLE_VISION_API_KEY = process.env.GOOGLE_VISION_API_KEY;
-const EBAY_CLIENT_ID = process.env.EBAY_CLIENT_ID;
-const EBAY_CLIENT_SECRET = process.env.EBAY_CLIENT_SECRET;
+    // Configuration Cloudinary
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET
+    });
 
-// URLs eBay (Sandbox pour le test)
-const EBAY_OAUTH_URL = 'https://api.sandbox.ebay.com/identity/v1/oauth2/token';
-const EBAY_BROWSE_URL = 'https://api.sandbox.ebay.com/buy/browse/v1/item_summary/search';
+    // Configuration Multer (stockage en mémoire)
+    const upload = multer({
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+    });
 
-// Helper: Obtenir Token eBay
-async function getEbayToken() {
-    if (!EBAY_CLIENT_ID || !EBAY_CLIENT_SECRET) {
-        throw new Error('Identifiants eBay manquants');
-    }
+    // Configuration
+    const SERPAPI_KEY = process.env.SERPAPI_KEY;
+    const EBAY_APP_ID = process.env.EBAY_CLIENT_ID;
+    const EBAY_FINDING_URL = 'https://svcs.ebay.com/services/search/FindingService/v1';
 
-    const credentials = Buffer.from(`${EBAY_CLIENT_ID}:${EBAY_CLIENT_SECRET}`).toString('base64');
-
-    try {
-        const response = await axios.post(EBAY_OAUTH_URL,
-            'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope',
-            {
-                headers: {
-                    'Authorization': `Basic ${credentials}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
+    // Helper function to upload to Cloudinary
+    const uploadToCloudinary = (buffer) => {
+        return new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                { folder: 'temp_analysis' },
+                (error, result) => {
+                    if (error) return reject(error);
+                    resolve(result);
                 }
+            );
+            uploadStream.end(buffer);
+        });
+    };
+
+    // Route de test
+    router.get('/test', (req, res) => {
+        res.json({ status: 'OK', message: 'Value API is working' });
+    });
+
+    // Route 1: Identification Visuelle (SerpApi / Google Lens)
+    router.post('/identify-photo', upload.single('image'), async (req, res) => {
+        console.log('📸 [Step 1] Identification request received');
+        try {
+            if (!req.file) {
+                return res.status(400).json({ error: 'Aucune image fournie' });
             }
-        );
-        return response.data.access_token;
-    } catch (error) {
-        console.error('Erreur Auth eBay:', error.response?.data || error.message);
-        throw new Error('Impossible de se connecter à eBay');
-    }
-}
 
-// Route: Estimer la valeur par photo
-router.post('/photo', upload.single('image'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ error: 'Aucune image fournie' });
-        }
+            if (!SERPAPI_KEY) {
+                throw new Error('Clé API SerpApi manquante (SERPAPI_KEY)');
+            }
 
-        // 1. Pré-traitement de l'image avec Sharp
-        const processedImageBuffer = await sharp(req.file.buffer)
-            .resize(800, 800, { fit: 'inside' })
-            .jpeg({ quality: 80 })
-            .toBuffer();
+            // Log file details
+            console.log(`📂 Received file: ${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)`);
 
-        // 2. Google Cloud Vision (Label & Web Detection)
-        // Utilisation de l'API REST si une clé API simple est fournie, sinon SDK
-        let labels = [];
-        let webEntities = [];
-
-        if (GOOGLE_VISION_API_KEY) {
-            // Méthode REST (plus simple avec une clé API string)
-            const visionUrl = `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`;
-            const visionResponse = await axios.post(visionUrl, {
-                requests: [{
-                    image: { content: processedImageBuffer.toString('base64') },
-                    features: [
-                        { type: 'LABEL_DETECTION', maxResults: 5 },
-                        { type: 'WEB_DETECTION', maxResults: 5 }
-                    ]
-                }]
-            });
-
-            const result = visionResponse.data.responses[0];
-            labels = result.labelAnnotations?.map(l => l.description) || [];
-            webEntities = result.webDetection?.webEntities?.map(w => w.description) || [];
-        } else {
-            // Fallback SDK (nécessite GOOGLE_APPLICATION_CREDENTIALS json)
-            // Note: Si le SDK est installé mais pas configuré, cela échouera ici
+            // Pré-traitement de l'image
+            let processedImageBuffer;
             try {
-                const client = new vision.ImageAnnotatorClient();
-                const [result] = await client.annotateImage({
-                    image: { content: processedImageBuffer },
-                    features: [{ type: 'LABEL_DETECTION' }, { type: 'WEB_DETECTION' }]
+                processedImageBuffer = await sharp(req.file.buffer)
+                    .resize(800, 800, { fit: 'inside' })
+                    .jpeg({ quality: 80 })
+                    .toBuffer();
+                console.log('✅ Image processed with Sharp');
+            } catch (sharpError) {
+                console.warn('⚠️ Sharp processing failed, using original buffer:', sharpError.message);
+                processedImageBuffer = req.file.buffer;
+            }
+
+            // 1. Upload to Cloudinary to get a public URL
+            console.log('☁️ Uploading to Cloudinary...');
+            const cloudinaryResult = await uploadToCloudinary(processedImageBuffer);
+            const imageUrl = cloudinaryResult.secure_url;
+            console.log('✅ Image uploaded:', imageUrl);
+
+            // 2. Call SerpApi with the public URL
+            console.log('🔍 Sending to SerpApi (Google Lens)...');
+
+            const serpResponse = await axios.get('https://serpapi.com/search', {
+                params: {
+                    engine: 'google_lens',
+                    api_key: SERPAPI_KEY,
+                    url: imageUrl
+                }
+            });
+
+            const visualMatches = serpResponse.data.visual_matches || [];
+            let identifiedTitle = '';
+
+            if (visualMatches.length > 0) {
+                identifiedTitle = visualMatches[0].title;
+                console.log('🧠 Identified Title:', identifiedTitle);
+            } else {
+                console.log('⚠️ No visual matches found');
+            }
+
+            // Optional: Delete from Cloudinary to save space? 
+            // For now we keep it as it might be useful for debugging or history.
+
+            res.json({
+                success: true,
+                identifiedTitle: identifiedTitle || '',
+                imageUrl: imageUrl // Return the URL so frontend can use it if needed
+            });
+
+        } catch (error) {
+            console.error('❌ Error in /identify-photo:', error.message);
+
+            // Log to file for debugging
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const logPath = path.join(__dirname, '..', 'error.log');
+                const logEntry = `[${new Date().toISOString()}] /identify-photo Error: ${error.message}\nStack: ${error.stack}\nResponse: ${JSON.stringify(error.response?.data || 'No response data')}\n\n`;
+                fs.appendFileSync(logPath, logEntry);
+            } catch (e) {
+                console.error('Failed to write to error log:', e);
+            }
+
+            res.status(500).json({ error: 'Erreur lors de l\'identification', details: error.message });
+        }
+    });
+
+    const { authenticateJWT, requireAdmin } = require('../middleware/auth');
+
+    // Route 2: Estimation sur Objets Vendus (eBay Finding API)
+    // PROTECTED: Admin only
+    router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
+        console.log('💰 [Step 2] Estimation request received');
+        try {
+            const { searchQuery } = req.body;
+
+            if (!searchQuery) {
+                return res.status(400).json({ error: 'Titre de recherche manquant' });
+            }
+
+            if (!EBAY_APP_ID) {
+                throw new Error('EBAY_CLIENT_ID (App ID) manquant');
+            }
+
+            console.log(`🔎 Searching eBay Sold Items for: "${searchQuery}"`);
+
+            // Appel eBay Finding API (Legacy)
+            // Note: Passing SECURITY-APPNAME in params as well to ensure it's picked up
+            const headers = {
+                'X-EBAY-SOA-OPERATION-NAME': 'findCompletedItems',
+                'X-EBAY-SOA-SECURITY-APPNAME': EBAY_APP_ID,
+                'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
+                'X-EBAY-SOA-GLOBAL-ID': 'EBAY-FR'
+            };
+
+            // Inject User Token if available (bypasses rate limits)
+            if (process.env.EBAY_USER_TOKEN) {
+                console.log('🔑 EBAY_USER_TOKEN found, injecting into headers...');
+                headers['X-EBAY-SOA-SECURITY-TOKEN'] = process.env.EBAY_USER_TOKEN;
+            } else {
+                console.warn('⚠️ EBAY_USER_TOKEN is missing from environment variables');
+            }
+
+            const response = await axios.get(EBAY_FINDING_URL, {
+                headers: headers,
+                params: {
+                    'SECURITY-APPNAME': EBAY_APP_ID,
+                    'OPERATION-NAME': 'findCompletedItems',
+                    'SERVICE-VERSION': '1.0.0',
+                    'RESPONSE-DATA-FORMAT': 'JSON',
+                    'keywords': searchQuery,
+                    'categoryId': '',
+                    'itemFilter(0).name': 'SoldItemsOnly',
+                    'itemFilter(0).value': 'true',
+                    'sortOrder': 'EndTimeSoonest',
+                    'paginationInput.entriesPerPage': '20'
+                }
+            });
+
+            const data = response.data;
+
+            if (data.findCompletedItemsResponse && data.findCompletedItemsResponse[0].ack[0] === 'Failure') {
+                const errorData = data.findCompletedItemsResponse[0].errorMessage[0].error[0];
+                const errorId = errorData.errorId[0];
+                const errorMsg = errorData.message[0];
+
+                console.error(`❌ eBay API Error [${errorId}]: ${errorMsg}`);
+
+                if (errorId === '10001') {
+                    return res.status(429).json({
+                        error: 'Limite d\'appels eBay atteinte pour aujourd\'hui.',
+                        details: 'Le quota journalier de l\'API eBay a été dépassé. Veuillez réessayer demain ou saisir le prix manuellement.'
+                    });
+                }
+
+                throw new Error(`eBay API Error: ${errorMsg}`);
+            }
+
+            const searchResult = data.findCompletedItemsResponse[0].searchResult[0];
+            const count = parseInt(searchResult['@count'], 10);
+
+            if (count === 0) {
+                console.log('⚠️ No sold items found');
+                return res.json({
+                    success: true,
+                    averagePrice: 0,
+                    minPrice: 0,
+                    maxPrice: 0,
+                    soldCount: 0,
+                    message: 'Aucune vente trouvée pour cet objet'
                 });
-                labels = result.labelAnnotations?.map(l => l.description) || [];
-                webEntities = result.webDetection?.webEntities?.map(w => w.description) || [];
-            } catch (sdkError) {
-                console.warn('Erreur SDK Vision (fallback):', sdkError.message);
-                if (!GOOGLE_VISION_API_KEY) {
-                    throw new Error('Configuration Google Vision manquante (API Key ou Credentials)');
+            }
+
+            const items = searchResult.item || [];
+            const prices = items.map(item => {
+                const sellingStatus = item.sellingStatus && item.sellingStatus[0];
+                const currentPrice = sellingStatus && sellingStatus.currentPrice && sellingStatus.currentPrice[0];
+                return currentPrice ? parseFloat(currentPrice['__value__']) : null;
+            }).filter(p => p !== null && !isNaN(p));
+
+            if (prices.length === 0) {
+                return res.json({ success: true, averagePrice: 0, soldCount: 0 });
+            }
+
+            prices.sort((a, b) => a - b);
+            const mid = Math.floor(prices.length / 2);
+            const medianPrice = prices.length % 2 !== 0
+                ? prices[mid]
+                : (prices[mid - 1] + prices[mid]) / 2;
+
+            const minPrice = prices[0];
+            const maxPrice = prices[prices.length - 1];
+
+            console.log(`✅ Found ${count} sold items. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
+
+            res.json({
+                success: true,
+                averagePrice: medianPrice,
+                minPrice: minPrice,
+                maxPrice: maxPrice,
+                soldCount: count,
+                currency: 'EUR'
+            });
+
+        } catch (error) {
+            console.error('❌ Error in /estimate-by-title:', error.message);
+
+            if (error.response && error.response.data) {
+                const data = error.response.data;
+                console.error('eBay Response Data:', JSON.stringify(data, null, 2));
+
+                // Check for Rate Limit Error (10001) in the error response
+                if (data.errorMessage && data.errorMessage[0] && data.errorMessage[0].error) {
+                    const errorData = data.errorMessage[0].error[0];
+                    const errorId = errorData.errorId ? errorData.errorId[0] : null;
+
+                    if (errorId === '10001') {
+                        return res.status(429).json({
+                            error: 'Limite d\'appels eBay atteinte pour aujourd\'hui.',
+                            details: 'Le quota journalier de l\'API eBay a été dépassé. Veuillez réessayer demain ou saisir le prix manuellement.'
+                        });
+                    }
                 }
             }
-        }
 
-        // Combiner et nettoyer les mots-clés
-        const allKeywords = [...new Set([...webEntities, ...labels])].filter(k => k);
-        const searchQuery = allKeywords.slice(0, 3).join(' '); // Prendre les 3 premiers
-
-        console.log('Mots-clés détectés:', allKeywords);
-        console.log('Recherche eBay:', searchQuery);
-
-        if (!searchQuery) {
-            return res.json({
-                success: true,
-                estimatedMin: 0,
-                estimatedMax: 0,
-                currency: 'EUR',
-                keywords: [],
-                message: 'Aucun objet identifiable détecté'
-            });
-        }
-
-        // 3. eBay Browse API
-        const token = await getEbayToken();
-        const ebayResponse = await axios.get(EBAY_BROWSE_URL, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-EBAY-C-MARKETPLACE-ID': 'EBAY_FR' // Marché français
-            },
-            params: {
-                q: searchQuery,
-                limit: 10,
-                sort: 'price' // Pour avoir une idée de la fourchette
+            // Log to file for debugging
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const logPath = path.join(__dirname, '..', 'error.log');
+                const logEntry = `[${new Date().toISOString()}] /estimate-by-title Error: ${error.message}\nStack: ${error.stack}\nResponse: ${JSON.stringify(error.response?.data || 'No response data')}\n\n`;
+                fs.appendFileSync(logPath, logEntry);
+            } catch (e) {
+                console.error('Failed to write to error log:', e);
             }
-        });
 
-        const items = ebayResponse.data.itemSummaries || [];
-
-        if (items.length === 0) {
-            return res.json({
-                success: true,
-                estimatedMin: 0,
-                estimatedMax: 0,
-                currency: 'EUR',
-                keywords: allKeywords,
-                message: 'Aucun objet similaire trouvé sur eBay'
-            });
+            res.status(500).json({ error: 'Erreur lors de l\'estimation', details: error.message });
         }
+    });
 
-        // Calculer la fourchette de prix
-        const prices = items
-            .map(item => parseFloat(item.price.value))
-            .filter(p => !isNaN(p));
-
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-
-        res.json({
-            success: true,
-            estimatedMin: minPrice,
-            estimatedMax: maxPrice,
-            averagePrice: avgPrice,
-            currency: 'EUR', // On force EUR car on a demandé EBAY_FR, mais idéalement on prendrait la devise de la réponse
-            keywords: allKeywords,
-            itemCount: items.length,
-            sampleItem: items[0] // Pour info
-        });
-
-    } catch (error) {
-        console.error('Erreur API Value:', error);
-        res.status(500).json({
-            error: 'Erreur lors de l\'estimation',
-            details: error.message
-        });
-    }
-});
-
-module.exports = () => router;
+    return router;
+};

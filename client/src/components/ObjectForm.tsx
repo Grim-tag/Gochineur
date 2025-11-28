@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addItem, updateItem, type CollectionItem } from '../services/collectionApi'
+import { getUserFromToken } from '../services/auth'
 
 interface ObjectFormProps {
     initialData?: CollectionItem
@@ -17,7 +18,11 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
         initialData?.photos_principales || []
     )
     const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-    const [estimating, setEstimating] = useState(false)
+
+    // Estimation states
+    const [estimationStep, setEstimationStep] = useState<'idle' | 'analyzing' | 'review' | 'estimating' | 'complete'>('idle')
+    const [identifiedName, setIdentifiedName] = useState('')
+    const [estimationStats, setEstimationStats] = useState<{ min: number, max: number, count: number } | null>(null)
 
     // Form states
     const [name, setName] = useState(initialData?.name || '')
@@ -35,6 +40,10 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
     const [historyLog, setHistoryLog] = useState(initialData?.historyLog || '')
     const [isPublic, setIsPublic] = useState(initialData?.isPublic || false)
 
+    // Check permissions
+    const user = getUserFromToken()
+    const isAdmin = user?.role === 'admin'
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || [])
         if (files.length > 0) {
@@ -51,23 +60,20 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
 
     const removeImage = (index: number) => {
         setPreviewUrls(prev => prev.filter((_, i) => i !== index))
-        // Note: Removing from selectedFiles is tricky because we don't know which file corresponds to which initial URL
-        // For simplicity in this version, we'll just clear selectedFiles if user removes an image, forcing them to re-select if they made a mistake
-        // A more robust solution would track which preview URL comes from which file source
         if (index >= (initialData?.photos_principales?.length || 0)) {
-            // It was a newly added file
             const fileIndex = index - (initialData?.photos_principales?.length || 0)
             setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex))
         }
     }
 
-    const handleEstimateValue = async () => {
+    // Step 1: Identify Photo (SerpApi)
+    const handleAnalyzePhoto = async () => {
         if (selectedFiles.length === 0) {
             setError("Veuillez ajouter au moins une photo pour l'estimation")
             return
         }
 
-        setEstimating(true)
+        setEstimationStep('analyzing')
         setError(null)
 
         try {
@@ -75,9 +81,45 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             formData.append('image', selectedFiles[0])
 
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-            const response = await fetch(`${apiUrl}/api/value/photo`, {
+            const response = await fetch(`${apiUrl}/api/value/identify-photo`, {
                 method: 'POST',
                 body: formData
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'identification')
+            }
+
+            if (data.success) {
+                setIdentifiedName(data.identifiedTitle || '')
+                setEstimationStep('review')
+                // Pre-fill name if empty
+                if (!name && data.identifiedTitle) {
+                    setName(data.identifiedTitle)
+                }
+            }
+        } catch (err: any) {
+            console.error('Erreur identification:', err)
+            setError(err.message || "Erreur lors de l'identification")
+            setEstimationStep('idle')
+        }
+    }
+
+    // Step 2: Estimate Price (eBay Finding API - Sold Items)
+    const handleEstimatePrice = async () => {
+        setEstimationStep('estimating')
+        setError(null)
+
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+            const response = await fetch(`${apiUrl}/api/value/estimate-by-title`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ searchQuery: identifiedName })
             })
 
             const data = await response.json()
@@ -87,27 +129,32 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             }
 
             if (data.success) {
-                if (data.estimatedMax > 0) {
-                    // Mettre à jour la valeur estimée avec la moyenne
-                    setEstimatedValue(data.averagePrice.toFixed(2))
+                setEstimatedValue(data.averagePrice.toFixed(2))
+                setEstimationStats({
+                    min: data.minPrice,
+                    max: data.maxPrice,
+                    count: data.soldCount
+                })
+                setEstimationStep('complete')
 
-                    // Si le nom est vide, on peut suggérer des mots-clés
-                    if (!name && data.keywords.length > 0) {
-                        // On ne remplace pas, on suggère juste via placeholder ou alert?
-                        // Pour l'instant on ne touche pas au nom pour ne pas être intrusif
+                // Update main name if user edited it in the review step
+                if (identifiedName && identifiedName !== name) {
+                    if (window.confirm(`Voulez-vous utiliser "${identifiedName}" comme nom principal de l'objet ?`)) {
+                        setName(identifiedName)
                     }
-
-                    alert(`Estimation réussie !\nFourchette : ${data.estimatedMin}€ - ${data.estimatedMax}€\nMoyenne : ${data.averagePrice.toFixed(2)}€\nBasé sur ${data.itemCount} objets similaires trouvés sur eBay.`)
-                } else {
-                    alert("Aucun objet similaire avec prix trouvé, mais l'analyse visuelle a fonctionné.\nMots-clés : " + data.keywords.join(', '))
                 }
             }
         } catch (err: any) {
             console.error('Erreur estimation:', err)
             setError(err.message || "Erreur lors de l'estimation")
-        } finally {
-            setEstimating(false)
+            setEstimationStep('review')
         }
+    }
+
+    const resetEstimation = () => {
+        setEstimationStep('idle')
+        setIdentifiedName('')
+        setEstimationStats(null)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -195,6 +242,104 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             {error && (
                 <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
                     {error}
+                </div>
+            )}
+
+            {/* AI Estimation Section (New V2 Flow) - Admin Only */}
+            {isAdmin && (
+                <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-600">
+                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+                        <span>✨</span> Estimation IA (Prix Réels)
+                    </h3>
+
+                    {estimationStep === 'idle' && (
+                        <div className="text-center">
+                            <button
+                                type="button"
+                                onClick={handleAnalyzePhoto}
+                                disabled={selectedFiles.length === 0}
+                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+                            >
+                                📷 Analyser la photo
+                            </button>
+                            {selectedFiles.length === 0 && (
+                                <p className="text-xs text-text-secondary mt-2">Ajoutez une photo d'abord</p>
+                            )}
+                        </div>
+                    )}
+
+                    {estimationStep === 'analyzing' && (
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+                            <p className="text-text-secondary animate-pulse">Identification de l'objet en cours...</p>
+                        </div>
+                    )}
+
+                    {estimationStep === 'review' && (
+                        <div className="space-y-4 animate-fade-in">
+                            <div className="flex items-start gap-4">
+                                {previewUrls.length > 0 && (
+                                    <img src={previewUrls[0]} alt="Thumbnail" className="w-16 h-16 object-cover rounded border border-gray-600" />
+                                )}
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-text-secondary mb-1">
+                                        Objet identifié (Modifiez si nécessaire)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={identifiedName}
+                                        onChange={(e) => setIdentifiedName(e.target.value)}
+                                        className="w-full px-3 py-2 bg-background border border-gray-600 rounded focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={resetEstimation}
+                                    className="px-4 py-2 text-sm text-text-secondary hover:text-white transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleEstimatePrice}
+                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md flex items-center gap-2"
+                                >
+                                    💰 Lancer l'estimation finale
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {estimationStep === 'estimating' && (
+                        <div className="flex flex-col items-center justify-center py-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
+                            <p className="text-text-secondary animate-pulse">Recherche des ventes réussies sur eBay...</p>
+                        </div>
+                    )}
+
+                    {estimationStep === 'complete' && estimationStats && (
+                        <div className="bg-green-900/20 border border-green-800 p-4 rounded-lg animate-fade-in">
+                            <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-semibold text-green-400">Estimation Réussie</h4>
+                                <button onClick={resetEstimation} className="text-xs text-text-secondary hover:text-white">Recommencer</button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span className="text-text-secondary">Prix Médian :</span>
+                                    <span className="block text-2xl font-bold text-white">{estimatedValue} €</span>
+                                </div>
+                                <div>
+                                    <span className="text-text-secondary">Basé sur :</span>
+                                    <span className="block text-white">{estimationStats.count} ventes réussies</span>
+                                </div>
+                                <div className="col-span-2 text-xs text-text-secondary mt-1">
+                                    Fourchette : {estimationStats.min}€ - {estimationStats.max}€
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -319,30 +464,14 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-text-secondary mb-1">Valeur estimée (€)</label>
-                        <div className="relative">
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={estimatedValue}
-                                onChange={e => setEstimatedValue(e.target.value)}
-                                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                                placeholder="0.00"
-                            />
-                            <button
-                                type="button"
-                                onClick={handleEstimateValue}
-                                disabled={estimating || selectedFiles.length === 0}
-                                className="absolute right-1 top-1/2 -translate-y-1/2 px-3 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs rounded hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 shadow-md"
-                                title={selectedFiles.length === 0 ? "Ajoutez une photo d'abord" : "Estimer la valeur via IA"}
-                                style={{ top: '50%', right: '8px' }}
-                            >
-                                {estimating ? (
-                                    <span className="animate-spin">↻</span>
-                                ) : (
-                                    <span>✨ IA</span>
-                                )}
-                            </button>
-                        </div>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={estimatedValue}
+                            onChange={e => setEstimatedValue(e.target.value)}
+                            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                            placeholder="0.00"
+                        />
                     </div>
                 </div>
 
