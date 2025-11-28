@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addItem, updateItem, type CollectionItem } from '../services/collectionApi'
-import { getUserFromToken } from '../services/auth'
+import { getUserFromToken, getToken } from '../services/auth'
 
 interface ObjectFormProps {
     initialData?: CollectionItem
@@ -113,11 +113,17 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
         setError(null)
 
         try {
+            const token = getToken();
+            if (!token) {
+                throw new Error("Vous devez être connecté pour utiliser cette fonctionnalité.");
+            }
+
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
             const response = await fetch(`${apiUrl}/api/value/estimate-by-title`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({ searchQuery: identifiedName })
             })
