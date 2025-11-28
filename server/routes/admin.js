@@ -83,49 +83,7 @@ module.exports = function () {
     }
   });
 
-  // ⚠️ ROUTE TEMPORAIRE NON SÉCURISÉE - À SUPPRIMER IMMÉDIATEMENT APRÈS USAGE ⚠️
-  // Cette route permet de publier tous les événements sans authentification
-  // UTILISATION UNIQUE : Exécuter une fois pour débloquer les 1338 événements
-  // SUPPRIMER CETTE ROUTE IMMÉDIATEMENT APRÈS L'EXÉCUTION pour des raisons de sécurité
-  router.post('/temp-publish-all', requireAdmin, async (req, res) => {
-    try {
-      const eventsCollection = getEventsCollection();
 
-      // Compter les événements avant la mise à jour
-      const totalEvents = await eventsCollection.countDocuments({});
-      const pendingEvents = await eventsCollection.countDocuments({
-        statut_validation: { $in: ['pending_review', 'En attente', 'En Attente', 'en attente', 'pending'] }
-      });
-
-      // Mettre à jour tous les événements avec le statut 'published'
-      const result = await eventsCollection.updateMany(
-        {},
-        {
-          $set: {
-            statut_validation: 'published',
-            publishedAt: new Date().toISOString()
-          }
-        }
-      );
-
-      const updatedCount = result.modifiedCount;
-
-      res.status(200).json({
-        success: true,
-        message: `${updatedCount} événements publiés avec succès`,
-        warning: 'Cette route temporaire doit être supprimée immédiatement pour des raisons de sécurité',
-        totalEvents,
-        pendingBefore: pendingEvents,
-        published: updatedCount
-      });
-    } catch (error) {
-      console.error('❌ Erreur lors de la publication des événements:', error);
-      return res.status(500).json({
-        error: 'Erreur lors de la publication des événements',
-        details: error.message
-      });
-    }
-  });
 
   // Route temporaire pour publier tous les événements (une seule fois) - PROTÉGÉE
   router.post('/publish-all', requireAdmin, async (req, res) => {

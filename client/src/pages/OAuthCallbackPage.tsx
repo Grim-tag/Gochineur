@@ -32,6 +32,9 @@ export default function OAuthCallbackPage() {
         setToken(token);
         console.log('✅ Token JWT stocké avec succès');
 
+        // Nettoyer l'URL pour ne pas laisser le token visible
+        window.history.replaceState({}, document.title, window.location.pathname);
+
         // Rediriger vers la destination
         navigate(destination);
     }, [searchParams, navigate]);

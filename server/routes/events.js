@@ -6,6 +6,7 @@ const { generateEventHash, eventExists } = require('../utils/eventHash');
 const { getTodayISO, formatDateISO } = require('../utils/dateUtils');
 const { EVENTS, EVENT_STATUS, GEOLOCATION } = require('../config/constants');
 const { authenticateJWT } = require('../middleware/auth');
+const DOMPurify = require('isomorphic-dompurify');
 
 /**
  * Routes publiques pour les événements
@@ -213,8 +214,18 @@ module.exports = function () {
         description_visiteurs, description_exposants, nombre_exposants
       } = req.body;
 
+      // Sanitisation des entrées
+      const sanitizedName = DOMPurify.sanitize(name);
+      const sanitizedCity = DOMPurify.sanitize(city);
+      const sanitizedAddress = DOMPurify.sanitize(address);
+      const sanitizedPostalCode = postalCode ? DOMPurify.sanitize(postalCode) : '';
+      const sanitizedDescVisiteurs = description_visiteurs ? DOMPurify.sanitize(description_visiteurs) : '';
+      const sanitizedDescExposants = description_exposants ? DOMPurify.sanitize(description_exposants) : '';
+      const sanitizedTelephone = telephone ? DOMPurify.sanitize(telephone) : '';
+      const sanitizedPays = pays ? DOMPurify.sanitize(pays) : 'France';
+
       // Validation des champs obligatoires
-      if (!name || !type || !date_debut || !city || !address || !latitude || !longitude) {
+      if (!sanitizedName || !type || !date_debut || !sanitizedCity || !sanitizedAddress || !latitude || !longitude) {
         return res.status(400).json({
           error: 'Champs obligatoires manquants.',
           required: ['name', 'type', 'date_debut', 'city', 'address', 'latitude', 'longitude']
@@ -250,11 +261,11 @@ module.exports = function () {
 
       // Construire la description complète
       let description = '';
-      if (description_visiteurs) {
-        description += `Informations visiteurs :\n${description_visiteurs}\n\n`;
+      if (sanitizedDescVisiteurs) {
+        description += `Informations visiteurs :\n${sanitizedDescVisiteurs}\n\n`;
       }
-      if (description_exposants) {
-        description += `Modalités d'inscription / Horaires exposants :\n${description_exposants}`;
+      if (sanitizedDescExposants) {
+        description += `Modalités d'inscription / Horaires exposants :\n${sanitizedDescExposants}`;
       }
 
       // Normaliser le type d'événement
@@ -291,14 +302,14 @@ module.exports = function () {
         id: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         id_source: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         source_name: 'Utilisateur',
-        name: name.trim(),
+        name: sanitizedName.trim(),
         type: normalizedType,
         date: date_debut.split('T')[0],
         date_debut: dateDebutISO.toISOString(),
         date_fin: dateFinISO.toISOString(),
-        city: city.trim(),
-        postalCode: postalCode || '',
-        address: address.trim(),
+        city: sanitizedCity.trim(),
+        postalCode: sanitizedPostalCode || '',
+        address: sanitizedAddress.trim(),
         latitude: lat,
         longitude: lon,
         description: description.trim(),
@@ -306,8 +317,8 @@ module.exports = function () {
         statut_validation: 'pending_review',
         date_creation: new Date().toISOString(),
         role: role || 'Autre',
-        telephone: telephone || '',
-        pays: pays || 'France',
+        telephone: sanitizedTelephone || '',
+        pays: sanitizedPays || 'France',
         prix_visiteur: prix_visiteur || 'Gratuite',
         prix_montant: prix_montant ? parseFloat(prix_montant) : null,
         nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,
@@ -368,8 +379,18 @@ module.exports = function () {
         description_visiteurs, description_exposants, nombre_exposants
       } = req.body;
 
+      // Sanitisation des entrées
+      const sanitizedName = DOMPurify.sanitize(name);
+      const sanitizedCity = DOMPurify.sanitize(city);
+      const sanitizedAddress = DOMPurify.sanitize(address);
+      const sanitizedPostalCode = postalCode ? DOMPurify.sanitize(postalCode) : '';
+      const sanitizedDescVisiteurs = description_visiteurs ? DOMPurify.sanitize(description_visiteurs) : '';
+      const sanitizedDescExposants = description_exposants ? DOMPurify.sanitize(description_exposants) : '';
+      const sanitizedTelephone = telephone ? DOMPurify.sanitize(telephone) : '';
+      const sanitizedPays = pays ? DOMPurify.sanitize(pays) : 'France';
+
       // Validation des champs obligatoires (similaire à POST)
-      if (!name || !type || !date_debut || !city || !address || !latitude || !longitude) {
+      if (!sanitizedName || !type || !date_debut || !sanitizedCity || !sanitizedAddress || !latitude || !longitude) {
         return res.status(400).json({
           error: 'Champs obligatoires manquants.',
           required: ['name', 'type', 'date_debut', 'city', 'address', 'latitude', 'longitude']
@@ -402,32 +423,30 @@ module.exports = function () {
 
       // Construire la description
       let description = '';
-      if (description_visiteurs) {
-        description += `Informations visiteurs :\n${description_visiteurs}\n\n`;
+      if (sanitizedDescVisiteurs) {
+        description += `Informations visiteurs :\n${sanitizedDescVisiteurs}\n\n`;
       }
-      if (description_exposants) {
-        description += `Modalités d'inscription / Horaires exposants :\n${description_exposants}`;
+      if (sanitizedDescExposants) {
+        description += `Modalités d'inscription / Horaires exposants :\n${sanitizedDescExposants}`;
       }
-
       const normalizedType = normalizeEventType(type);
 
       // Mise à jour de l'événement
       const updateData = {
-        name: name.trim(),
+        name: sanitizedName.trim(),
         type: normalizedType,
         date: date_debut.split('T')[0],
         date_debut: dateDebutISO.toISOString(),
         date_fin: dateFinISO.toISOString(),
-        city: city.trim(),
-        postalCode: postalCode || '',
-        address: address.trim(),
+        city: sanitizedCity.trim(),
+        postalCode: sanitizedPostalCode || '',
+        address: sanitizedAddress.trim(),
         latitude: lat,
         longitude: lon,
         description: description.trim(),
         role: role || 'Autre',
-        telephone: telephone || '',
-        pays: pays || 'France',
-        prix_visiteur: prix_visiteur || 'Gratuite',
+        telephone: sanitizedTelephone || '',
+        pays: sanitizedPays || 'France',
         prix_visiteur: prix_visiteur || 'Gratuite',
         prix_montant: prix_montant ? parseFloat(prix_montant) : null,
         nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,

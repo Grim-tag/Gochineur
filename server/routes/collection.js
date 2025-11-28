@@ -6,6 +6,7 @@ const cloudinary = require('cloudinary').v2;
 const { ObjectId } = require('mongodb');
 const { getUserItemsCollection } = require('../config/db');
 const { authenticateJWT } = require('../middleware/auth');
+const DOMPurify = require('isomorphic-dompurify');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -18,7 +19,15 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 } // Limit 5MB
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limit 5MB
+    fileFilter: (req, file, cb) => {
+        // Accepter uniquement les images
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Format de fichier non supporté. Veuillez uploader uniquement des images.'), false);
+        }
+    }
 });
 
 // Helper function to upload to Cloudinary
@@ -216,7 +225,16 @@ module.exports = () => {
                 metadonnees_techniques
             } = req.body;
 
-            if (!name) {
+            // Sanitisation des entrées
+            const sanitizedName = DOMPurify.sanitize(name);
+            const sanitizedDescription = description ? DOMPurify.sanitize(description) : null;
+            const sanitizedHistoryLog = historyLog ? DOMPurify.sanitize(historyLog) : null;
+            const sanitizedCategory = category ? DOMPurify.sanitize(category) : null;
+            const sanitizedSubCategory = subCategory ? DOMPurify.sanitize(subCategory) : null;
+            const sanitizedEtat = etat_objet ? DOMPurify.sanitize(etat_objet) : null;
+            const sanitizedEmplacement = emplacement_stockage ? DOMPurify.sanitize(emplacement_stockage) : null;
+
+            if (!sanitizedName) {
                 return res.status(400).json({ success: false, error: 'Name is required' });
             }
 
@@ -247,9 +265,14 @@ module.exports = () => {
 
             const newItem = {
                 user_id: userId,
-                name, category, subCategory, description, historyLog,
+                name: sanitizedName,
+                category: sanitizedCategory,
+                subCategory: sanitizedSubCategory,
+                description: sanitizedDescription,
+                historyLog: sanitizedHistoryLog,
                 date_acquisition: date_acquisition ? new Date(date_acquisition) : null,
-                etat_objet, emplacement_stockage,
+                etat_objet: sanitizedEtat,
+                emplacement_stockage: sanitizedEmplacement,
                 acquisitionEventId: acquisitionEventId ? new ObjectId(acquisitionEventId) : null,
                 purchasePrice: purchasePrice ? parseFloat(purchasePrice) : null,
                 frais_annexes: frais_annexes ? parseFloat(frais_annexes) : null,
@@ -308,6 +331,15 @@ module.exports = () => {
                 metadonnees_techniques, image_layout
             } = req.body;
 
+            // Sanitisation des entrées
+            const sanitizedName = name ? DOMPurify.sanitize(name) : undefined;
+            const sanitizedDescription = description ? DOMPurify.sanitize(description) : undefined;
+            const sanitizedHistoryLog = historyLog ? DOMPurify.sanitize(historyLog) : undefined;
+            const sanitizedCategory = category ? DOMPurify.sanitize(category) : undefined;
+            const sanitizedSubCategory = subCategory ? DOMPurify.sanitize(subCategory) : undefined;
+            const sanitizedEtat = etat_objet ? DOMPurify.sanitize(etat_objet) : undefined;
+            const sanitizedEmplacement = emplacement_stockage ? DOMPurify.sanitize(emplacement_stockage) : undefined;
+
             let layoutRaw = image_layout;
             let parsedLayout = null;
 
@@ -358,14 +390,14 @@ module.exports = () => {
             }
 
             const updateData = {
-                name: name || existingItem.name,
-                category: category || existingItem.category,
-                subCategory: subCategory || existingItem.subCategory,
-                description: description || existingItem.description,
-                historyLog: historyLog || existingItem.historyLog,
+                name: sanitizedName || existingItem.name,
+                category: sanitizedCategory || existingItem.category,
+                subCategory: sanitizedSubCategory || existingItem.subCategory,
+                description: sanitizedDescription || existingItem.description,
+                historyLog: sanitizedHistoryLog || existingItem.historyLog,
                 date_acquisition: date_acquisition ? new Date(date_acquisition) : existingItem.date_acquisition,
-                etat_objet: etat_objet || existingItem.etat_objet,
-                emplacement_stockage: emplacement_stockage || existingItem.emplacement_stockage,
+                etat_objet: sanitizedEtat || existingItem.etat_objet,
+                emplacement_stockage: sanitizedEmplacement || existingItem.emplacement_stockage,
                 acquisitionEventId: acquisitionEventId ? new ObjectId(acquisitionEventId) : existingItem.acquisitionEventId,
                 purchasePrice: purchasePrice ? parseFloat(purchasePrice) : existingItem.purchasePrice,
                 frais_annexes: frais_annexes ? parseFloat(frais_annexes) : existingItem.frais_annexes,
