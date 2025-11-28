@@ -120,6 +120,10 @@ app.use('/api/geo', geoRoutes());
 const collectionRoutes = require('./routes/collection');
 app.use('/api/collection', collectionRoutes());
 
+// Routes d'estimation de valeur (IA)
+const valueRoutes = require('./routes/value');
+app.use('/api/value', valueRoutes());
+
 // Routes d'administration
 app.use('/api/admin', adminRoutes());
 
@@ -129,6 +133,7 @@ app.use('/', sitemapRoutes());
 
 // Route de santé
 app.get('/api/health', (req, res) => {
+  console.log('Health check requested');
   res.json({ status: 'OK', message: 'Serveur GoChineur opérationnel' });
 });
 
@@ -178,6 +183,17 @@ app.use((err, req, res, next) => {
 
   console.error('❌ Erreur non gérée:', err);
   console.error('Stack:', err.stack);
+
+  // Log to file for debugging
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const logPath = path.join(__dirname, 'error.log');
+    const logEntry = `[${new Date().toISOString()}] Global Error: ${err.message}\nStack: ${err.stack}\n\n`;
+    fs.appendFileSync(logPath, logEntry);
+  } catch (e) {
+    console.error('Failed to write to error log:', e);
+  }
 
   // Toujours renvoyer du JSON, jamais de HTML
   res.status(err.status || 500).json({
