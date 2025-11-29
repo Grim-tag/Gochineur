@@ -10,6 +10,7 @@ const passport = require('passport');
 const helmet = require('helmet');
 const logger = require('./config/logger');
 const { apiLimiter, estimationLimiter, authLimiter } = require('./middleware/rateLimiter');
+const { cacheMiddleware } = require('./middleware/cache');
 
 // Import des configurations
 const { configurePassport } = require('./config/passport');
@@ -180,12 +181,12 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true')
   console.log('ℹ️  Scheduler désactivé (NODE_ENV != production). Pour l\'activer, définir ENABLE_CRON=true');
 }
 
-// Routes API publiques (avec rate limiting)
-app.use('/api/events', apiLimiter, eventsRoutes());
+// Routes API publiques (avec rate limiting et cache)
+app.use('/api/events', apiLimiter, cacheMiddleware(300), eventsRoutes()); // Cache 5 min
 
-// Routes de données géographiques
+// Routes de données géographiques (cache 1h)
 const geoRoutes = require('./routes/geo');
-app.use('/api/geo', apiLimiter, geoRoutes());
+app.use('/api/geo', apiLimiter, cacheMiddleware(3600), geoRoutes());
 
 // Routes de collection utilisateur (V2)
 const collectionRoutes = require('./routes/collection');

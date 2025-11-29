@@ -1,86 +1,77 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import HomePage from './pages/HomePage'
-import VideGrenierPage from './pages/VideGrenierPage'
-import BrocantePage from './pages/BrocantePage'
-import PucesPage from './pages/PucesPage'
-import BoursePage from './pages/BoursePage'
-import VideMaisonPage from './pages/VideMaisonPage'
-import TrocPage from './pages/TrocPage'
-import MyAccountPage from './pages/MyAccountPage'
-import SubmitEventPage from './pages/SubmitEventPage'
-import EditEventPage from './pages/EditEventPage'
-import LoginPage from './pages/LoginPage'
-import SetPseudoPage from './pages/SetPseudoPage'
-import AdminPage from './pages/AdminPage'
-import OAuthCallbackPage from './pages/OAuthCallbackPage'
-import EventDetailsPage from './pages/EventDetailsPage'
-import AddObjectPage from './pages/AddObjectPage'
-import CSVImportPage from './pages/CSVImportPage'
-import CollectionShowcasePage from './pages/CollectionShowcasePage'
-import MentionsLegalesPage from './pages/MentionsLegalesPage'
-import CGUPage from './pages/CGUPage'
-import CategoryRouteWrapper from './components/CategoryRouteWrapper'
-import ErrorBoundary from './components/ErrorBoundary'
-import './index.css'
-import Footer from './components/Footer'
+import { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import LoadingSpinner from './components/LoadingSpinner';
 
-import AnalyticsTracker from './components/AnalyticsTracker'
+// Eager load critical pages
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+
+// Lazy load other pages
+const VideGrenierPage = lazy(() => import('./pages/VideGrenierPage'));
+const BrocantePage = lazy(() => import('./pages/BrocantePage'));
+const TrocPage = lazy(() => import('./pages/TrocPage'));
+const EventDetailsPage = lazy(() => import('./pages/EventDetailsPage'));
+const MyAccountPage = lazy(() => import('./pages/MyAccountPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const SetPseudoPage = lazy(() => import('./pages/SetPseudoPage'));
+const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
+const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
+const CGUPage = lazy(() => import('./pages/CGUPage'));
+const CollectionShowcasePage = lazy(() => import('./pages/CollectionShowcasePage'));
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AnalyticsTracker />
-        <div className="flex flex-col min-h-screen">
-          <div className="flex-grow">
+    <Router>
+      <div className="min-h-screen bg-background text-text-primary flex flex-col">
+        {/* Toast Notifications */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#1f2937',
+              color: '#fff',
+              border: '1px solid #374151',
+            },
+            success: {
+              iconTheme: {
+                primary: '#f97316',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
+
+        <Navbar />
+
+        <main className="flex-grow">
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
-              {/* Homepage - all types, all locations */}
+              {/* Critical routes (no lazy loading) */}
               <Route path="/" element={<HomePage />} />
-
-              {/* Dedicated thematic pages */}
-              <Route path="/vide-grenier" element={<VideGrenierPage />} />
-              <Route path="/brocante" element={<BrocantePage />} />
-              <Route path="/puces" element={<PucesPage />} />
-              <Route path="/bourse" element={<BoursePage />} />
-              <Route path="/vide-maison" element={<VideMaisonPage />} />
-              <Route path="/troc" element={<TrocPage />} />
-
-              {/* Legacy department code redirect is now handled by CategoryRouteWrapper */}
-
-              {/* Region level OR Event details: /{category}/{param} */}
-              {/* We use CategoryRouteWrapper to distinguish between a region slug and an event slug */}
-              <Route path="/:category/:param" element={<CategoryRouteWrapper />} />
-
-              {/* Department level: /{category}/{region}/{department} */}
-              <Route path="/:category/:regionSlug/:departmentSlug" element={<HomePage />} />
-
-              {/* City level OR Event details: /{category}/{region}/{department}/{param} */}
-              <Route path="/:category/:regionSlug/:departmentSlug/:param" element={<CategoryRouteWrapper />} />
-
-              {/* Direct event access */}
-              <Route path="/event/:id" element={<EventDetailsPage />} />
-
-              {/* User routes */}
-              <Route path="/mon-compte" element={<MyAccountPage />} />
-              <Route path="/ma-collection/ajouter" element={<AddObjectPage />} />
-              <Route path="/ma-collection/importer-csv" element={<CSVImportPage />} />
-              <Route path="/collection/:userPseudo" element={<CollectionShowcasePage />} />
-              <Route path="/ma-liste" element={<Navigate to="/mon-compte" replace />} />
-              <Route path="/soumettre" element={<SubmitEventPage />} />
-              <Route path="/edit-event/:id" element={<EditEventPage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/set-pseudo" element={<SetPseudoPage />} />
-              <Route path="/admin/dashboard" element={<AdminPage />} />
-              <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
-              {/* Legal pages */}
+              {/* Lazy loaded routes */}
+              <Route path="/vide-grenier/*" element={<VideGrenierPage />} />
+              <Route path="/brocante/*" element={<BrocantePage />} />
+              <Route path="/troc/*" element={<TrocPage />} />
+              <Route path="/event/:id" element={<EventDetailsPage />} />
+              <Route path="/mon-compte" element={<MyAccountPage />} />
+              <Route path="/admin/*" element={<AdminPage />} />
+              <Route path="/set-pseudo" element={<SetPseudoPage />} />
+              <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
               <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
               <Route path="/cgu" element={<CGUPage />} />
+              <Route path="/collection/:userId" element={<CollectionShowcasePage />} />
             </Routes>
-          </div>
-          <Footer />
-        </div>
-      </BrowserRouter>
-    </ErrorBoundary>
-  )
+          </Suspense>
+        </main>
+
+        <Footer />
+      </div>
+    </Router>
+  );
 }
