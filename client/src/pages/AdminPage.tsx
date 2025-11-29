@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { API } from '../config/constants'
 import { getToken, removeToken } from '../services/auth'
 import NoIndex from '../components/NoIndex'
+import toast from 'react-hot-toast';
 
 interface User {
   id: string
@@ -308,7 +309,7 @@ export default function AdminPage() {
       setEvents(events.map(e => selectedEvents.includes(e.id) ? { ...e, statut_validation: 'published' } : e))
       setSelectedEvents([])
     } catch (err) {
-      alert('Erreur lors de la validation de masse')
+      toast.error('Erreur lors de la validation de masse')
     }
   }
 
@@ -327,7 +328,7 @@ export default function AdminPage() {
       setEvents(events.map(e => selectedEvents.includes(e.id) ? { ...e, statut_validation: 'rejected' } : e))
       setSelectedEvents([])
     } catch (err) {
-      alert('Erreur lors du refus de masse')
+      toast.error('Erreur lors du refus de masse')
     }
   }
 
@@ -346,7 +347,7 @@ export default function AdminPage() {
       setEvents(events.filter(e => !selectedEvents.includes(e.id)))
       setSelectedEvents([])
     } catch (err) {
-      alert('Erreur lors de la suppression de masse')
+      toast.error('Erreur lors de la suppression de masse')
     }
   }
 

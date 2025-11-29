@@ -23,6 +23,7 @@ import CollectionSection from '../components/CollectionSection'
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+import toast from 'react-hot-toast';
 
 const DefaultIcon = L.icon({
     iconUrl: icon,
@@ -165,11 +166,11 @@ export default function MyAccountPage() {
             try {
                 await deleteAccount()
                 logout()
-                alert('Votre compte a été supprimé.')
+                toast.success('Votre compte a été supprimé.')
                 navigate('/')
             } catch (error) {
                 console.error('Erreur suppression compte:', error)
-                alert('Une erreur est survenue lors de la suppression du compte.')
+                toast.error('Une erreur est survenue lors de la suppression du compte.')
             }
         }
     }
@@ -182,7 +183,7 @@ export default function MyAccountPage() {
                 fetchMyEvents().then(setMyEvents)
             } catch (error) {
                 console.error('Erreur annulation événement:', error)
-                alert('Erreur lors de l\'annulation de l\'événement')
+                toast.error('Erreur lors de l\'annulation de l\'événement')
             }
         }
     }

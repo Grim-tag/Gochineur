@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service temporairement indisponible - GoChineur</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        h1 {
+            color: #ff6b35;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .status {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .loading-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ff8555);
+            width: 0%;
+            animation: loading 3s ease-in-out;
+        }
+
+        @keyframes loading {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        .retry-btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8555 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            display: none;
+        }
+
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+
+        .info {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .attempt-counter {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .status {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">⏳</div>
+        <h1 id="title">Reconnexion en cours...</h1>
+        <p class="status" id="status">
+            Le serveur se réveille, veuillez patienter quelques instants.
+        </p>
+        <div class="loading-bar" id="loadingBar">
+            <div class="loading-progress"></div>
+        </div>
+        <button class="retry-btn" id="retryBtn" onclick="retryNow()">
+            Réessayer maintenant
+        </button>
+        <p class="attempt-counter" id="attemptCounter"></p>
+        <p class="info">
+            Si le problème persiste, contactez-nous à <strong>gochineur@gmail.com</strong>
+        </p>
+    </div>
+
+    <script>
+        // Récupérer le nombre de tentatives depuis sessionStorage
+        let attempts = parseInt(sessionStorage.getItem('errorAttempts') || '0');
+        const MAX_AUTO_RETRIES = 2;
+        const RETRY_DELAYS = [3000, 5000]; // 3s puis 5s
+
+        function updateUI() {
+            const title = document.getElementById('title');
+            const status = document.getElementById('status');
+            const loadingBar = document.getElementById('loadingBar');
+            const retryBtn = document.getElementById('retryBtn');
+            const attemptCounter = document.getElementById('attemptCounter');
+
+            if (attempts < MAX_AUTO_RETRIES) {
+                // Tentatives automatiques
+                const delay = RETRY_DELAYS[attempts];
+                attemptCounter.textContent = `Tentative ${attempts + 1}/${MAX_AUTO_RETRIES}...`;
+
+                // Recharger après le délai
+                setTimeout(() => {
+                    sessionStorage.setItem('errorAttempts', (attempts + 1).toString());
+                    window.location.reload();
+                }, delay);
+            } else {
+                // Toutes les tentatives automatiques ont échoué
+                title.textContent = 'Service temporairement indisponible';
+                status.textContent = 'Nous rencontrons actuellement des difficultés techniques. Notre équipe a été alertée et travaille à résoudre le problème.';
+                loadingBar.style.display = 'none';
+                retryBtn.style.display = 'inline-block';
+                attemptCounter.textContent = 'Vous pouvez réessayer manuellement ou revenir dans quelques minutes.';
+
+                // Réinitialiser le compteur après 5 minutes
+                setTimeout(() => {
+                    sessionStorage.removeItem('errorAttempts');
+                }, 300000);
+            }
+        }
+
+        function retryNow() {
+            sessionStorage.removeItem('errorAttempts');
+            window.location.reload();
+        }
+
+        // Démarrer la logique de retry
+        updateUI();
+
+        // Réinitialiser le compteur si la page se charge correctement
+        window.addEventListener('beforeunload', () => {
+            // Si on quitte la page d'erreur, c'est que ça a marché
+            if (performance.navigation.type !== performance.navigation.TYPE_RELOAD) {
+                sessionStorage.removeItem('errorAttempts');
+            }
+        });
+    </script>
+</body>
+
+</html>

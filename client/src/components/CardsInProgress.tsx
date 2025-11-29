@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getToken } from '../services/auth'
+import toast from 'react-hot-toast';
 
 interface TempEstimation {
     _id: string
@@ -51,7 +52,7 @@ export default function CardsInProgress() {
         try {
             const token = getToken()
             if (!token) {
-                alert('Vous devez être connecté')
+                toast.success('Vous devez être connecté')
                 return
             }
 
@@ -69,11 +70,11 @@ export default function CardsInProgress() {
             if (data.success) {
                 setTempItems(prev => prev.filter(item => item._id !== tempId))
             } else {
-                alert(`Erreur: ${data.error}`)
+                toast.error(`Erreur: ${data.error}`)
             }
         } catch (error: any) {
             console.error('Error adding item:', error)
-            alert(`Erreur: ${error.message}`)
+            toast.error(`Erreur: ${error.message}`)
         } finally {
             setAdding(null)
         }

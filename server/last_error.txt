@@ -1,0 +1,50 @@
+﻿    at IncomingMessage.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (C:\Users\charl\Gochineur\server\node_modules\axios\dist\node\axios.cjs:4731:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async C:\Users\charl\Gochineur\server\routes\value.js:65:34
+Response: "No response data"
+
+[2025-11-27T20:04:37.751Z] /identify-photo Error: unknown format: mpa
+Stack: undefined
+Response: "No response data"
+
+[2025-11-27T20:10:55.280Z] Global Error: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+Stack: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\Users\charl\Gochineur\server\node_modules\body-parser\lib\types\json.js:77:19)
+    at C:\Users\charl\Gochineur\server\node_modules\body-parser\lib\read.js:123:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    at invokeCallback (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:238:16)
+    at done (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:518:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+[2025-11-27T20:13:04.180Z] Global Error: Bad escaped character in JSON at position 15 (line 1 column 16)
+Stack: SyntaxError: Bad escaped character in JSON at position 15 (line 1 column 16)
+    at JSON.parse (<anonymous>)
+    at parse (C:\Users\charl\Gochineur\server\node_modules\body-parser\lib\types\json.js:77:19)
+    at C:\Users\charl\Gochineur\server\node_modules\body-parser\lib\read.js:123:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    at invokeCallback (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:238:16)
+    at done (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\Users\charl\Gochineur\server\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:518:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+[2025-11-27T20:13:25.906Z] /estimate-by-title Error: Request failed with status code 500
+Stack: AxiosError: Request failed with status code 500
+    at settle (C:\Users\charl\Gochineur\server\node_modules\axios\dist\node\axios.cjs:2106:12)
+    at IncomingMessage.handleStreamEnd (C:\Users\charl\Gochineur\server\node_modules\axios\dist\node\axios.cjs:3491:11)
+    at IncomingMessage.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (C:\Users\charl\Gochineur\server\node_modules\axios\dist\node\axios.cjs:4731:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async C:\Users\charl\Gochineur\server\routes\value.js:147:30
+Response: {"errorMessage":[{"error":[{"errorId":["10001"],"domain":["Security"],"subdomain":["RateLimiter"],"severity":["Error"],"category":["System"],"message":["Service call has exceeded the number of times the operation is allowed to be called"],"parameter":[{"@name":"Param1","__value__":"findCompletedItems"},{"@name":"Param2","__value__":"FindingService"}]}]}]}
+

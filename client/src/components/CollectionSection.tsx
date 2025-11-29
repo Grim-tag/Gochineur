@@ -19,6 +19,7 @@ import CollectionTable from './CollectionTable'
 import BulkActionsBar from './BulkActionsBar'
 import QuickViewModal from './QuickViewModal'
 import { useRef } from 'react'
+import toast from 'react-hot-toast';
 
 interface CollectionSectionProps {
     user: User | null
@@ -105,12 +106,12 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
         setIsImporting(true)
         try {
             const result = await importCSV(file)
-            alert(`Import terminé avec succès ! ${result.success} objets importés.`)
+            toast.success(`Import terminé avec succès ! ${result.success} objets importés.`)
             await loadCollection()
             await loadStats()
         } catch (error: any) {
             console.error('Erreur import:', error)
-            alert(`Erreur lors de l'import: ${error.message}`)
+            toast.error(`Erreur lors de l'import: ${error.message}`)
         } finally {
             setIsImporting(false)
             if (fileInputRef.current) {
@@ -131,7 +132,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
             setSelectedIds(selectedIds.filter(id => id !== itemId))
         } catch (error) {
             console.error('Error deleting item:', error)
-            alert('Erreur lors de la suppression de l\'objet')
+            toast.error('Erreur lors de la suppression de l\'objet')
         }
     }
 
@@ -147,7 +148,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
             setSelectedIds([])
         } catch (error) {
             console.error('Error bulk deleting:', error)
-            alert('Erreur lors de la suppression des objets')
+            toast.error('Erreur lors de la suppression des objets')
         }
     }
 
@@ -159,7 +160,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
             setSelectedIds([])
         } catch (error) {
             console.error('Error bulk updating status:', error)
-            alert('Erreur lors de la modification du statut')
+            toast.error('Erreur lors de la modification du statut')
         }
     }
 
@@ -231,7 +232,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
 
         } catch (error: any) {
             console.error('Error updating item:', error)
-            alert(`Erreur lors de la modification de l'objet: ${error.message || 'Erreur inconnue'}`)
+            toast.error(`Erreur lors de la modification de l'objet: ${error.message || 'Erreur inconnue'}`)
         } finally {
             setSaving(false)
         }

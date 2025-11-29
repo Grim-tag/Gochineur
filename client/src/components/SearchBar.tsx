@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Event } from '../types'
 import { forwardGeocode } from '../utils/appUtils'
 import { saveUserLocation } from '../utils/locationStorage'
+import toast from 'react-hot-toast';
 
 interface SearchBarProps {
   onSearch: (searchTerm: string, radius: number, eventType: string, coordinates?: { latitude: number; longitude: number; city: string }) => void
@@ -170,7 +171,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
     setSearchTerm('') // Clear search term immediately
 
     if (!navigator.geolocation) {
-      alert('La géolocalisation n\'est pas supportée par votre navigateur')
+      toast.success('La géolocalisation n\'est pas supportée par votre navigateur')
       setGeolocating(false)
       return
     }
@@ -252,7 +253,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
       },
       (error) => {
         console.error('Erreur géolocalisation:', error)
-        alert('Impossible d\'obtenir votre position')
+        toast.error('Impossible d\'obtenir votre position')
         setGeolocating(false)
       }
     )

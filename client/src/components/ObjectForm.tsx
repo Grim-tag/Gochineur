@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { addItem, updateItem, type CollectionItem } from '../services/collectionApi'
 import { getUserFromToken, getToken } from '../services/auth'
 import { compressImage } from '../utils/imageCompression'
+import toast from 'react-hot-toast';
 
 interface ObjectFormProps {
     initialData?: CollectionItem
@@ -186,7 +187,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                         setPreviewUrls([])
                         setSelectedFiles([])
                         setCloudinaryImageUrl('')
-                        alert('✅ Estimation enregistrée ! Vous pouvez scanner un nouvel objet.')
+                        toast.success('✅ Estimation enregistrée ! Vous pouvez scanner un nouvel objet.')
                     }, 2000)
                 }
             }
@@ -211,7 +212,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
     setPreviewUrls([])
     setSelectedFiles([])
     setCloudinaryImageUrl('')
-    alert('✅ Estimation enregistrée ! Prêt pour une nouvelle.')
+    toast.success('✅ Estimation enregistrée ! Prêt pour une nouvelle.')
 }
 const fullReset = () => {
     setEstimationStep('idle')
