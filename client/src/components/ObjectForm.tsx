@@ -275,6 +275,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     ref={fileInputRef}
                     onChange={handleFileChange}
                     accept="image/*"
+                    capture="environment"
                     multiple
                     className="hidden"
                 />
