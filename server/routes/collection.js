@@ -64,6 +64,26 @@ module.exports = () => {
         }
     });
 
+    // GET /api/collection/temp - Get pending estimations for the authenticated user
+    router.get('/temp', authenticateJWT, async (req, res) => {
+        try {
+            const { getUserEstimationsTempCollection } = require('../config/db');
+            const collection = getUserEstimationsTempCollection();
+            const userId = req.user.id;
+
+            const items = await collection.find({ user_id: userId }).sort({ createdAt: -1 }).toArray();
+
+            res.json({
+                success: true,
+                count: items.length,
+                data: items
+            });
+        } catch (error) {
+            console.error('Error fetching temp estimations:', error);
+            res.status(500).json({ success: false, error: 'Server error' });
+        }
+    });
+
     // GET /api/collection/search - Search and filter collection
     router.get('/search', authenticateJWT, async (req, res) => {
         try {
@@ -299,6 +319,61 @@ module.exports = () => {
 
         } catch (error) {
             console.error('Error adding item:', error);
+            res.status(500).json({ success: false, error: 'Server error' });
+        }
+    });
+
+    // POST /api/collection/add-quick - Quick add from temp estimation
+    router.post('/add-quick', authenticateJWT, async (req, res) => {
+        try {
+            const { getUserEstimationsTempCollection } = require('../config/db');
+            const collection = getUserItemsCollection();
+            const tempCollection = getUserEstimationsTempCollection();
+            const userId = req.user.id;
+            const { tempId } = req.body;
+
+            if (!tempId || !ObjectId.isValid(tempId)) {
+                return res.status(400).json({ success: false, error: 'Invalid tempId' });
+            }
+
+            // Find the temp estimation
+            const tempItem = await tempCollection.findOne({
+                _id: new ObjectId(tempId),
+                user_id: userId
+            });
+
+            if (!tempItem) {
+                return res.status(404).json({ success: false, error: 'Temp estimation not found' });
+            }
+
+            // Create new item from temp estimation
+            const newItem = {
+                user_id: userId,
+                name: tempItem.search_query,
+                status: tempItem.status || 'keeper',
+                isPublic: false,
+                valeur_estimee: tempItem.estimation_result?.median_price || null,
+                photos_principales: tempItem.image_url ? [tempItem.image_url] : [],
+                photos_detail: [],
+                photos_preuve: [],
+                createdAt: new Date(),
+                updatedAt: new Date()
+            };
+
+            // Insert into main collection
+            const result = await collection.insertOne(newItem);
+
+            // Delete from temp collection
+            await tempCollection.deleteOne({ _id: new ObjectId(tempId) });
+
+            res.status(201).json({
+                success: true,
+                message: 'Item added successfully from temp estimation',
+                data: { ...newItem, _id: result.insertedId }
+            });
+
+        } catch (error) {
+            console.error('Error in add-quick:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });

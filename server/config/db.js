@@ -13,6 +13,8 @@ let db = null;
 let eventsCollection = null;
 let usersCollection = null;
 let userItemsCollection = null;
+let priceHistoryCollection = null;
+let userEstimationsTempCollection = null;
 
 /**
  * Établit la connexion à MongoDB Atlas
@@ -41,6 +43,8 @@ async function connectDB() {
     eventsCollection = db.collection('events');
     usersCollection = db.collection('users');
     userItemsCollection = db.collection('user_items');
+    priceHistoryCollection = db.collection('price_history');
+    userEstimationsTempCollection = db.collection('user_estimations_temp');
 
     // Créer des index pour améliorer les performances
     await eventsCollection.createIndex({ date_debut: 1 });
@@ -50,6 +54,9 @@ async function connectDB() {
     await usersCollection.createIndex({ googleId: 1 }, { unique: true });
     await usersCollection.createIndex({ email: 1 }, { unique: true });
     await userItemsCollection.createIndex({ user_id: 1 });
+    await priceHistoryCollection.createIndex({ search_query: 1 }, { unique: true });
+    await userEstimationsTempCollection.createIndex({ user_id: 1 });
+    await userEstimationsTempCollection.createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // Auto-delete after 24h
 
     console.log('✅ Collections et index créés');
   } catch (error) {
@@ -71,6 +78,8 @@ async function closeDB() {
       eventsCollection = null;
       usersCollection = null;
       userItemsCollection = null;
+      priceHistoryCollection = null;
+      userEstimationsTempCollection = null;
       console.log('✅ Connexion MongoDB fermée');
     }
   } catch (error) {
@@ -136,6 +145,18 @@ module.exports = {
       throw new Error('❌ Collection user_items non disponible. Appelez connectDB() d\'abord.');
     }
     return userItemsCollection;
+  },
+  getPriceHistoryCollection: () => {
+    if (!priceHistoryCollection) {
+      throw new Error('❌ Collection price_history non disponible. Appelez connectDB() d\'abord.');
+    }
+    return priceHistoryCollection;
+  },
+  getUserEstimationsTempCollection: () => {
+    if (!userEstimationsTempCollection) {
+      throw new Error('❌ Collection user_estimations_temp non disponible. Appelez connectDB() d\'abord.');
+    }
+    return userEstimationsTempCollection;
   }
 };
 

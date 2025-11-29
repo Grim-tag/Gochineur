@@ -1,5 +1,6 @@
 import Header from '../components/Header'
 import ObjectForm from '../components/ObjectForm'
+import CardsInProgress from '../components/CardsInProgress'
 
 export default function AddObjectPage() {
     return (
@@ -15,6 +16,8 @@ export default function AddObjectPage() {
                 </div>
 
                 <ObjectForm />
+
+                <CardsInProgress />
             </div>
         </div>
     )

@@ -23,6 +23,8 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
     const [estimationStep, setEstimationStep] = useState<'idle' | 'analyzing' | 'review' | 'estimating' | 'complete'>('idle')
     const [identifiedName, setIdentifiedName] = useState('')
     const [estimationStats, setEstimationStats] = useState<{ min: number, max: number, count: number } | null>(null)
+    const [fastScanMode, setFastScanMode] = useState(false)
+    const [cloudinaryImageUrl, setCloudinaryImageUrl] = useState('')
 
     // Form states
     const [name, setName] = useState(initialData?.name || '')
@@ -94,6 +96,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
 
             if (data.success) {
                 setIdentifiedName(data.identifiedTitle || '')
+                setCloudinaryImageUrl(data.imageUrl || '') // Save Cloudinary URL
                 setEstimationStep('review')
                 // Pre-fill name if empty
                 if (!name && data.identifiedTitle) {
@@ -125,7 +128,10 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ searchQuery: identifiedName })
+                body: JSON.stringify({
+                    searchQuery: identifiedName,
+                    imageUrl: cloudinaryImageUrl // Send Cloudinary URL
+                })
             })
 
             const data = await response.json()
@@ -148,6 +154,18 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     if (window.confirm(`Voulez-vous utiliser "${identifiedName}" comme nom principal de l'objet ?`)) {
                         setName(identifiedName)
                     }
+                }
+
+                // ✨ Fast Scan Mode: Auto-reset form
+                if (fastScanMode) {
+                    setTimeout(() => {
+                        resetEstimation()
+                        setName('')
+                        setPreviewUrls([])
+                        setSelectedFiles([])
+                        setCloudinaryImageUrl('')
+                        alert('✅ Estimation enregistrée ! Vous pouvez scanner un nouvel objet.')
+                    }, 2000)
                 }
             }
         } catch (err: any) {
@@ -254,9 +272,27 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             {/* AI Estimation Section (New V2 Flow) - Admin Only */}
             {isAdmin && (
                 <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-600">
-                    <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-                        <span>✨</span> Estimation IA (Prix Réels)
-                    </h3>
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                            <span>✨</span> Estimation IA (Prix Réels)
+                        </h3>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={fastScanMode}
+                                onChange={(e) => setFastScanMode(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-600 text-primary focus:ring-primary bg-background"
+                            />
+                            <span className="text-sm font-medium text-text-secondary">⚡ Mode Scan Rapide</span>
+                        </label>
+                    </div>
+
+                    {fastScanMode && (
+                        <div className="bg-blue-900/20 border border-blue-800 rounded p-3 mb-4 text-sm text-blue-300">
+                            <strong>Mode Scan Rapide activé :</strong> Le formulaire se réinitialisera automatiquement après chaque estimation.
+                            Vos objets seront disponibles dans "Estimations en cours" ci-dessous.
+                        </div>
+                    )}
 
                     {estimationStep === 'idle' && (
                         <div className="text-center">

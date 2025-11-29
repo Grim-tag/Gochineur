@@ -128,13 +128,14 @@ module.exports = function () {
     });
 
     const { authenticateJWT, requireAdmin } = require('../middleware/auth');
+    const { getPriceHistoryCollection, getUserEstimationsTempCollection } = require('../config/db');
 
     // Route 2: Estimation sur Objets Vendus (eBay Finding API)
     // PROTECTED: Admin only
     router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
         console.log('💰 [Step 2] Estimation request received');
         try {
-            const { searchQuery } = req.body;
+            const { searchQuery, imageUrl } = req.body;
 
             if (!searchQuery) {
                 return res.status(400).json({ error: 'Titre de recherche manquant' });
@@ -234,6 +235,50 @@ module.exports = function () {
             const maxPrice = prices[prices.length - 1];
 
             console.log(`✅ Found ${count} sold items. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
+
+            // ✨ NEW: Save to price_history collection
+            try {
+                const priceHistoryCollection = getPriceHistoryCollection();
+                await priceHistoryCollection.updateOne(
+                    { search_query: searchQuery },
+                    {
+                        $set: {
+                            median_price: medianPrice,
+                            min_price: minPrice,
+                            max_price: maxPrice,
+                            sold_count_total: count,
+                            last_updated: new Date()
+                        }
+                    },
+                    { upsert: true }
+                );
+                console.log('💾 Price history updated');
+            } catch (historyError) {
+                console.error('⚠️ Error saving to price_history:', historyError);
+                // Continue even if history save fails
+            }
+
+            // ✨ NEW: Save to user_estimations_temp collection
+            try {
+                const userEstimationsTempCollection = getUserEstimationsTempCollection();
+                await userEstimationsTempCollection.insertOne({
+                    user_id: req.user.id,
+                    search_query: searchQuery,
+                    image_url: imageUrl || null,
+                    estimation_result: {
+                        median_price: medianPrice,
+                        min_price: minPrice,
+                        max_price: maxPrice,
+                        sold_count: count
+                    },
+                    status: 'keeper', // Default status
+                    createdAt: new Date()
+                });
+                console.log('💾 Temp estimation saved');
+            } catch (tempError) {
+                console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                // Continue even if temp save fails
+            }
 
             res.json({
                 success: true,
