@@ -197,12 +197,16 @@ module.exports = function () {
     const { authenticateJWT, requireAdmin } = require('../middleware/auth');
     const { getPriceHistoryCollection, getUserEstimationsTempCollection } = require('../config/db');
 
-    // Route 2: Estimation sur Objets Vendus (eBay Finding API)
+    // POST /api/value/estimate-by-title - Get price estimation using eBay Finding API (Sold Items)
     // PROTECTED: Admin only
     router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
         console.log('💰 [Step 2] Estimation request received');
+
+        // Declare at route level so accessible in catch block
+        let searchQuery = req.body.searchQuery;
+        let imageUrl = req.body.imageUrl;
+
         try {
-            const { searchQuery, imageUrl } = req.body;
 
             if (!searchQuery) {
                 return res.status(400).json({ error: 'Titre de recherche manquant' });
