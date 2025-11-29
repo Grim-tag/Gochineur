@@ -3,6 +3,7 @@ const router = express.Router();
 const geoData = require('../config/geo-data.json');
 const { getDB } = require('../config/db');
 const axios = require('axios');
+const logger = require('../config/logger');
 
 /**
  * Routes pour les données géographiques
@@ -16,7 +17,7 @@ module.exports = function () {
                 data: geoData
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des données géographiques:', error);
+            logger.error('Erreur lors de la récupération des données géographiques:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });
@@ -29,7 +30,7 @@ module.exports = function () {
                 cities: geoData.cities
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des villes:', error);
+            logger.error('Erreur lors de la récupération des villes:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });
@@ -42,7 +43,7 @@ module.exports = function () {
                 regions: geoData.regions
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des régions:', error);
+            logger.error('Erreur lors de la récupération des régions:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });
@@ -55,7 +56,7 @@ module.exports = function () {
                 departments: geoData.departments
             });
         } catch (error) {
-            console.error('Erreur lors de la récupération des départements:', error);
+            logger.error('Erreur lors de la récupération des départements:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });
@@ -71,7 +72,7 @@ module.exports = function () {
                 cities
             });
         } catch (error) {
-            console.error('Erreur récupération villes DB:', error);
+            logger.error('Erreur récupération villes DB:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });
@@ -97,7 +98,7 @@ module.exports = function () {
 
             res.json(response.data);
         } catch (error) {
-            console.error('Erreur proxy géocodage:', error.message);
+            logger.error('Erreur proxy géocodage:', error.message);
             res.status(500).json({ success: false, error: 'Erreur lors du géocodage' });
         }
     });
@@ -124,7 +125,7 @@ module.exports = function () {
 
             res.json(response.data);
         } catch (error) {
-            console.error('Erreur reverse geocoding:', error.message);
+            logger.error('Erreur reverse geocoding:', error.message);
             res.status(500).json({ success: false, error: 'Erreur lors du reverse geocoding' });
         }
     });
@@ -178,13 +179,13 @@ module.exports = function () {
                 const dept = geoData.departments.find(d => d.code === deptCode);
                 if (dept) {
                     closestDept = deptCode;
-                    console.log(`Département trouvé via code postal ${postalCode}: ${deptCode}`);
+                    logger.info(`Département trouvé via code postal ${postalCode}: ${deptCode}`);
                 }
             }
 
             // Fallback: proximité géographique si pas de code postal
             if (!closestDept) {
-                console.log('Code postal non disponible, utilisation de la proximité géographique');
+                logger.info('Code postal non disponible, utilisation de la proximité géographique');
                 let minDistance = Infinity;
                 geoData.departments.forEach(dept => {
                     const distance = Math.sqrt(
@@ -218,7 +219,7 @@ module.exports = function () {
 
             res.json({ success: true, city });
         } catch (error) {
-            console.error('Erreur ajout ville:', error);
+            logger.error('Erreur ajout ville:', error);
             res.status(500).json({ success: false, error: error.message });
         }
     });

@@ -6,7 +6,7 @@ const cloudinary = require('cloudinary').v2;
 
 module.exports = function () {
     const router = express.Router();
-    console.log('🔧 Initializing Value Routes...');
+    logger.info('🔧 Initializing Value Routes...');
 
     // Configuration Cloudinary
     cloudinary.config({
@@ -56,7 +56,7 @@ module.exports = function () {
 
     // Route 1: Identification Visuelle (SerpApi / Google Lens)
     router.post('/identify-photo', upload.single('image'), async (req, res) => {
-        console.log('📸 [Step 1] Identification request received');
+        logger.info('📸 [Step 1] Identification request received');
         try {
             if (!req.file) {
                 return res.status(400).json({ error: 'Aucune image fournie' });
@@ -67,7 +67,7 @@ module.exports = function () {
             }
 
             // Log file details
-            console.log(`📂 Received file: ${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)`);
+            logger.info(`📂 Received file: ${req.file.originalname} (${req.file.mimetype}, ${req.file.size} bytes)`);
 
             // Pré-traitement de l'image
             let processedImageBuffer;
@@ -76,20 +76,20 @@ module.exports = function () {
                     .resize(800, 800, { fit: 'inside' })
                     .jpeg({ quality: 80 })
                     .toBuffer();
-                console.log('✅ Image processed with Sharp');
+                logger.info('✅ Image processed with Sharp');
             } catch (sharpError) {
-                console.warn('⚠️ Sharp processing failed, using original buffer:', sharpError.message);
+                logger.warn('⚠️ Sharp processing failed, using original buffer:', sharpError.message);
                 processedImageBuffer = req.file.buffer;
             }
 
             // 1. Upload to Cloudinary to get a public URL
-            console.log('☁️ Uploading to Cloudinary...');
+            logger.info('☁️ Uploading to Cloudinary...');
             const cloudinaryResult = await uploadToCloudinary(processedImageBuffer);
             const imageUrl = cloudinaryResult.secure_url;
-            console.log('✅ Image uploaded:', imageUrl);
+            logger.info('✅ Image uploaded:', imageUrl);
 
             // 2. Call SerpApi with the public URL
-            console.log('🔍 Sending to SerpApi (Google Lens)...');
+            logger.info('🔍 Sending to SerpApi (Google Lens)...');
 
             const serpResponse = await axios.get('https://serpapi.com/search', {
                 params: {
@@ -104,11 +104,11 @@ module.exports = function () {
 
             if (visualMatches.length > 0) {
                 identifiedTitle = visualMatches[0].title;
-                console.log('🧠 Raw:', identifiedTitle);
+                logger.info('🧠 Raw:', identifiedTitle);
                 identifiedTitle = cleanTitle(identifiedTitle);
-                console.log('✨ Clean:', identifiedTitle);
+                logger.info('✨ Clean:', identifiedTitle);
             } else {
-                console.log('⚠️ No visual matches found');
+                logger.info('⚠️ No visual matches found');
             }
 
             // Optional: Delete from Cloudinary to save space? 
@@ -124,13 +124,13 @@ module.exports = function () {
             try {
                 const publicId = cloudinaryResult.public_id;
                 await cloudinary.uploader.destroy(publicId);
-                console.log('🧹 Temp image deleted from Cloudinary:', publicId);
+                logger.info('🧹 Temp image deleted from Cloudinary:', publicId);
             } catch (cleanupError) {
-                console.warn('⚠️ Failed to delete temp image:', cleanupError.message);
+                logger.warn('⚠️ Failed to delete temp image:', cleanupError.message);
             }
 
         } catch (error) {
-            console.error('❌ Error in /identify-photo:', error.message);
+            logger.error('❌ Error in /identify-photo:', error.message);
 
             // Log to file for debugging
             try {
@@ -140,7 +140,7 @@ module.exports = function () {
                 const logEntry = `[${new Date().toISOString()}] /identify-photo Error: ${error.message}\nStack: ${error.stack}\nResponse: ${JSON.stringify(error.response?.data || 'No response data')}\n\n`;
                 fs.appendFileSync(logPath, logEntry);
             } catch (e) {
-                console.error('Failed to write to error log:', e);
+                logger.error('Failed to write to error log:', e);
             }
 
             res.status(500).json({ error: 'Erreur lors de l\'identification', details: error.message });
@@ -149,7 +149,7 @@ module.exports = function () {
 
     // Helper function to fetch prices from Google Shopping (via SerpApi)
     const fetchGoogleShoppingPrices = async (searchQuery) => {
-        console.log(`🛒 Fetching prices from Google Shopping for: "${searchQuery}"`);
+        logger.info(`🛒 Fetching prices from Google Shopping for: "${searchQuery}"`);
 
         try {
             const response = await axios.get('https://serpapi.com/search', {
@@ -166,7 +166,7 @@ module.exports = function () {
             const shoppingResults = response.data.shopping_results || [];
 
             if (shoppingResults.length === 0) {
-                console.log('⚠️ No Google Shopping results found');
+                logger.info('⚠️ No Google Shopping results found');
                 return null;
             }
 
@@ -184,7 +184,7 @@ module.exports = function () {
                 .filter(p => p !== null && p > 0);
 
             if (prices.length === 0) {
-                console.log('⚠️ No valid prices found in Google Shopping results');
+                logger.info('⚠️ No valid prices found in Google Shopping results');
                 return null;
             }
 
@@ -198,7 +198,7 @@ module.exports = function () {
             const minPrice = prices[0];
             const maxPrice = prices[prices.length - 1];
 
-            console.log(`✅ Google Shopping: ${prices.length} results. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
+            logger.info(`✅ Google Shopping: ${prices.length} results. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
 
             return {
                 medianPrice,
@@ -209,7 +209,7 @@ module.exports = function () {
             };
 
         } catch (error) {
-            console.error('❌ Error fetching Google Shopping prices:', error.message);
+            logger.error('❌ Error fetching Google Shopping prices:', error.message);
             return null;
         }
     };
@@ -220,7 +220,7 @@ module.exports = function () {
     // POST /api/value/estimate-by-title - Get price estimation using eBay Finding API (Sold Items)
     // PROTECTED: Admin only
     router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
-        console.log('💰 [Step 2] Estimation request received');
+        logger.info('💰 [Step 2] Estimation request received');
 
         // Declare at route level so accessible in catch block
         let searchQuery = req.body.searchQuery;
@@ -236,7 +236,7 @@ module.exports = function () {
                 throw new Error('EBAY_CLIENT_ID (App ID) manquant');
             }
 
-            console.log(`🔎 Searching eBay Sold Items for: "${searchQuery}"`);
+            logger.info(`🔎 Searching eBay Sold Items for: "${searchQuery}"`);
 
             // Appel eBay Finding API (Legacy)
             // Note: Passing SECURITY-APPNAME in params as well to ensure it's picked up
@@ -249,10 +249,10 @@ module.exports = function () {
 
             // Inject User Token if available (bypasses rate limits)
             if (process.env.EBAY_USER_TOKEN) {
-                console.log('🔑 EBAY_USER_TOKEN found, injecting into headers...');
+                logger.info('🔑 EBAY_USER_TOKEN found, injecting into headers...');
                 headers['X-EBAY-SOA-SECURITY-TOKEN'] = process.env.EBAY_USER_TOKEN;
             } else {
-                console.warn('⚠️ EBAY_USER_TOKEN is missing from environment variables');
+                logger.warn('⚠️ EBAY_USER_TOKEN is missing from environment variables');
             }
 
             const response = await axios.get(EBAY_FINDING_URL, {
@@ -278,11 +278,11 @@ module.exports = function () {
                 const errorId = errorData.errorId[0];
                 const errorMsg = errorData.message[0];
 
-                console.error(`❌ eBay API Error [${errorId}]: ${errorMsg}`);
+                logger.error(`❌ eBay API Error [${errorId}]: ${errorMsg}`);
 
                 // ✨ FALLBACK: If eBay quota exceeded, try Google Shopping
                 if (errorId === '10001') {
-                    console.log('🔄 eBay quota exceeded, falling back to Google Shopping...');
+                    logger.info('🔄 eBay quota exceeded, falling back to Google Shopping...');
 
                     const googleResult = await fetchGoogleShoppingPrices(searchQuery);
 
@@ -305,7 +305,7 @@ module.exports = function () {
                                 { upsert: true }
                             );
                         } catch (historyError) {
-                            console.error('⚠️ Error saving Google Shopping to price_history:', historyError);
+                            logger.error('⚠️ Error saving Google Shopping to price_history:', historyError);
                         }
 
                         // Save to user_estimations_temp
@@ -326,7 +326,7 @@ module.exports = function () {
                                 createdAt: new Date()
                             });
                         } catch (tempError) {
-                            console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                            logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
                         }
 
                         return res.json({
@@ -354,7 +354,7 @@ module.exports = function () {
             const count = parseInt(searchResult['@count'], 10);
 
             if (count === 0) {
-                console.log('⚠️ No sold items found');
+                logger.info('⚠️ No sold items found');
                 return res.json({
                     success: true,
                     averagePrice: 0,
@@ -385,7 +385,7 @@ module.exports = function () {
             const minPrice = prices[0];
             const maxPrice = prices[prices.length - 1];
 
-            console.log(`✅ Found ${count} sold items. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
+            logger.info(`✅ Found ${count} sold items. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
 
             // ✨ NEW: Save to price_history collection
             try {
@@ -404,9 +404,9 @@ module.exports = function () {
                     },
                     { upsert: true }
                 );
-                console.log('💾 Price history updated (eBay)');
+                logger.info('💾 Price history updated (eBay)');
             } catch (historyError) {
-                console.error('⚠️ Error saving to price_history:', historyError);
+                logger.error('⚠️ Error saving to price_history:', historyError);
                 // Continue even if history save fails
             }
 
@@ -427,9 +427,9 @@ module.exports = function () {
                     status: 'keeper', // Default status
                     createdAt: new Date()
                 });
-                console.log('💾 Temp estimation saved (eBay)');
+                logger.info('💾 Temp estimation saved (eBay)');
             } catch (tempError) {
-                console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
                 // Continue even if temp save fails
             }
 
@@ -444,11 +444,11 @@ module.exports = function () {
             });
 
         } catch (error) {
-            console.error('❌ Error in /estimate-by-title:', error.message);
+            logger.error('❌ Error in /estimate-by-title:', error.message);
 
             if (error.response && error.response.data) {
                 const data = error.response.data;
-                console.error('eBay Response Data:', JSON.stringify(data, null, 2));
+                logger.error('eBay Response Data:', JSON.stringify(data, null, 2));
 
                 // Check for Rate Limit Error (10001) in the error response
                 if (data.errorMessage && data.errorMessage[0] && data.errorMessage[0].error) {
@@ -456,7 +456,7 @@ module.exports = function () {
                     const errorId = errorData.errorId ? errorData.errorId[0] : null;
 
                     if (errorId === '10001') {
-                        console.log('🔄 eBay quota exceeded (catch block), falling back to Google Shopping...');
+                        logger.info('🔄 eBay quota exceeded (catch block), falling back to Google Shopping...');
 
                         try {
                             const googleResult = await fetchGoogleShoppingPrices(searchQuery);
@@ -480,7 +480,7 @@ module.exports = function () {
                                         { upsert: true }
                                     );
                                 } catch (historyError) {
-                                    console.error('⚠️ Error saving Google Shopping to price_history:', historyError);
+                                    logger.error('⚠️ Error saving Google Shopping to price_history:', historyError);
                                 }
 
                                 // Save to user_estimations_temp
@@ -501,7 +501,7 @@ module.exports = function () {
                                         createdAt: new Date()
                                     });
                                 } catch (tempError) {
-                                    console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                                    logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
                                 }
 
                                 return res.json({
@@ -515,7 +515,7 @@ module.exports = function () {
                                 });
                             }
                         } catch (googleError) {
-                            console.error('⚠️ Google Shopping fallback failed:', googleError);
+                            logger.error('⚠️ Google Shopping fallback failed:', googleError);
                         }
 
                         // If Google Shopping also fails, return error
@@ -531,11 +531,12 @@ module.exports = function () {
             try {
                 const fs = require('fs');
                 const path = require('path');
+const logger = require('../config/logger');
                 const logPath = path.join(__dirname, '..', 'error.log');
                 const logEntry = `[${new Date().toISOString()}] /estimate-by-title Error: ${error.message}\nStack: ${error.stack}\nResponse: ${JSON.stringify(error.response?.data || 'No response data')}\n\n`;
                 fs.appendFileSync(logPath, logEntry);
             } catch (e) {
-                console.error('Failed to write to error log:', e);
+                logger.error('Failed to write to error log:', e);
             }
 
             res.status(500).json({ error: 'Erreur lors de l\'estimation', details: error.message });

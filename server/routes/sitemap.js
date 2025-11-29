@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const geoData = require('../config/geo-data.json');
+const logger = require('../config/logger');
 
 module.exports = function () {
     router.get('/sitemap.xml', (req, res) => {
@@ -70,7 +71,7 @@ module.exports = function () {
             res.header('Content-Type', 'application/xml');
             res.send(xml);
         } catch (error) {
-            console.error('Erreur generation sitemap:', error);
+            logger.error('Erreur generation sitemap:', error);
             res.status(500).send('Erreur generation sitemap');
         }
     });

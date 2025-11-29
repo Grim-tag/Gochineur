@@ -59,7 +59,7 @@ module.exports = function (googleClientId, googleClientSecret) {
       const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
 
       if (!user) {
-        console.error('❌ Aucun utilisateur dans req.user après authentification');
+        logger.error('❌ Aucun utilisateur dans req.user après authentification');
         return res.redirect(`${mainClientUrl}/?error=no_user`);
       }
 
@@ -71,13 +71,13 @@ module.exports = function (googleClientId, googleClientSecret) {
           returnTo = decodedState.returnTo || '/';
         }
       } catch (e) {
-        console.warn('⚠️ Impossible de décoder le paramètre state:', e.message);
+        logger.warn('⚠️ Impossible de décoder le paramètre state:', e.message);
       }
 
       // Recharger l'utilisateur depuis MongoDB pour avoir les données à jour (rôle, displayName)
       const freshUser = await usersCollection.findOne({ id: user.id });
       if (!freshUser) {
-        console.error(`❌ Utilisateur ${user.id} non trouvé dans MongoDB`);
+        logger.error(`❌ Utilisateur ${user.id} non trouvé dans MongoDB`);
         return res.redirect(`${mainClientUrl}/?error=user_not_found`);
       }
 
@@ -96,6 +96,7 @@ module.exports = function (googleClientId, googleClientSecret) {
 
       // Générer un JWT pour l'utilisateur
       const { generateToken } = require('../utils/jwt');
+const logger = require('../config/logger');
 
       try {
         const token = generateToken(freshUser);
@@ -121,13 +122,13 @@ module.exports = function (googleClientId, googleClientSecret) {
         // Rediriger vers la page de callback OAuth avec le token et la destination
         return res.redirect(`${mainClientUrl}/oauth/callback?token=${token}&destination=${encodeURIComponent(finalDestination)}`);
       } catch (jwtError) {
-        console.error('❌ Erreur lors de la génération du JWT:', jwtError);
+        logger.error('❌ Erreur lors de la génération du JWT:', jwtError);
         const isProduction = process.env.NODE_ENV === 'production';
         const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
         return res.redirect(`${mainClientUrl}/?error=jwt_error`);
       }
     } catch (error) {
-      console.error('❌ Erreur lors du callback Google:', error);
+      logger.error('❌ Erreur lors du callback Google:', error);
 
       // Déterminer l'URL du client selon l'environnement
       const isProduction = process.env.NODE_ENV === 'production';

@@ -4,6 +4,7 @@ const { getDB } = require('../config/db');
 const { ObjectId } = require('mongodb');
 const { authenticateJWT } = require('../middleware/auth');
 const { extractTokenFromHeader, verifyToken } = require('../utils/jwt');
+const logger = require('../config/logger');
 
 module.exports = function () {
     // Route pour récupérer l'utilisateur courant
@@ -105,7 +106,7 @@ module.exports = function () {
                 user: safeUser
             });
         } catch (error) {
-            console.error('Erreur /set-pseudo:', error);
+            logger.error('Erreur /set-pseudo:', error);
             res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du pseudo' });
         }
     });
@@ -128,7 +129,7 @@ module.exports = function () {
 
             res.json({ success: true, message: 'Compte supprimé avec succès' });
         } catch (error) {
-            console.error('Erreur lors de la suppression du compte:', error);
+            logger.error('Erreur lors de la suppression du compte:', error);
             res.status(500).json({ error: 'Erreur serveur lors de la suppression du compte' });
         }
     });

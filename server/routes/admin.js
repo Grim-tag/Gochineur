@@ -4,6 +4,7 @@ const { getEventsCollection, getUsersCollection, cleanDatabase } = require('../c
 const { normalizeEventType } = require('../utils/dataTransform');
 const { authenticateJWT, requireAdminOrModerator, requireAdmin } = require('../middleware/auth');
 const { importAllData } = require('../services/dataImporter');
+const logger = require('../config/logger');
 
 /**
  * Routes d'administration
@@ -30,7 +31,7 @@ module.exports = function () {
         details: result.details
       });
     } catch (error) {
-      console.error('❌ Erreur lors de l\'importation:', error.message);
+      logger.error('❌ Erreur lors de l\'importation:', error.message);
       return res.status(500).json({
         error: `Erreur lors de l'importation: ${error.message}`
       });
@@ -78,7 +79,7 @@ module.exports = function () {
         changes: typeChanges
       });
     } catch (error) {
-      console.error('Erreur lors de la normalisation des types:', error);
+      logger.error('Erreur lors de la normalisation des types:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -117,7 +118,7 @@ module.exports = function () {
         published: updatedCount
       });
     } catch (error) {
-      console.error('❌ Erreur lors de la publication des événements:', error);
+      logger.error('❌ Erreur lors de la publication des événements:', error);
       return res.status(500).json({
         error: 'Erreur lors de la publication des événements',
         details: error.message
@@ -152,7 +153,7 @@ module.exports = function () {
         totalEvents: totalEvents
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour des statuts:', error);
+      logger.error('Erreur lors de la mise à jour des statuts:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -168,7 +169,7 @@ module.exports = function () {
         deleted: result.deleted
       });
     } catch (error) {
-      console.error('Erreur lors du nettoyage de la base de données:', error);
+      logger.error('Erreur lors du nettoyage de la base de données:', error);
       res.status(500).json({ error: 'Erreur lors du nettoyage de la base de données' });
     }
   });
@@ -183,7 +184,7 @@ module.exports = function () {
         deleted: result.deleted
       });
     } catch (error) {
-      console.error('Erreur lors du nettoyage de la base de données:', error);
+      logger.error('Erreur lors du nettoyage de la base de données:', error);
       res.status(500).json({ error: 'Erreur lors du nettoyage de la base de données' });
     }
   });
@@ -228,7 +229,7 @@ module.exports = function () {
             }
           }
         } catch (err) {
-          console.error(`Erreur migration event ${event.id}:`, err);
+          logger.error(`Erreur migration event ${event.id}:`, err);
           errors++;
         }
       }
@@ -240,7 +241,7 @@ module.exports = function () {
         errors: errors
       });
     } catch (error) {
-      console.error('Erreur lors de la migration des IDs:', error);
+      logger.error('Erreur lors de la migration des IDs:', error);
       res.status(500).json({ error: 'Erreur lors de la migration des IDs' });
     }
   });
@@ -265,7 +266,7 @@ module.exports = function () {
 
       res.json({ success: true, users: formattedUsers, total: formattedUsers.length });
     } catch (error) {
-      console.error('Erreur lors de la récupération des utilisateurs:', error);
+      logger.error('Erreur lors de la récupération des utilisateurs:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -307,7 +308,7 @@ module.exports = function () {
         }
       });
     } catch (error) {
-      console.error('Erreur lors de la modification du rôle:', error);
+      logger.error('Erreur lors de la modification du rôle:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -346,7 +347,7 @@ module.exports = function () {
         message: 'Utilisateur supprimé avec succès (RGPD)'
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'utilisateur:', error);
+      logger.error('Erreur lors de la suppression de l\'utilisateur:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -449,7 +450,7 @@ module.exports = function () {
 
       res.json({ success: true, events, total: events.length });
     } catch (error) {
-      console.error('Erreur lors de la récupération des événements:', error);
+      logger.error('Erreur lors de la récupération des événements:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -499,7 +500,7 @@ module.exports = function () {
             { id: event.user_id },
             { $set: { isExpert: true } }
           );
-          console.log(`🎉 L'utilisateur ${user.displayName} (${user.id}) est devenu Chineur Expert !`);
+          logger.info(`🎉 L'utilisateur ${user.displayName} (${user.id}) est devenu Chineur Expert !`);
         }
       }
 
@@ -511,7 +512,7 @@ module.exports = function () {
         event: updatedEvent
       });
     } catch (error) {
-      console.error('Erreur lors de la validation de l\'événement:', error);
+      logger.error('Erreur lors de la validation de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -545,7 +546,7 @@ module.exports = function () {
         event: updatedEvent
       });
     } catch (error) {
-      console.error('Erreur lors du refus de l\'événement:', error);
+      logger.error('Erreur lors du refus de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -588,7 +589,7 @@ module.exports = function () {
         event: updatedEvent
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de l\'événement:', error);
+      logger.error('Erreur lors de la mise à jour de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -611,7 +612,7 @@ module.exports = function () {
         message: 'Événement supprimé avec succès'
       });
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'événement:', error);
+      logger.error('Erreur lors de la suppression de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });

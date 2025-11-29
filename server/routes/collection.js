@@ -59,7 +59,7 @@ module.exports = () => {
                 data: items
             });
         } catch (error) {
-            console.error('Error fetching collection:', error);
+            logger.error('Error fetching collection:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -79,7 +79,7 @@ module.exports = () => {
                 data: items
             });
         } catch (error) {
-            console.error('Error fetching temp estimations:', error);
+            logger.error('Error fetching temp estimations:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -99,7 +99,7 @@ module.exports = () => {
 
             res.json({ success: true });
         } catch (error) {
-            console.error('Error deleting temp estimation:', error);
+            logger.error('Error deleting temp estimation:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -164,7 +164,7 @@ module.exports = () => {
                 }
             });
         } catch (error) {
-            console.error('Error searching collection:', error);
+            logger.error('Error searching collection:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -196,7 +196,7 @@ module.exports = () => {
 
             res.json({ success: true, data: stats });
         } catch (error) {
-            console.error('Error fetching stats:', error);
+            logger.error('Error fetching stats:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -219,7 +219,7 @@ module.exports = () => {
 
             res.json({ success: true, deletedCount: result.deletedCount });
         } catch (error) {
-            console.error('Error bulk deleting:', error);
+            logger.error('Error bulk deleting:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -245,7 +245,7 @@ module.exports = () => {
 
             res.json({ success: true, modifiedCount: result.modifiedCount });
         } catch (error) {
-            console.error('Error bulk updating status:', error);
+            logger.error('Error bulk updating status:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -299,7 +299,7 @@ module.exports = () => {
                         ? JSON.parse(metadonnees_techniques)
                         : metadonnees_techniques;
                 } catch (e) {
-                    console.error('Error parsing metadata:', e);
+                    logger.error('Error parsing metadata:', e);
                 }
             }
 
@@ -338,7 +338,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error adding item:', error);
+            logger.error('Error adding item:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -370,7 +370,7 @@ module.exports = () => {
             let cloudinaryUrl = null;
             if (tempItem.image_base64) {
                 try {
-                    console.log('📤 Uploading base64 image to Cloudinary...');
+                    logger.info('📤 Uploading base64 image to Cloudinary...');
                     const buffer = Buffer.from(tempItem.image_base64, 'base64');
 
                     const uploadResult = await new Promise((resolve, reject) => {
@@ -385,9 +385,9 @@ module.exports = () => {
                     });
 
                     cloudinaryUrl = uploadResult.secure_url;
-                    console.log('✅ Image uploaded to Cloudinary:', cloudinaryUrl);
+                    logger.info('✅ Image uploaded to Cloudinary:', cloudinaryUrl);
                 } catch (uploadError) {
-                    console.error('⚠️ Error uploading to Cloudinary:', uploadError);
+                    logger.error('⚠️ Error uploading to Cloudinary:', uploadError);
                     // Continue without image if upload fails
                 }
             }
@@ -419,7 +419,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error in add-quick:', error);
+            logger.error('Error in add-quick:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -468,7 +468,7 @@ module.exports = () => {
                 try {
                     parsedLayout = JSON.parse(layoutRaw);
                 } catch (e) {
-                    console.error('Error parsing image_layout:', e);
+                    logger.error('Error parsing image_layout:', e);
                 }
             }
 
@@ -506,7 +506,7 @@ module.exports = () => {
                         ? JSON.parse(metadonnees_techniques)
                         : metadonnees_techniques;
                 } catch (e) {
-                    console.error('Error parsing metadata:', e);
+                    logger.error('Error parsing metadata:', e);
                 }
             }
 
@@ -546,7 +546,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error updating item:', error);
+            logger.error('Error updating item:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -577,7 +577,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error deleting item:', error);
+            logger.error('Error deleting item:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });
@@ -632,7 +632,7 @@ module.exports = () => {
             await workbook.xlsx.write(res);
             res.end();
         } catch (error) {
-            console.error('Error generating template:', error);
+            logger.error('Error generating template:', error);
             res.status(500).json({ success: false, error: 'Could not generate template' });
         }
     });
@@ -779,7 +779,7 @@ module.exports = () => {
                             const uploadResult = await uploadToCloudinary(optimizedBuffer);
                             processedPhotos.push(uploadResult.secure_url);
                         } catch (imageError) {
-                            console.error(`Error downloading image for row ${rowNumber}:`, imageError.message);
+                            logger.error(`Error downloading image for row ${rowNumber}:`, imageError.message);
                             results.imageWarnings.push({
                                 row: rowNumber,
                                 itemName: name,
@@ -810,7 +810,7 @@ module.exports = () => {
                     results.success++;
 
                 } catch (rowError) {
-                    console.error(`Error processing row ${rowNumber}:`, rowError);
+                    logger.error(`Error processing row ${rowNumber}:`, rowError);
                     results.errors.push({ row: rowNumber, error: rowError.message });
                 }
             }
@@ -822,7 +822,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error importing file:', error);
+            logger.error('Error importing file:', error);
             res.status(500).json({ success: false, error: 'Server error during import' });
         }
     });
@@ -832,6 +832,7 @@ module.exports = () => {
         try {
             const collection = getUserItemsCollection();
             const { getUsersCollection } = require('../config/db');
+const logger = require('../config/logger');
             const usersCollection = getUsersCollection();
 
             const userId = req.params.userId;
@@ -871,7 +872,7 @@ module.exports = () => {
             });
 
         } catch (error) {
-            console.error('Error fetching public collection:', error);
+            logger.error('Error fetching public collection:', error);
             res.status(500).json({ success: false, error: 'Server error' });
         }
     });

@@ -7,6 +7,7 @@ const { getTodayISO, formatDateISO } = require('../utils/dateUtils');
 const { EVENTS, EVENT_STATUS, GEOLOCATION } = require('../config/constants');
 const { authenticateJWT } = require('../middleware/auth');
 const DOMPurify = require('isomorphic-dompurify');
+const logger = require('../config/logger');
 
 /**
  * Routes publiques pour les événements
@@ -20,7 +21,7 @@ module.exports = function () {
       try {
         eventsCollection = getEventsCollection();
       } catch (collectionError) {
-        console.error('❌ Erreur: Impossible de récupérer la collection events:', collectionError);
+        logger.error('❌ Erreur: Impossible de récupérer la collection events:', collectionError);
         return res.status(500).json({
           error: 'Erreur de connexion à la base de données',
           details: collectionError.message
@@ -29,7 +30,7 @@ module.exports = function () {
 
       // Vérifier que la collection existe et est accessible
       const collectionExists = await eventsCollection.countDocuments({}).catch(err => {
-        console.error('❌ Erreur lors du comptage des documents:', err);
+        logger.error('❌ Erreur lors du comptage des documents:', err);
         return -1;
       });
 
@@ -151,13 +152,13 @@ module.exports = function () {
 
       // S'assurer que la réponse est bien un tableau, même s'il est vide
       if (!Array.isArray(futureEvents)) {
-        console.error('❌ Erreur: futureEvents n\'est pas un tableau:', typeof futureEvents);
+        logger.error('❌ Erreur: futureEvents n\'est pas un tableau:', typeof futureEvents);
         return res.status(500).json({ error: 'Erreur: la réponse n\'est pas un tableau' });
       }
 
       res.json(futureEvents);
     } catch (error) {
-      console.error('Erreur lors de la lecture des événements:', error);
+      logger.error('Erreur lors de la lecture des événements:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -168,16 +169,16 @@ module.exports = function () {
     try {
       const eventsCollection = getEventsCollection();
       const userId = req.user.id;
-      console.log(`🔍 Récupération des événements pour user_id: ${userId}`);
+      logger.info(`🔍 Récupération des événements pour user_id: ${userId}`);
 
       const myEvents = await eventsCollection.find({ user_id: userId })
         .sort({ date_creation: -1 }) // Plus récents d'abord
         .toArray();
 
-      console.log(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
+      logger.info(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
       res.json(myEvents);
     } catch (error) {
-      console.error('Erreur lors de la récupération des événements utilisateur:', error);
+      logger.error('Erreur lors de la récupération des événements utilisateur:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -196,7 +197,7 @@ module.exports = function () {
 
       res.json(event);
     } catch (error) {
-      console.error('Erreur lors de la récupération de l\'événement:', error);
+      logger.error('Erreur lors de la récupération de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur' });
     }
   });
@@ -347,7 +348,7 @@ module.exports = function () {
         }
       });
     } catch (error) {
-      console.error('Erreur lors de la soumission:', error);
+      logger.error('Erreur lors de la soumission:', error);
       res.status(500).json({ error: 'Erreur lors de la soumission de l\'événement' });
     }
   });
@@ -467,7 +468,7 @@ module.exports = function () {
       });
 
     } catch (error) {
-      console.error('Erreur lors de la modification de l\'événement:', error);
+      logger.error('Erreur lors de la modification de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur lors de la modification' });
     }
   });
@@ -506,7 +507,7 @@ module.exports = function () {
       });
 
     } catch (error) {
-      console.error('Erreur lors de l\'annulation de l\'événement:', error);
+      logger.error('Erreur lors de l\'annulation de l\'événement:', error);
       res.status(500).json({ error: 'Erreur serveur lors de l\'annulation' });
     }
   });
