@@ -26,6 +26,14 @@ export interface CollectionItem {
     updatedAt?: string
 }
 
+export interface SearchCollectionResponse {
+    data: CollectionItem[]
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+}
+
 export const fetchCollection = async (): Promise<CollectionItem[]> => {
     const token = getToken()
     const response = await fetch(`${API.BASE_URL}/api/collection?t=${new Date().getTime()}`, {

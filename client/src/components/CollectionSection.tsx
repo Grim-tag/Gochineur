@@ -75,7 +75,7 @@ export default function CollectionSection({ user }: CollectionSectionProps) {
                 limit: 1000 // Load all for now, can add pagination later
             })
             setCollectionItems(result.data)
-            setTotalCount(result.pagination?.total || result.data.length)
+            setTotalCount(result.total || result.data.length)
         } catch (error) {
             console.error('Erreur chargement collection:', error)
         } finally {

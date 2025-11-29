@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react'
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Event, GeoData } from '../types'
 import { forwardGeocode } from '../utils/appUtils'
 import { saveUserLocation } from '../utils/locationStorage'
+import toast from 'react-hot-toast'
+
+interface SearchBarProps {
+  onSearch: (searchTerm: string, radius: number, eventType: string, coordinates?: { latitude: number; longitude: number; city: string }) => void
+  onRadiusChange?: (radius: number) => void
+  onReset?: () => void
+  geoData: GeoData | null
+  events?: Event[]
+  currentRadius?: number
 }
 
 export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, currentRadius }: SearchBarProps) {

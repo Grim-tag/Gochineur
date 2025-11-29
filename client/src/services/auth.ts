@@ -2,6 +2,20 @@
  * Service d'authentification JWT
  */
 
+interface DecodedToken {
+    userId: string
+    email: string
+    role?: string
+    exp?: number
+    iat?: number
+}
+
+interface User {
+    userId: string
+    email: string
+    role?: string
+}
+
 const TOKEN_KEY = 'gochineur_token';
 
 /**

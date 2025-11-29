@@ -1,9 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import LoadingSpinner from './components/LoadingSpinner';
 
 // Eager load critical pages
 import HomePage from './pages/HomePage';
@@ -45,10 +43,8 @@ export default function App() {
           }}
         />
 
-        <Navbar />
-
         <main className="flex-grow">
-          <Suspense fallback={<LoadingSpinner />}>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
             <Routes>
               {/* Critical routes (no lazy loading) */}
               <Route path="/" element={<HomePage />} />
