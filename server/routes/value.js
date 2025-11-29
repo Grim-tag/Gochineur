@@ -432,9 +432,72 @@ module.exports = function () {
                     const errorId = errorData.errorId ? errorData.errorId[0] : null;
 
                     if (errorId === '10001') {
+                        console.log('🔄 eBay quota exceeded (catch block), falling back to Google Shopping...');
+
+                        try {
+                            const googleResult = await fetchGoogleShoppingPrices(searchQuery);
+
+                            if (googleResult) {
+                                // Save to price_history with Google Shopping source
+                                try {
+                                    const priceHistoryCollection = getPriceHistoryCollection();
+                                    await priceHistoryCollection.updateOne(
+                                        { search_query: searchQuery },
+                                        {
+                                            $set: {
+                                                median_price: googleResult.medianPrice,
+                                                min_price: googleResult.minPrice,
+                                                max_price: googleResult.maxPrice,
+                                                sold_count_total: googleResult.count,
+                                                source: 'google_shopping',
+                                                last_updated: new Date()
+                                            }
+                                        },
+                                        { upsert: true }
+                                    );
+                                } catch (historyError) {
+                                    console.error('⚠️ Error saving Google Shopping to price_history:', historyError);
+                                }
+
+                                // Save to user_estimations_temp
+                                try {
+                                    const userEstimationsTempCollection = getUserEstimationsTempCollection();
+                                    await userEstimationsTempCollection.insertOne({
+                                        user_id: req.user.id,
+                                        search_query: searchQuery,
+                                        image_url: imageUrl || null,
+                                        estimation_result: {
+                                            median_price: googleResult.medianPrice,
+                                            min_price: googleResult.minPrice,
+                                            max_price: googleResult.maxPrice,
+                                            sold_count: googleResult.count
+                                        },
+                                        source: 'google_shopping',
+                                        status: 'keeper',
+                                        createdAt: new Date()
+                                    });
+                                } catch (tempError) {
+                                    console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                                }
+
+                                return res.json({
+                                    success: true,
+                                    averagePrice: googleResult.medianPrice,
+                                    minPrice: googleResult.minPrice,
+                                    maxPrice: googleResult.maxPrice,
+                                    soldCount: googleResult.count,
+                                    source: 'google_shopping',
+                                    currency: 'EUR'
+                                });
+                            }
+                        } catch (googleError) {
+                            console.error('⚠️ Google Shopping fallback failed:', googleError);
+                        }
+
+                        // If Google Shopping also fails, return error
                         return res.status(429).json({
-                            error: 'Limite d\'appels eBay atteinte pour aujourd\'hui.',
-                            details: 'Le quota journalier de l\'API eBay a été dépassé. Veuillez réessayer demain ou saisir le prix manuellement.'
+                            error: 'Limite d\'appels eBay atteinte et Google Shopping indisponible.',
+                            details: 'Le quota journalier de l\'API eBay a été dépassé et Google Shopping n\'a pas retourné de résultats. Veuillez réessayer plus tard ou saisir le prix manuellement.'
                         });
                     }
                 }
