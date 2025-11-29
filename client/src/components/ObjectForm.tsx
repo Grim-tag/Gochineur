@@ -53,11 +53,17 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
             const filesToAdd = files.slice(0, remainingSlots)
 
             if (filesToAdd.length > 0) {
-                const newPreviewUrls = filesToAdd.map(file => URL.createObjectURL(file))
+                const newPreviewUrls = filesToAdd.map(file => {
+                    const url = URL.createObjectURL(file)
+                    console.log('Created blob URL:', url, 'for file:', file.name)
+                    return url
+                })
                 setPreviewUrls(prev => [...prev, ...newPreviewUrls])
                 setSelectedFiles(prev => [...prev, ...filesToAdd])
             }
         }
+        // Reset input to allow re-uploading the same file
+        e.target.value = ''
     }
 
     const removeImage = (index: number) => {
@@ -240,250 +246,244 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
     return (
         <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl mx-auto bg-background-paper p-6 rounded-lg shadow-lg border border-gray-700">
 
-            {/* Photo Upload Section */}
-            <div className="flex flex-col items-center justify-center mb-8">
-                <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
-                    {previewUrls.map((url, index) => (
-                        <div key={index} className="aspect-square relative rounded-lg overflow-hidden border border-gray-600 group">
-                            <img src={url} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
-                            <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-                    ))}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+        </button>
+                        </div >
+                    ))
+}
 
-                    {previewUrls.length < 3 && (
-                        <div
-                            className="aspect-square bg-background-lighter border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                            onClick={() => fileInputRef.current?.click()}
-                        >
-                            <span className="text-3xl mb-2">📷</span>
-                            <span className="text-xs text-text-secondary text-center px-2">
-                                Ajouter ({3 - previewUrls.length} restants)
-                            </span>
-                        </div>
-                    )}
-                </div>
-                <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                />
-            </div>
+{
+    previewUrls.length < 3 && (
+        <div
+            className="aspect-square bg-background-lighter border-2 border-dashed border-gray-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
+            onClick={() => fileInputRef.current?.click()}
+        >
+            <span className="text-3xl mb-2">📷</span>
+            <span className="text-xs text-text-secondary text-center px-2">
+                Ajouter ({3 - previewUrls.length} restants)
+            </span>
+        </div>
+    )
+}
+                </div >
+    <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        multiple
+        className="hidden"
+    />
+            </div >
 
-            {error && (
-                <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
-                    {error}
-                </div>
-            )}
+    { error && (
+        <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
+            {error}
+        </div>
+    )}
 
-            {/* AI Estimation Section (New V2 Flow) - Admin Only */}
-            {isAdmin && (
-                <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-600">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-                            <span>✨</span> Estimation IA (Prix Réels)
-                        </h3>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={fastScanMode}
-                                onChange={(e) => setFastScanMode(e.target.checked)}
-                                className="w-5 h-5 rounded border-gray-600 text-primary focus:ring-primary bg-background"
-                            />
-                            <span className="text-sm font-medium text-text-secondary">⚡ Mode Scan Rapide</span>
-                        </label>
-                    </div>
-
-                    {fastScanMode && (
-                        <div className="bg-blue-900/20 border border-blue-800 rounded p-3 mb-4 text-sm text-blue-300">
-                            <strong>Mode Scan Rapide activé :</strong> Le formulaire se réinitialisera automatiquement après chaque estimation.
-                            Vos objets seront disponibles dans "Estimations en cours" ci-dessous.
-                        </div>
-                    )}
-
-                    {estimationStep === 'idle' && (
-                        <div className="text-center">
-                            <button
-                                type="button"
-                                onClick={handleAnalyzePhoto}
-                                disabled={selectedFiles.length === 0}
-                                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
-                            >
-                                📷 Analyser la photo
-                            </button>
-                            {selectedFiles.length === 0 && (
-                                <p className="text-xs text-text-secondary mt-2">Ajoutez une photo d'abord</p>
-                            )}
-                        </div>
-                    )}
-
-                    {estimationStep === 'analyzing' && (
-                        <div className="flex flex-col items-center justify-center py-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
-                            <p className="text-text-secondary animate-pulse">Identification de l'objet en cours...</p>
-                        </div>
-                    )}
-
-                    {estimationStep === 'review' && (
-                        <div className="space-y-4 animate-fade-in">
-                            <div className="flex items-start gap-4">
-                                {previewUrls.length > 0 && (
-                                    <img src={previewUrls[0]} alt="Thumbnail" className="w-16 h-16 object-cover rounded border border-gray-600" />
-                                )}
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-text-secondary mb-1">
-                                        Objet identifié (Modifiez si nécessaire)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={identifiedName}
-                                        onChange={(e) => setIdentifiedName(e.target.value)}
-                                        className="w-full px-3 py-2 bg-background border border-gray-600 rounded focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={resetEstimation}
-                                    className="px-4 py-2 text-sm text-text-secondary hover:text-white transition-colors"
-                                >
-                                    Annuler
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleEstimatePrice}
-                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md flex items-center gap-2"
-                                >
-                                    💰 Lancer l'estimation finale
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {estimationStep === 'estimating' && (
-                        <div className="flex flex-col items-center justify-center py-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
-                            <p className="text-text-secondary animate-pulse">Recherche des ventes réussies sur eBay...</p>
-                        </div>
-                    )}
-
-                    {estimationStep === 'complete' && estimationStats && (
-                        <div className="bg-green-900/20 border border-green-800 p-4 rounded-lg animate-fade-in">
-                            <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-semibold text-green-400">Estimation Réussie</h4>
-                                <button onClick={resetEstimation} className="text-xs text-text-secondary hover:text-white">Recommencer</button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <span className="text-text-secondary">Prix Médian :</span>
-                                    <span className="block text-2xl font-bold text-white">{estimatedValue} €</span>
-                                </div>
-                                <div>
-                                    <span className="text-text-secondary">Basé sur :</span>
-                                    <span className="block text-white">{estimationStats.count} ventes réussies</span>
-                                </div>
-                                <div className="col-span-2 text-xs text-text-secondary mt-1">
-                                    Fourchette : {estimationStats.min}€ - {estimationStats.max}€
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Main Info */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-primary border-b border-gray-700 pb-2">Informations Principales</h3>
-
-                <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Nom de l'objet *</label>
+{/* AI Estimation Section (New V2 Flow) - Admin Only */ }
+{
+    isAdmin && (
+        <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-600">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                    <span>✨</span> Estimation IA (Prix Réels)
+                </h3>
+                <label className="flex items-center gap-2 cursor-pointer">
                     <input
-                        type="text"
-                        required
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                        placeholder="Ex: Vase Gallé, Carte Pokémon Dracaufeu..."
+                        type="checkbox"
+                        checked={fastScanMode}
+                        onChange={(e) => setFastScanMode(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-600 text-primary focus:ring-primary bg-background"
                     />
+                    <span className="text-sm font-medium text-text-secondary">⚡ Mode Scan Rapide</span>
+                </label>
+            </div>
+
+            {fastScanMode && (
+                <div className="bg-blue-900/20 border border-blue-800 rounded p-3 mb-4 text-sm text-blue-300">
+                    <strong>Mode Scan Rapide activé :</strong> Le formulaire se réinitialisera automatiquement après chaque estimation.
+                    Vos objets seront disponibles dans "Estimations en cours" ci-dessous.
                 </div>
+            )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1">Statut *</label>
-                        <select
-                            value={status}
-                            onChange={e => setStatus(e.target.value as any)}
-                            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                        >
-                            <option value="keeper">🛡️ À Garder (Collection)</option>
-                            <option value="for_sale">💰 À Vendre</option>
-                            <option value="for_exchange">🤝 À Échanger</option>
-                        </select>
-                    </div>
+            {estimationStep === 'idle' && (
+                <div className="text-center">
+                    <button
+                        type="button"
+                        onClick={handleAnalyzePhoto}
+                        disabled={selectedFiles.length === 0}
+                        className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+                    >
+                        📷 Analyser la photo
+                    </button>
+                    {selectedFiles.length === 0 && (
+                        <p className="text-xs text-text-secondary mt-2">Ajoutez une photo d'abord</p>
+                    )}
+                </div>
+            )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1">Visibilité</label>
-                        <div className="flex items-center space-x-3 mt-2">
-                            <label className="flex items-center cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={isPublic}
-                                    onChange={e => setIsPublic(e.target.checked)}
-                                    className="w-5 h-5 rounded border-gray-600 text-primary focus:ring-primary bg-background"
-                                />
-                                <span className="ml-2 text-text-primary">Rendre public</span>
+            {estimationStep === 'analyzing' && (
+                <div className="flex flex-col items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"></div>
+                    <p className="text-text-secondary animate-pulse">Identification de l'objet en cours...</p>
+                </div>
+            )}
+
+            {estimationStep === 'review' && (
+                <div className="space-y-4 animate-fade-in">
+                    <div className="flex items-start gap-4">
+                        {previewUrls.length > 0 && (
+                            <img src={previewUrls[0]} alt="Thumbnail" className="w-16 h-16 object-cover rounded border border-gray-600" />
+                        )}
+                        <div className="flex-1">
+                            <label className="block text-sm font-medium text-text-secondary mb-1">
+                                Objet identifié (Modifiez si nécessaire)
                             </label>
+                            <input
+                                type="text"
+                                value={identifiedName}
+                                onChange={(e) => setIdentifiedName(e.target.value)}
+                                className="w-full px-3 py-2 bg-background border border-gray-600 rounded focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={resetEstimation}
+                            className="px-4 py-2 text-sm text-text-secondary hover:text-white transition-colors"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleEstimatePrice}
+                            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors shadow-md flex items-center gap-2"
+                        >
+                            💰 Lancer l'estimation finale
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {estimationStep === 'estimating' && (
+                <div className="flex flex-col items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mb-2"></div>
+                    <p className="text-text-secondary animate-pulse">Recherche des ventes réussies sur eBay...</p>
+                </div>
+            )}
+
+            {estimationStep === 'complete' && estimationStats && (
+                <div className="bg-green-900/20 border border-green-800 p-4 rounded-lg animate-fade-in">
+                    <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-green-400">Estimation Réussie</h4>
+                        <button onClick={resetEstimation} className="text-xs text-text-secondary hover:text-white">Recommencer</button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span className="text-text-secondary">Prix Médian :</span>
+                            <span className="block text-2xl font-bold text-white">{estimatedValue} €</span>
+                        </div>
+                        <div>
+                            <span className="text-text-secondary">Basé sur :</span>
+                            <span className="block text-white">{estimationStats.count} ventes réussies</span>
+                        </div>
+                        <div className="col-span-2 text-xs text-text-secondary mt-1">
+                            Fourchette : {estimationStats.min}€ - {estimationStats.max}€
                         </div>
                     </div>
                 </div>
+            )}
+        </div>
+    )
+}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1">Catégorie</label>
-                        <input
-                            type="text"
-                            value={category}
-                            onChange={e => setCategory(e.target.value)}
-                            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                            placeholder="Ex: Verrerie, Cartes..."
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-1">Sous-catégorie</label>
-                        <input
-                            type="text"
-                            value={subCategory}
-                            onChange={e => setSubCategory(e.target.value)}
-                            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                            placeholder="Ex: Art Nouveau, Set de base..."
-                        />
-                    </div>
-                </div>
+{/* Main Info */ }
+<div className="space-y-4">
+    <h3 className="text-lg font-semibold text-primary border-b border-gray-700 pb-2">Informations Principales</h3>
 
-                <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">Description</label>
-                    <textarea
-                        value={description}
-                        onChange={e => setDescription(e.target.value)}
-                        rows={3}
-                        className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
-                        placeholder="Détails sur l'objet..."
+    <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Nom de l'objet *</label>
+        <input
+            type="text"
+            required
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+            placeholder="Ex: Vase Gallé, Carte Pokémon Dracaufeu..."
+        />
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Statut *</label>
+            <select
+                value={status}
+                onChange={e => setStatus(e.target.value as any)}
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+            >
+                <option value="keeper">🛡️ À Garder (Collection)</option>
+                <option value="for_sale">💰 À Vendre</option>
+                <option value="for_exchange">🤝 À Échanger</option>
+            </select>
+        </div>
+
+        <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Visibilité</label>
+            <div className="flex items-center space-x-3 mt-2">
+                <label className="flex items-center cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={isPublic}
+                        onChange={e => setIsPublic(e.target.checked)}
+                        className="w-5 h-5 rounded border-gray-600 text-primary focus:ring-primary bg-background"
                     />
-                </div>
+                    <span className="ml-2 text-text-primary">Rendre public</span>
+                </label>
             </div>
+        </div>
+    </div>
 
-            {/* Details & History */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Catégorie</label>
+            <input
+                type="text"
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                placeholder="Ex: Verrerie, Cartes..."
+            />
+        </div>
+        <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1">Sous-catégorie</label>
+            <input
+                type="text"
+                value={subCategory}
+                onChange={e => setSubCategory(e.target.value)}
+                className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+                placeholder="Ex: Art Nouveau, Set de base..."
+            />
+        </div>
+    </div>
+
+    <div>
+        <label className="block text-sm font-medium text-text-secondary mb-1">Description</label>
+        <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={3}
+            className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none text-text-primary"
+            placeholder="Détails sur l'objet..."
+        />
+    </div>
+</div>
+
+{/* Details & History */ }
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-primary border-b border-gray-700 pb-2 pt-4">Détails & Historique</h3>
 
@@ -573,6 +573,6 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                     {loading ? 'Enregistrement...' : (isEditing ? 'Mettre à jour' : 'Ajouter à ma collection')}
                 </button>
             </div>
-        </form>
+        </form >
     )
 }
