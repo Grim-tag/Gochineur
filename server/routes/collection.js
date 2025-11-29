@@ -346,6 +346,32 @@ module.exports = () => {
                 return res.status(404).json({ success: false, error: 'Temp estimation not found' });
             }
 
+            // Upload base64 to Cloudinary if available
+            let cloudinaryUrl = null;
+            if (tempItem.image_base64) {
+                try {
+                    console.log('📤 Uploading base64 image to Cloudinary...');
+                    const buffer = Buffer.from(tempItem.image_base64, 'base64');
+
+                    const uploadResult = await new Promise((resolve, reject) => {
+                        const uploadStream = cloudinary.uploader.upload_stream(
+                            { folder: 'user_collections' }, // Permanent folder
+                            (error, result) => {
+                                if (error) return reject(error);
+                                resolve(result);
+                            }
+                        );
+                        uploadStream.end(buffer);
+                    });
+
+                    cloudinaryUrl = uploadResult.secure_url;
+                    console.log('✅ Image uploaded to Cloudinary:', cloudinaryUrl);
+                } catch (uploadError) {
+                    console.error('⚠️ Error uploading to Cloudinary:', uploadError);
+                    // Continue without image if upload fails
+                }
+            }
+
             // Create new item from temp estimation
             const newItem = {
                 user_id: userId,
@@ -353,7 +379,7 @@ module.exports = () => {
                 status: tempItem.status || 'keeper',
                 isPublic: false,
                 valeur_estimee: tempItem.estimation_result?.median_price || null,
-                photos_principales: tempItem.image_url ? [tempItem.image_url] : [],
+                photos_principales: cloudinaryUrl ? [cloudinaryUrl] : [],
                 photos_detail: [],
                 photos_preuve: [],
                 createdAt: new Date(),

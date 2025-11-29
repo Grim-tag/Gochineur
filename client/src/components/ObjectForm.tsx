@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addItem, updateItem, type CollectionItem } from '../services/collectionApi'
 import { getUserFromToken, getToken } from '../services/auth'
@@ -61,12 +61,29 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
     }
 
     const removeImage = (index: number) => {
+        // Revoke blob URL to free memory
+        const urlToRevoke = previewUrls[index]
+        if (urlToRevoke && urlToRevoke.startsWith('blob:')) {
+            URL.revokeObjectURL(urlToRevoke)
+        }
+
         setPreviewUrls(prev => prev.filter((_, i) => i !== index))
         if (index >= (initialData?.photos_principales?.length || 0)) {
             const fileIndex = index - (initialData?.photos_principales?.length || 0)
             setSelectedFiles(prev => prev.filter((_, i) => i !== fileIndex))
         }
     }
+
+    // Cleanup blob URLs on unmount
+    useEffect(() => {
+        return () => {
+            previewUrls.forEach(url => {
+                if (url && url.startsWith('blob:')) {
+                    URL.revokeObjectURL(url)
+                }
+            })
+        }
+    }, [previewUrls])
 
     // Step 1: Identify Photo (SerpApi)
     const handleAnalyzePhoto = async () => {
@@ -96,7 +113,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
 
             if (data.success) {
                 setIdentifiedName(data.identifiedTitle || '')
-                setCloudinaryImageUrl(data.imageUrl || '') // Save Cloudinary URL
+                setCloudinaryImageUrl(data.imageBase64 || '') // Store base64 temporarily
                 setEstimationStep('review')
                 // Pre-fill name if empty
                 if (!name && data.identifiedTitle) {
@@ -130,7 +147,7 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                 },
                 body: JSON.stringify({
                     searchQuery: identifiedName,
-                    imageUrl: cloudinaryImageUrl // Send Cloudinary URL
+                    imageBase64: cloudinaryImageUrl // Send base64 (variable name is misleading but contains base64 now)
                 })
             })
 
