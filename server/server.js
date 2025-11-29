@@ -22,6 +22,8 @@ const eventsRoutes = require('./routes/events');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
+// Render est derrière un proxy, nécessaire pour rate-limit et logs IP corrects
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Variables d'environnement
