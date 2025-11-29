@@ -40,71 +40,11 @@ if (!JWT_SECRET) {
 }
 
 // Configuration CORS avec credentials pour les sessions
-// CRITIQUE: Doit être avant express.json() et les autres middlewares
-const isProduction = process.env.NODE_ENV === 'production';
 
-// 🛡️ SÉCURITÉ: Configuration Helmet (Headers HTTP)
-// DOIT être AVANT CORS et autres middlewares
-app.use(helmet({
-  // HSTS: Force HTTPS pour 1 an
-  hsts: {
-    maxAge: 31536000, // 1 an en secondes
-    includeSubDomains: true,
-    preload: true
-  },
-
-  // Content Security Policy: Protection contre XSS
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'", // Nécessaire pour React/Vite en dev
-        "https://www.googletagmanager.com",
-        "https://www.google-analytics.com"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'", // Nécessaire pour les styles inline
-        "https://fonts.googleapis.com"
-      ],
-      fontSrc: [
-        "'self'",
-        "https://fonts.gstatic.com"
-      ],
-      imgSrc: [
-        "'self'",
-        "data:",
-        "https:",
-        "https://res.cloudinary.com" // Cloudinary pour les images
-      ],
-      connectSrc: [
-        "'self'",
-        "https://gochineur.fr",
-        "https://www.gochineur.fr",
-        "https://gochineur-backend.onrender.com",
-        "https://www.google-analytics.com"
-      ],
-      frameSrc: ["'none'"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: isProduction ? [] : null
-    }
-  },
-
-  // X-Frame-Options: Protection contre clickjacking
-  frameguard: {
-    action: 'deny'
-  },
-
-  // Referrer Policy: Contrôle des informations de référence
-  referrerPolicy: {
-    policy: 'strict-origin-when-cross-origin'
-  },
-
-  // Permissions Policy: Contrôle des fonctionnalités du navigateur
-  permittedCrossDomainPolicies: {
-    permittedPolicies: 'none'
-  }
+// Permissions Policy: Contrôle des fonctionnalités du navigateur
+permittedCrossDomainPolicies: {
+  permittedPolicies: 'none'
+}
 }));
 
 // Désactiver X-Powered-By (masquer Express)
