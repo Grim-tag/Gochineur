@@ -4,7 +4,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const cloudinary = require('cloudinary').v2;
 const { ObjectId } = require('mongodb');
-const { getUserItemsCollection } = require('../config/db');
+const { getUserItemsCollection, getUserEstimationsTempCollection } = require('../config/db');
 const { authenticateJWT } = require('../middleware/auth');
 const DOMPurify = require('isomorphic-dompurify');
 
