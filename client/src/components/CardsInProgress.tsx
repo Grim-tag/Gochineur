@@ -42,7 +42,6 @@ export default function CardsInProgress() {
 
     useEffect(() => {
         loadTempItems()
-        // Poll every 5 seconds
         const interval = setInterval(loadTempItems, 30000)
         return () => clearInterval(interval)
     }, [])
@@ -68,7 +67,6 @@ export default function CardsInProgress() {
 
             const data = await response.json()
             if (data.success) {
-                // Remove from temp list
                 setTempItems(prev => prev.filter(item => item._id !== tempId))
             } else {
                 alert(`Erreur: ${data.error}`)
@@ -78,6 +76,26 @@ export default function CardsInProgress() {
             alert(`Erreur: ${error.message}`)
         } finally {
             setAdding(null)
+        }
+    }
+
+    const handleDelete = async (tempId: string) => {
+        try {
+            const token = getToken()
+            if (!token) return
+
+            const apiUrl = import.meta.env.VITE_API_URL || ''
+            const response = await fetch(`${apiUrl}/api/collection/temp/${tempId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+
+            const data = await response.json()
+            if (data.success) {
+                setTempItems(prev => prev.filter(item => item._id !== tempId))
+            }
+        } catch (error) {
+            console.error('Error deleting:', error)
         }
     }
 
@@ -114,13 +132,21 @@ export default function CardsInProgress() {
                             </div>
                         )}
 
-                        <button
-                            onClick={() => handleQuickAdd(item._id)}
-                            disabled={adding === item._id}
-                            className="mt-auto w-full bg-primary text-white py-2 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 font-semibold"
-                        >
-                            {adding === item._id ? 'Ajout...' : '➕ Ajouter à ma collection'}
-                        </button>
+                        <div className="mt-auto flex gap-2">
+                            <button
+                                onClick={() => handleDelete(item._id)}
+                                className="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors font-semibold"
+                            >
+                                🗑️ Ignorer
+                            </button>
+                            <button
+                                onClick={() => handleQuickAdd(item._id)}
+                                disabled={adding === item._id}
+                                className="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 font-semibold"
+                            >
+                                {adding === item._id ? 'Ajout...' : '➕ Ajouter'}
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

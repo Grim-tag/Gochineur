@@ -84,6 +84,26 @@ module.exports = () => {
         }
     });
 
+    // DELETE /api/collection/temp/:id - Delete temporary estimation
+    router.delete('/temp/:id', authenticateJWT, async (req, res) => {
+        try {
+            const collection = getUserEstimationsTempCollection();
+            const result = await collection.deleteOne({
+                _id: new ObjectId(req.params.id),
+                user_id: req.user.id
+            });
+
+            if (result.deletedCount === 0) {
+                return res.status(404).json({ success: false, error: 'Not found' });
+            }
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Error deleting temp estimation:', error);
+            res.status(500).json({ success: false, error: 'Server error' });
+        }
+    });
+
     // GET /api/collection/search - Search and filter collection
     router.get('/search', authenticateJWT, async (req, res) => {
         try {
