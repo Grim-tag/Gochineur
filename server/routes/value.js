@@ -127,6 +127,73 @@ module.exports = function () {
         }
     });
 
+    // Helper function to fetch prices from Google Shopping (via SerpApi)
+    const fetchGoogleShoppingPrices = async (searchQuery) => {
+        console.log(`🛒 Fetching prices from Google Shopping for: "${searchQuery}"`);
+
+        try {
+            const response = await axios.get('https://serpapi.com/search', {
+                params: {
+                    engine: 'google_shopping',
+                    q: searchQuery,
+                    api_key: SERPAPI_KEY,
+                    gl: 'fr', // France
+                    hl: 'fr', // French
+                    num: 20   // Get 20 results
+                }
+            });
+
+            const shoppingResults = response.data.shopping_results || [];
+
+            if (shoppingResults.length === 0) {
+                console.log('⚠️ No Google Shopping results found');
+                return null;
+            }
+
+            // Extract prices
+            const prices = shoppingResults
+                .map(item => {
+                    // Try to get price from different possible fields
+                    const priceStr = item.extracted_price || item.price;
+                    if (!priceStr) return null;
+
+                    // Parse price (handle different formats)
+                    const price = typeof priceStr === 'number' ? priceStr : parseFloat(priceStr.toString().replace(/[^\d.,]/g, '').replace(',', '.'));
+                    return isNaN(price) ? null : price;
+                })
+                .filter(p => p !== null && p > 0);
+
+            if (prices.length === 0) {
+                console.log('⚠️ No valid prices found in Google Shopping results');
+                return null;
+            }
+
+            // Calculate median
+            prices.sort((a, b) => a - b);
+            const mid = Math.floor(prices.length / 2);
+            const medianPrice = prices.length % 2 !== 0
+                ? prices[mid]
+                : (prices[mid - 1] + prices[mid]) / 2;
+
+            const minPrice = prices[0];
+            const maxPrice = prices[prices.length - 1];
+
+            console.log(`✅ Google Shopping: ${prices.length} results. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
+
+            return {
+                medianPrice,
+                minPrice,
+                maxPrice,
+                count: prices.length,
+                source: 'google_shopping'
+            };
+
+        } catch (error) {
+            console.error('❌ Error fetching Google Shopping prices:', error.message);
+            return null;
+        }
+    };
+
     const { authenticateJWT, requireAdmin } = require('../middleware/auth');
     const { getPriceHistoryCollection, getUserEstimationsTempCollection } = require('../config/db');
 
@@ -189,10 +256,70 @@ module.exports = function () {
 
                 console.error(`❌ eBay API Error [${errorId}]: ${errorMsg}`);
 
+                // ✨ FALLBACK: If eBay quota exceeded, try Google Shopping
                 if (errorId === '10001') {
+                    console.log('🔄 eBay quota exceeded, falling back to Google Shopping...');
+
+                    const googleResult = await fetchGoogleShoppingPrices(searchQuery);
+
+                    if (googleResult) {
+                        // Save to price_history with Google Shopping source
+                        try {
+                            const priceHistoryCollection = getPriceHistoryCollection();
+                            await priceHistoryCollection.updateOne(
+                                { search_query: searchQuery },
+                                {
+                                    $set: {
+                                        median_price: googleResult.medianPrice,
+                                        min_price: googleResult.minPrice,
+                                        max_price: googleResult.maxPrice,
+                                        sold_count_total: googleResult.count,
+                                        source: 'google_shopping',
+                                        last_updated: new Date()
+                                    }
+                                },
+                                { upsert: true }
+                            );
+                        } catch (historyError) {
+                            console.error('⚠️ Error saving Google Shopping to price_history:', historyError);
+                        }
+
+                        // Save to user_estimations_temp
+                        try {
+                            const userEstimationsTempCollection = getUserEstimationsTempCollection();
+                            await userEstimationsTempCollection.insertOne({
+                                user_id: req.user.id,
+                                search_query: searchQuery,
+                                image_url: imageUrl || null,
+                                estimation_result: {
+                                    median_price: googleResult.medianPrice,
+                                    min_price: googleResult.minPrice,
+                                    max_price: googleResult.maxPrice,
+                                    sold_count: googleResult.count
+                                },
+                                source: 'google_shopping',
+                                status: 'keeper',
+                                createdAt: new Date()
+                            });
+                        } catch (tempError) {
+                            console.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                        }
+
+                        return res.json({
+                            success: true,
+                            averagePrice: googleResult.medianPrice,
+                            minPrice: googleResult.minPrice,
+                            maxPrice: googleResult.maxPrice,
+                            soldCount: googleResult.count,
+                            source: 'google_shopping',
+                            currency: 'EUR'
+                        });
+                    }
+
+                    // If Google Shopping also fails, return error
                     return res.status(429).json({
-                        error: 'Limite d\'appels eBay atteinte pour aujourd\'hui.',
-                        details: 'Le quota journalier de l\'API eBay a été dépassé. Veuillez réessayer demain ou saisir le prix manuellement.'
+                        error: 'Limite d\'appels eBay atteinte et Google Shopping indisponible.',
+                        details: 'Le quota journalier de l\'API eBay a été dépassé et Google Shopping n\'a pas retourné de résultats. Veuillez réessayer plus tard ou saisir le prix manuellement.'
                     });
                 }
 
@@ -247,12 +374,13 @@ module.exports = function () {
                             min_price: minPrice,
                             max_price: maxPrice,
                             sold_count_total: count,
+                            source: 'ebay',
                             last_updated: new Date()
                         }
                     },
                     { upsert: true }
                 );
-                console.log('💾 Price history updated');
+                console.log('💾 Price history updated (eBay)');
             } catch (historyError) {
                 console.error('⚠️ Error saving to price_history:', historyError);
                 // Continue even if history save fails
@@ -271,10 +399,11 @@ module.exports = function () {
                         max_price: maxPrice,
                         sold_count: count
                     },
+                    source: 'ebay',
                     status: 'keeper', // Default status
                     createdAt: new Date()
                 });
-                console.log('💾 Temp estimation saved');
+                console.log('💾 Temp estimation saved (eBay)');
             } catch (tempError) {
                 console.error('⚠️ Error saving to user_estimations_temp:', tempError);
                 // Continue even if temp save fails
@@ -286,6 +415,7 @@ module.exports = function () {
                 minPrice: minPrice,
                 maxPrice: maxPrice,
                 soldCount: count,
+                source: 'ebay',
                 currency: 'EUR'
             });
 
