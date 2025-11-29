@@ -23,8 +23,6 @@ module.exports = function ({ logger, authenticateJWT, requireAdmin, getPriceHist
 
     // Configuration
     const SERPAPI_KEY = process.env.SERPAPI_KEY;
-    const EBAY_APP_ID = process.env.EBAY_CLIENT_ID;
-    const EBAY_FINDING_URL = 'https://svcs.ebay.com/services/search/FindingService/v1';
 
     // Helper function to upload to Cloudinary
     const uploadToCloudinary = (buffer) => {
@@ -52,7 +50,7 @@ module.exports = function ({ logger, authenticateJWT, requireAdmin, getPriceHist
     // Helper function to fetch prices from Google Shopping via SerpApi
     const fetchGoogleShoppingPrices = async (query) => {
         try {
-            logger.info(`🛍️ Google Shopping fallback for: "${query}"`);
+            logger.info(`🛍️ Google Shopping search for: "${query}"`);
 
             const response = await axios.get('https://serpapi.com/search', {
                 params: {
@@ -197,10 +195,10 @@ module.exports = function ({ logger, authenticateJWT, requireAdmin, getPriceHist
         }
     });
 
-    // POST /api/value/estimate-by-title - Get price estimation using eBay Finding API (Sold Items)
+    // POST /api/value/estimate-by-title - Get price estimation using Google Shopping (SerpApi)
     // PROTECTED: Admin only
     router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
-        logger.info('💰 [Step 2] Estimation request received');
+        logger.info('💰 [Step 2] Estimation request received (Google Shopping Only)');
 
         // Declare at route level so accessible in catch block
         let searchQuery = req.body.searchQuery;
@@ -212,223 +210,95 @@ module.exports = function ({ logger, authenticateJWT, requireAdmin, getPriceHist
                 return res.status(400).json({ error: 'Titre de recherche manquant' });
             }
 
-            if (!EBAY_APP_ID) {
-                throw new Error('EBAY_CLIENT_ID (App ID) manquant');
+            if (!SERPAPI_KEY) {
+                throw new Error('SERPAPI_KEY manquante');
             }
 
-            logger.info(`🔎 Searching eBay Sold Items for: "${searchQuery}"`);
+            logger.info(`🔎 Searching Google Shopping for: "${searchQuery}"`);
 
-            // Appel eBay Finding API (Legacy)
-            const headers = {
-                'X-EBAY-SOA-OPERATION-NAME': 'findCompletedItems',
-                'X-EBAY-SOA-SECURITY-APPNAME': EBAY_APP_ID,
-                'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
-                'X-EBAY-SOA-GLOBAL-ID': 'EBAY-FR'
-            };
+            const googleResult = await fetchGoogleShoppingPrices(searchQuery);
 
-            // Inject User Token if available (bypasses rate limits)
-            if (process.env.EBAY_USER_TOKEN) {
-                logger.info('🔑 EBAY_USER_TOKEN found, injecting into headers...');
-                headers['X-EBAY-SOA-SECURITY-TOKEN'] = process.env.EBAY_USER_TOKEN;
-            } else {
-                logger.warn('⚠️ EBAY_USER_TOKEN is missing from environment variables');
-            }
-
-            const response = await axios.get(EBAY_FINDING_URL, {
-                headers: headers,
-                params: {
-                    'SECURITY-APPNAME': EBAY_APP_ID,
-                    'OPERATION-NAME': 'findCompletedItems',
-                    'SERVICE-VERSION': '1.0.0',
-                    'RESPONSE-DATA-FORMAT': 'JSON',
-                    'keywords': searchQuery,
-                    'categoryId': '',
-                    'itemFilter(0).name': 'SoldItemsOnly',
-                    'itemFilter(0).value': 'true',
-                    'sortOrder': 'EndTimeSoonest',
-                    'paginationInput.entriesPerPage': '20'
-                }
-            });
-
-            const data = response.data;
-
-            if (data.findCompletedItemsResponse && data.findCompletedItemsResponse[0].ack[0] === 'Failure') {
-                const errorData = data.findCompletedItemsResponse[0].errorMessage[0].error[0];
-                const errorId = errorData.errorId[0];
-                const errorMsg = errorData.message[0];
-
-                logger.error(`❌ eBay API Error [${errorId}]: ${errorMsg}`);
-
-                // ✨ FALLBACK: If eBay quota exceeded, try Google Shopping
-                if (errorId === '10001') {
-                    logger.info('🔄 eBay quota exceeded, falling back to Google Shopping...');
-
-                    const googleResult = await fetchGoogleShoppingPrices(searchQuery);
-
-                    if (googleResult) {
-                        // Save to price_history with Google Shopping source
-                        try {
-                            const priceHistoryCollection = getPriceHistoryCollection();
-                            await priceHistoryCollection.updateOne(
-                                { search_query: searchQuery },
-                                {
-                                    $set: {
-                                        median_price: googleResult.medianPrice,
-                                        min_price: googleResult.minPrice,
-                                        max_price: googleResult.maxPrice,
-                                        sold_count_total: googleResult.count,
-                                        source: 'google_shopping',
-                                        last_updated: new Date()
-                                    }
-                                },
-                                { upsert: true }
-                            );
-                        } catch (historyError) {
-                            logger.error('⚠️ Error saving Google Shopping to price_history:', historyError);
-                        }
-
-                        // Save to user_estimations_temp
-                        try {
-                            const userEstimationsTempCollection = getUserEstimationsTempCollection();
-                            await userEstimationsTempCollection.insertOne({
-                                user_id: req.user.id,
-                                search_query: searchQuery,
-                                image_url: imageUrl || null,
-                                estimation_result: {
-                                    median_price: googleResult.medianPrice,
-                                    min_price: googleResult.minPrice,
-                                    max_price: googleResult.maxPrice,
-                                    sold_count: googleResult.count
-                                },
+            if (googleResult) {
+                // Save to price_history with Google Shopping source
+                try {
+                    const priceHistoryCollection = getPriceHistoryCollection();
+                    await priceHistoryCollection.updateOne(
+                        { search_query: searchQuery },
+                        {
+                            $set: {
+                                median_price: googleResult.medianPrice,
+                                min_price: googleResult.minPrice,
+                                max_price: googleResult.maxPrice,
+                                sold_count_total: googleResult.count,
                                 source: 'google_shopping',
-                                status: 'keeper',
-                                createdAt: new Date()
-                            });
-                        } catch (tempError) {
-                            logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
-                        }
-
-                        // Return Google Shopping result
-                        return res.json({
-                            success: true,
-                            averagePrice: googleResult.medianPrice,
-                            minPrice: googleResult.minPrice,
-                            maxPrice: googleResult.maxPrice,
-                            soldCount: googleResult.count,
-                            source: 'google_shopping',
-                            currency: 'EUR'
-                        });
-                    }
-
-                    // No Google Shopping result
-                    return res.status(500).json({
-                        success: false,
-                        error: 'Limite d\'appels eBay atteinte et Google Shopping indisponible.',
-                        details: 'Le quota journalier de l\'API eBay a été dépassé et Google Shopping n\'a pas retourné de résultats.'
-                    });
+                                last_updated: new Date()
+                            }
+                        },
+                        { upsert: true }
+                    );
+                } catch (historyError) {
+                    logger.error('⚠️ Error saving Google Shopping to price_history:', historyError);
                 }
 
-                // Other eBay errors
-                return res.status(500).json({
-                    success: false,
-                    error: `eBay API Error: ${errorMsg}`
+                // Save to user_estimations_temp
+                try {
+                    const userEstimationsTempCollection = getUserEstimationsTempCollection();
+                    await userEstimationsTempCollection.insertOne({
+                        user_id: req.user.id,
+                        search_query: searchQuery,
+                        image_url: imageUrl || null,
+                        estimation_result: {
+                            median_price: googleResult.medianPrice,
+                            min_price: googleResult.minPrice,
+                            max_price: googleResult.maxPrice,
+                            sold_count: googleResult.count
+                        },
+                        source: 'google_shopping',
+                        status: 'keeper',
+                        createdAt: new Date()
+                    });
+                } catch (tempError) {
+                    logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
+                }
+
+                // Return Google Shopping result
+                return res.json({
+                    success: true,
+                    averagePrice: googleResult.medianPrice,
+                    minPrice: googleResult.minPrice,
+                    maxPrice: googleResult.maxPrice,
+                    soldCount: googleResult.count,
+                    source: 'google_shopping',
+                    currency: 'EUR'
                 });
-            }
-
-            // Normal eBay processing
-            const searchResult = data.findCompletedItemsResponse[0].searchResult[0];
-            const count = parseInt(searchResult['@count'], 10);
-
-            if (count === 0) {
-                logger.info('⚠️ No sold items found');
+            } else {
+                // No Google Shopping result
+                logger.info('⚠️ No results found on Google Shopping');
                 return res.json({
                     success: true,
                     averagePrice: 0,
                     minPrice: 0,
                     maxPrice: 0,
                     soldCount: 0,
-                    message: 'Aucune vente trouvée pour cet objet'
+                    message: 'Aucun résultat trouvé sur Google Shopping',
+                    source: 'google_shopping'
                 });
             }
-
-            const items = searchResult.item || [];
-            const prices = items.map(item => {
-                const sellingStatus = item.sellingStatus && item.sellingStatus[0];
-                const currentPrice = sellingStatus && sellingStatus.currentPrice && sellingStatus.currentPrice[0];
-                return currentPrice ? parseFloat(currentPrice['__value__']) : null;
-            }).filter(p => p !== null && !isNaN(p));
-
-            if (prices.length === 0) {
-                return res.json({ success: true, averagePrice: 0, soldCount: 0 });
-            }
-
-            prices.sort((a, b) => a - b);
-            const mid = Math.floor(prices.length / 2);
-            const medianPrice = prices.length % 2 !== 0
-                ? prices[mid]
-                : (prices[mid - 1] + prices[mid]) / 2;
-
-            const minPrice = prices[0];
-            const maxPrice = prices[prices.length - 1];
-
-            logger.info(`✅ Found ${count} sold items. Median: ${medianPrice}€ (Range: ${minPrice}-${maxPrice})`);
-
-            // ✨ NEW: Save to price_history collection
-            try {
-                const priceHistoryCollection = getPriceHistoryCollection();
-                await priceHistoryCollection.updateOne(
-                    { search_query: searchQuery },
-                    {
-                        $set: {
-                            median_price: medianPrice,
-                            min_price: minPrice,
-                            max_price: maxPrice,
-                            sold_count_total: count,
-                            source: 'ebay',
-                            last_updated: new Date()
-                        }
-                    },
-                    { upsert: true }
-                );
-                logger.info('💾 Price history updated (eBay)');
-            } catch (historyError) {
-                logger.error('⚠️ Error saving to price_history:', historyError);
-            }
-
-            // ✨ NEW: Save to user_estimations_temp collection
-            try {
-                const userEstimationsTempCollection = getUserEstimationsTempCollection();
-                await userEstimationsTempCollection.insertOne({
-                    user_id: req.user.id,
-                    search_query: searchQuery,
-                    image_url: imageUrl || null,
-                    estimation_result: {
-                        median_price: medianPrice,
-                        min_price: minPrice,
-                        max_price: maxPrice,
-                        sold_count: count
-                    },
-                    source: 'ebay',
-                    status: 'keeper', // Default status
-                    createdAt: new Date()
-                });
-                logger.info('💾 Temp estimation saved (eBay)');
-            } catch (tempError) {
-                logger.error('⚠️ Error saving to user_estimations_temp:', tempError);
-            }
-
-            res.json({
-                success: true,
-                averagePrice: medianPrice,
-                minPrice: minPrice,
-                maxPrice: maxPrice,
-                soldCount: count,
-                source: 'ebay',
-                currency: 'EUR'
-            });
 
         } catch (error) {
             logger.error('❌ Error in /estimate-by-title:', error.message);
+
+            // Log to file for debugging
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const logPath = path.join(__dirname, '..', 'error.log');
+                const logEntry = `[${new Date().toISOString()}] /estimate-by-title Error: ${error.message}\nStack: ${error.stack}\nResponse: ${JSON.stringify(error.response?.data || 'No response data')}\n\n`;
+                fs.appendFileSync(logPath, logEntry);
+            } catch (e) {
+                logger.error('Failed to write to error log:', e);
+            }
+
             res.status(500).json({ error: 'Erreur lors de l\'estimation', details: error.message });
         }
     });
