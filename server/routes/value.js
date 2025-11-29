@@ -120,6 +120,15 @@ module.exports = function () {
                 imageUrl: imageUrl // Return the URL so frontend can use it if needed
             });
 
+            // Clean up temporary Cloudinary upload after response
+            try {
+                const publicId = cloudinaryResult.public_id;
+                await cloudinary.uploader.destroy(publicId);
+                console.log('🧹 Temp image deleted from Cloudinary:', publicId);
+            } catch (cleanupError) {
+                console.warn('⚠️ Failed to delete temp image:', cleanupError.message);
+            }
+
         } catch (error) {
             console.error('❌ Error in /identify-photo:', error.message);
 

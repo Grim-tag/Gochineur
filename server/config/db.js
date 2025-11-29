@@ -55,8 +55,16 @@ async function connectDB() {
     await usersCollection.createIndex({ email: 1 }, { unique: true });
     await userItemsCollection.createIndex({ user_id: 1 });
     await priceHistoryCollection.createIndex({ search_query: 1 }, { unique: true });
-    await userEstimationsTempCollection.createIndex({ user_id: 1 });
-    await userEstimationsTempCollection.createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // Auto-delete after 24h
+    await db.collection('user_estimations_temp').createIndex({ user_id: 1 });
+    await db.collection('price_history').createIndex({ search_query: 1 });
+    await db.collection('price_history').createIndex({ timestamp: -1 });
+
+    // TTL index: auto-delete temp estimations after 24 hours
+    await db.collection('user_estimations_temp').createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: 86400 }
+    );
+    console.log('✅ TTL index created: temp estimations expire after 24h');
 
     console.log('✅ Collections et index créés');
   } catch (error) {
