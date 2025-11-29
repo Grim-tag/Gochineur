@@ -193,8 +193,19 @@ const collectionRoutes = require('./routes/collection');
 app.use('/api/collection', apiLimiter, collectionRoutes());
 
 // Routes d'estimation de valeur (IA) - Rate limiting strict
+// Import des middlewares d'authentification et helpers DB pour l'injection de dépendances
+const { authenticateJWT, requireAdmin } = require('./middleware/auth');
+const { getPriceHistoryCollection, getUserEstimationsTempCollection } = require('./config/db');
+
+// Routes d'estimation de valeur (IA) - Rate limiting strict
 const valueRoutes = require('./routes/value');
-app.use('/api/value', estimationLimiter, valueRoutes());
+app.use('/api/value', estimationLimiter, valueRoutes({
+  logger,
+  authenticateJWT,
+  requireAdmin,
+  getPriceHistoryCollection,
+  getUserEstimationsTempCollection
+}));
 
 // Routes d'administration
 app.use('/api/admin', adminRoutes());
