@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { addItem, updateItem, type CollectionItem } from '../services/collectionApi'
 import { getUserFromToken, getToken } from '../services/auth'
+import { compressImage } from '../utils/imageCompression'
 
 interface ObjectFormProps {
     initialData?: CollectionItem
@@ -96,8 +97,12 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
         setError(null)
 
         try {
-            const formData = new FormData()
-            formData.append('image', selectedFiles[0])
+         // Compress image before upload (20MB → ~2MB)
+         console.log('📦 Compressing image...');
+         const compressedFile = await compressImage(selectedFiles[0], 2, 1920);
+    
+         const formData = new FormData()
+         formData.append('image', compressedFile)
 
             const apiUrl = import.meta.env.VITE_API_URL || ''
             const response = await fetch(`${apiUrl}/api/value/identify-photo`, {
@@ -197,6 +202,26 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
         setIdentifiedName('')
         setEstimationStats(null)
     }
+    const saveAndNewEstimation = () => {
+    // Estimation is already saved in temp, just reset form
+    setEstimationStep('idle')
+    setIdentifiedName('')
+    setEstimationStats(null)
+    setName('')
+    setPreviewUrls([])
+    setSelectedFiles([])
+    setCloudinaryImageUrl('')
+    alert('✅ Estimation enregistrée ! Prêt pour une nouvelle.')
+}
+const fullReset = () => {
+    setEstimationStep('idle')
+    setIdentifiedName('')
+    setEstimationStats(null)
+    setName('')
+    setPreviewUrls([])
+    setSelectedFiles([])
+    setCloudinaryImageUrl('')
+}
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -398,6 +423,22 @@ export default function ObjectForm({ initialData, isEditing = false }: ObjectFor
                                     Fourchette : {estimationStats.min}€ - {estimationStats.max}€
                                 </div>
                             </div>
+                            <div className="mt-4 flex gap-2">
+    <button
+        type="button"
+        onClick={saveAndNewEstimation}
+        className="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary-hover transition-colors font-semibold"
+    >
+        💾 Enregistrer et Nouvelle
+    </button>
+    <button
+        type="button"
+        onClick={fullReset}
+        className="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors font-semibold"
+    >
+        🔄 Réinitialiser
+    </button>
+</div>
                         </div>
                     )}
                 </div>
