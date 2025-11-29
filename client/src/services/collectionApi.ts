@@ -131,7 +131,7 @@ export const searchCollection = async (params: {
     sort?: string
     page?: number
     limit?: number
-}): Promise<{ data: CollectionItem[]; pagination: any }> => {
+}): Promise<SearchCollectionResponse> => {
     const token = getToken()
     const queryString = new URLSearchParams(
         Object.entries(params)

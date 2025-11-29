@@ -35,7 +35,7 @@ export function isAuthenticated(): boolean {
 /**
  * Décode le JWT (sans vérification - juste pour lire le payload)
  */
-export function decodeToken(token: string): any {
+export function decodeToken(token: string): DecodedToken | null {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -55,7 +55,7 @@ export function decodeToken(token: string): any {
 /**
  * Récupère les informations utilisateur depuis le token
  */
-export function getUserFromToken(): any | null {
+export function getUserFromToken(): User | null {
     const token = getToken();
     if (!token) return null;
     return decodeToken(token);
