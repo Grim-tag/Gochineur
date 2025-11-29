@@ -8,6 +8,8 @@ const express = require('express');
 const cors = require('cors');
 const passport = require('passport');
 const helmet = require('helmet');
+const logger = require('./config/logger');
+const { apiLimiter, estimationLimiter, authLimiter } = require('./middleware/rateLimiter');
 
 // Import des configurations
 const { configurePassport } = require('./config/passport');
@@ -178,20 +180,20 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_CRON === 'true')
   console.log('ℹ️  Scheduler désactivé (NODE_ENV != production). Pour l\'activer, définir ENABLE_CRON=true');
 }
 
-// Routes API publiques
-app.use('/api/events', eventsRoutes());
+// Routes API publiques (avec rate limiting)
+app.use('/api/events', apiLimiter, eventsRoutes());
 
 // Routes de données géographiques
 const geoRoutes = require('./routes/geo');
-app.use('/api/geo', geoRoutes());
+app.use('/api/geo', apiLimiter, geoRoutes());
 
 // Routes de collection utilisateur (V2)
 const collectionRoutes = require('./routes/collection');
-app.use('/api/collection', collectionRoutes());
+app.use('/api/collection', apiLimiter, collectionRoutes());
 
-// Routes d'estimation de valeur (IA)
+// Routes d'estimation de valeur (IA) - Rate limiting strict
 const valueRoutes = require('./routes/value');
-app.use('/api/value', valueRoutes());
+app.use('/api/value', estimationLimiter, valueRoutes());
 
 // Routes d'administration
 app.use('/api/admin', adminRoutes());

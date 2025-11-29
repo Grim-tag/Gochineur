@@ -2,13 +2,14 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const { getUsersCollection } = require('../config/db');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 /**
  * Routes d'authentification
  */
 module.exports = function (googleClientId, googleClientSecret) {
-  // Route de connexion Google
-  router.get('/google', (req, res, next) => {
+  // Route de connexion Google (avec rate limiting)
+  router.get('/google', authLimiter, (req, res, next) => {
     if (!googleClientId || !googleClientSecret) {
       return res.status(500).json({
         error: 'Configuration Google OAuth manquante. Vérifiez les variables d\'environnement.'
@@ -31,8 +32,8 @@ module.exports = function (googleClientId, googleClientSecret) {
     })(req, res, next);
   });
 
-  // Callback Google OAuth
-  router.get('/google/callback', (req, res, next) => {
+  // Callback Google OAuth (avec rate limiting)
+  router.get('/google/callback', authLimiter, (req, res, next) => {
     // Déterminer l'URL du client selon l'environnement
     const isProduction = process.env.NODE_ENV === 'production';
     const mainClientUrl = isProduction ? (process.env.URL || 'http://localhost:5000') : 'http://localhost:5173';
