@@ -73,18 +73,13 @@ module.exports = function () {
                 processedImageBuffer = req.file.buffer;
             }
 
-            // Convert to base64 for temporary storage
-            const imageBase64 = processedImageBuffer.toString('base64');
-            console.log('✅ Image converted to base64');
-
-            // Upload to Cloudinary TEMP folder (needed for SerpApi, will be deleted later)
-            console.log('☁️ Uploading to Cloudinary temp folder...');
+            // 1. Upload to Cloudinary to get a public URL
+            console.log('☁️ Uploading to Cloudinary...');
             const cloudinaryResult = await uploadToCloudinary(processedImageBuffer);
             const imageUrl = cloudinaryResult.secure_url;
-            const cloudinaryPublicId = cloudinaryResult.public_id;
-            console.log('✅ Temp image uploaded:', imageUrl);
+            console.log('✅ Image uploaded:', imageUrl);
 
-            // Call SerpApi with the public URL
+            // 2. Call SerpApi with the public URL
             console.log('🔍 Sending to SerpApi (Google Lens)...');
 
             const serpResponse = await axios.get('https://serpapi.com/search', {
@@ -105,13 +100,13 @@ module.exports = function () {
                 console.log('⚠️ No visual matches found');
             }
 
-            // Return base64 instead of Cloudinary URL
-            // The temp Cloudinary image will be cleaned up later or expire
+            // Optional: Delete from Cloudinary to save space? 
+            // For now we keep it as it might be useful for debugging or history.
+
             res.json({
                 success: true,
                 identifiedTitle: identifiedTitle || '',
-                imageBase64: imageBase64, // Return base64 for temp storage
-                cloudinaryPublicId: cloudinaryPublicId // For cleanup if needed
+                imageUrl: imageUrl // Return the URL so frontend can use it if needed
             });
 
         } catch (error) {
@@ -207,7 +202,7 @@ module.exports = function () {
     router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
         console.log('💰 [Step 2] Estimation request received');
         try {
-            const { searchQuery, imageBase64 } = req.body;
+            const { searchQuery, imageUrl } = req.body;
 
             if (!searchQuery) {
                 return res.status(400).json({ error: 'Titre de recherche manquant' });
@@ -295,7 +290,7 @@ module.exports = function () {
                             await userEstimationsTempCollection.insertOne({
                                 user_id: req.user.id,
                                 search_query: searchQuery,
-                                image_base64: imageBase64 || null, // Store base64 instead of URL
+                                image_url: imageUrl || null,
                                 estimation_result: {
                                     median_price: googleResult.medianPrice,
                                     min_price: googleResult.minPrice,
@@ -397,7 +392,7 @@ module.exports = function () {
                 await userEstimationsTempCollection.insertOne({
                     user_id: req.user.id,
                     search_query: searchQuery,
-                    image_base64: imageBase64 || null, // Store base64 instead of URL
+                    image_url: imageUrl || null,
                     estimation_result: {
                         median_price: medianPrice,
                         min_price: minPrice,
