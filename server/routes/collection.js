@@ -262,7 +262,8 @@ module.exports = () => {
                 date_acquisition, etat_objet, emplacement_stockage,
                 acquisitionEventId, purchasePrice, frais_annexes, devise,
                 valeur_estimee, source_estimation, status, isPublic,
-                metadonnees_techniques
+                metadonnees_techniques,
+                cloudinaryUrl  // ✨ NEW: URL from estimation
             } = req.body;
 
             // Sanitisation des entrées
@@ -290,6 +291,12 @@ module.exports = () => {
                     const uploadResult = await uploadToCloudinary(optimizedBuffer);
                     photoUrls.push(uploadResult.secure_url);
                 }
+            }
+
+            // ✨ NEW: Add Cloudinary URL from estimation if provided
+            if (cloudinaryUrl) {
+                photoUrls.unshift(cloudinaryUrl); // Add as first photo (main photo)
+                logger.info(`📸 Added Cloudinary URL from estimation: ${cloudinaryUrl}`);
             }
 
             let parsedMetadata = null;
@@ -832,7 +839,7 @@ module.exports = () => {
         try {
             const collection = getUserItemsCollection();
             const { getUsersCollection } = require('../config/db');
-const logger = require('../config/logger');
+            const logger = require('../config/logger');
             const usersCollection = getUsersCollection();
 
             const userId = req.params.userId;

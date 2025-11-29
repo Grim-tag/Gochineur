@@ -269,8 +269,8 @@ export default function VideGrenierPage() {
 
                                         return (
                                             <div key={group.date}>
-                                                <h2 className="text-xl font-bold text-text-primary mb-4 pb-2 border-b border-gray-700 flex items-center gap-2">
-                                                    <span className="text-primary">📅</span> {h2Label}
+                                                <h2 className="text-xl font-bold text-text-primary mb-4 pb-2 border-b border-gray-700">
+                                                    {h2Label}
                                                 </h2>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                                     {group.events.map((event) => (
