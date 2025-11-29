@@ -36,6 +36,20 @@ export default function CardsInProgress() {
                 setTempItems(data.data)
             }
         } catch (error) {
+            console.error('Error loading temp items:', error)
+        }
+    }
+
+    useEffect(() => {
+        loadTempItems()
+        // Poll every 5 seconds
+        const interval = setInterval(loadTempItems, 30000)
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleQuickAdd = async (tempId: string) => {
+        setAdding(tempId)
+        try {
             const token = getToken()
             if (!token) {
                 alert('Vous devez être connecté')
