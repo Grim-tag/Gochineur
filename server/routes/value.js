@@ -143,7 +143,11 @@ module.exports = function () {
                 logger.error('Failed to write to error log:', e);
                 // POST /api/value/estimate-by-title - Get price estimation using eBay Finding API (Sold Items)
                 // PROTECTED: Admin only
-                router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
+                  }
+            res.status(500).json({ error: 'Erreur lors de l\'identification de l\'image', details: error.message });
+        }
+    });
+                    router.post('/estimate-by-title', authenticateJWT, requireAdmin, async (req, res) => {
                     logger.info('💰 [Step 2] Estimation request received');
 
                     // Declare at route level so accessible in catch block
@@ -472,7 +476,5 @@ module.exports = function () {
                     }
                 });
 
-                return router;
-             })};
-
-             
+    return router;
+};
