@@ -264,19 +264,21 @@ module.exports = function () {
                                     });
                                 }
 
-                                // If no Google Shopping result either, return error
+                                // If no Google Shopping result, return error
                                 return res.status(500).json({
                                     success: false,
                                     error: 'eBay quota exceeded and Google Shopping fallback failed'
                                 });
                             }
 
+                            // Other eBay errors
                             return res.status(500).json({
                                 success: false,
                                 error: `eBay API Error: ${errorMsg}`
                             });
                         }
 
+                        // Normal eBay response processing
                         const searchResult = data.findCompletedItemsResponse[0].searchResult[0];
                         const count = parseInt(searchResult['@count'], 10);
 
@@ -472,3 +474,4 @@ module.exports = function () {
 
                 return router;
             };
+}
