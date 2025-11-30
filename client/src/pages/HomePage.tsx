@@ -4,6 +4,7 @@ import SearchBar from '../components/SearchBar'
 import EventCard from '../components/EventCard'
 import Breadcrumbs from '../components/Breadcrumbs'
 import Header from '../components/Header'
+import toast from 'react-hot-toast'
 import { groupEventsByDay } from '../utils/appUtils'
 import { calculatePeriodDates } from '../utils/dateUtils'
 import { EVENTS } from '../config/constants'
@@ -14,6 +15,7 @@ import { useEventSearch } from '../hooks/useEventSearch'
 import type { Event as AppEvent } from '../types'
 import { UserPosition } from '../types'
 import { getUserLocation } from '../utils/locationStorage'
+import { checkAuth } from '../utils/authUtils'
 
 interface HomePageProps {
   regionSlugOverride?: string
@@ -344,12 +346,19 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
       })
   }
 
-  const handleAddToCircuit = (eventId: string | number) => {
+  const handleAddToCircuit = async (eventId: string | number) => {
+    const { authenticated } = await checkAuth()
+    if (!authenticated) {
+      toast.error("Connectez-vous pour ajouter des événements à votre liste")
+      return
+    }
+
     const circuit = JSON.parse(localStorage.getItem('gochineur-circuit') || '[]')
     if (!circuit.includes(eventId)) {
       const newCircuit = [...circuit, eventId]
       localStorage.setItem('gochineur-circuit', JSON.stringify(newCircuit))
       setCircuitIds(newCircuit)
+      toast.success("Événement ajouté à votre liste")
     }
   }
 

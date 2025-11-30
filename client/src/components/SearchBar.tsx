@@ -227,7 +227,7 @@ export default function SearchBar({ onSearch, onRadiusChange, onReset, geoData, 
                   longitude: longitude,
                   radius: 30
                 })
-                navigate(targetUrl)
+                navigate(targetUrl, { state: { cityData } })
                 setGeolocating(false)
                 return
               }

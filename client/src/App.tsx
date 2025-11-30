@@ -2,15 +2,13 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Footer from './components/Footer';
+import CategoryRouteWrapper from './components/CategoryRouteWrapper';
 
 // Eager load critical pages
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 
 // Lazy load other pages
-const VideGrenierPage = lazy(() => import('./pages/VideGrenierPage'));
-const BrocantePage = lazy(() => import('./pages/BrocantePage'));
-const TrocPage = lazy(() => import('./pages/TrocPage'));
 const EventDetailsPage = lazy(() => import('./pages/EventDetailsPage'));
 const MyAccountPage = lazy(() => import('./pages/MyAccountPage'));
 const AdminPage = lazy(() => import('./pages/AdminPage'));
@@ -19,6 +17,8 @@ const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
 const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
 const CGUPage = lazy(() => import('./pages/CGUPage'));
 const CollectionShowcasePage = lazy(() => import('./pages/CollectionShowcasePage'));
+const SubmitEventPage = lazy(() => import('./pages/SubmitEventPage'));
+const AddObjectPage = lazy(() => import('./pages/AddObjectPage'));
 
 export default function App() {
   return (
@@ -51,9 +51,12 @@ export default function App() {
               <Route path="/login" element={<LoginPage />} />
 
               {/* Lazy loaded routes */}
-              <Route path="/vide-grenier/*" element={<VideGrenierPage />} />
-              <Route path="/brocante/*" element={<BrocantePage />} />
-              <Route path="/troc/*" element={<TrocPage />} />
+              {/* Category Routes - Handled by Wrapper for SEO URLs and Dept Redirects */}
+              <Route path="/:category" element={<CategoryRouteWrapper />} />
+              <Route path="/:category/:param" element={<CategoryRouteWrapper />} />
+              <Route path="/:category/:regionSlug/:departmentSlug" element={<CategoryRouteWrapper />} />
+              <Route path="/:category/:regionSlug/:departmentSlug/:param" element={<CategoryRouteWrapper />} />
+
               <Route path="/event/:id" element={<EventDetailsPage />} />
               <Route path="/mon-compte" element={<MyAccountPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
@@ -61,7 +64,9 @@ export default function App() {
               <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
               <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
               <Route path="/cgu" element={<CGUPage />} />
-              <Route path="/collection/:userId" element={<CollectionShowcasePage />} />
+              <Route path="/collection/:userPseudo" element={<CollectionShowcasePage />} />
+              <Route path="/soumettre" element={<SubmitEventPage />} />
+              <Route path="/ma-collection/ajouter" element={<AddObjectPage />} />
             </Routes>
           </Suspense>
         </main>
