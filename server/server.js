@@ -89,7 +89,8 @@ app.use(helmet({
         "https://gochineur.fr",
         "https://www.gochineur.fr",
         "https://gochineur-backend.onrender.com",
-        "https://www.google-analytics.com"
+        "https://www.google-analytics.com",
+        "https://nominatim.openstreetmap.org"
       ],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],

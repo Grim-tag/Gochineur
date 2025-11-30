@@ -319,19 +319,9 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     setCurrentStartDate(start)
     setCurrentEndDate(end)
     setLoading(true)
-
     const positionToUse = coordinates
       ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
       : undefined
-
-    console.log('🔍 handleSearch calling loadEvents', {
-      searchTerm,
-      radius,
-      eventType,
-      coordinates,
-      positionToUse,
-      userPosition
-    })
 
     loadEvents(start, end, false, eventType, radius, positionToUse, userPosition)
       .then((data: AppEvent[]) => {
