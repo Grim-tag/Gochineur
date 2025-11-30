@@ -19,6 +19,7 @@ const CGUPage = lazy(() => import('./pages/CGUPage'));
 const CollectionShowcasePage = lazy(() => import('./pages/CollectionShowcasePage'));
 const SubmitEventPage = lazy(() => import('./pages/SubmitEventPage'));
 const AddObjectPage = lazy(() => import('./pages/AddObjectPage'));
+const MyCollectionPage = lazy(() => import('./pages/MyCollectionPage'));
 
 export default function App() {
   return (
@@ -59,6 +60,7 @@ export default function App() {
 
               <Route path="/event/:id" element={<EventDetailsPage />} />
               <Route path="/mon-compte" element={<MyAccountPage />} />
+              <Route path="/ma-collection" element={<MyCollectionPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/set-pseudo" element={<SetPseudoPage />} />
               <Route path="/oauth/callback" element={<OAuthCallbackPage />} />

@@ -68,6 +68,7 @@ export default function SubmitEventPage() {
 
   // Vérification d'authentification
   useEffect(() => {
+    window.scrollTo(0, 0)
     checkAuth().then(({ authenticated, user }) => {
       if (authenticated && user) {
         if (!user.displayName) {
@@ -76,6 +77,10 @@ export default function SubmitEventPage() {
         } else {
           setIsAuthenticated(true)
           setCheckingAuth(false)
+          // Pré-remplir l'email si disponible
+          if (user.email) {
+            setFormData(prev => ({ ...prev, email: user.email || '' }))
+          }
         }
       } else {
         // Non authentifié, rediriger vers la connexion Google avec returnTo
