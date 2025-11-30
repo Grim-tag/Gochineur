@@ -21,9 +21,12 @@ const SubmitEventPage = lazy(() => import('./pages/SubmitEventPage'));
 const AddObjectPage = lazy(() => import('./pages/AddObjectPage'));
 const MyCollectionPage = lazy(() => import('./pages/MyCollectionPage'));
 
+import ScrollToTop from './components/ScrollToTop';
+
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-background text-text-primary flex flex-col">
         {/* Toast Notifications */}
         <Toaster
