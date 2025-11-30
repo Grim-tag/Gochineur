@@ -242,117 +242,150 @@ module.exports = function () {
 
       const eventsCollection = getEventsCollection();
 
-      // Construire la date de début avec l'heure
-      let dateDebutISO = new Date(date_debut);
-      if (heure_debut) {
-        const [hours, minutes] = heure_debut.split(':');
-        dateDebutISO.setHours(parseInt(hours) || 6, parseInt(minutes) || 0, 0, 0);
-      } else {
-        dateDebutISO.setHours(6, 0, 0, 0);
+      // Liste des dates à traiter (date principale + dates supplémentaires)
+      const datesToProcess = [date_debut];
+      if (req.body.additionalDates && Array.isArray(req.body.additionalDates)) {
+        datesToProcess.push(...req.body.additionalDates);
       }
 
-      // Construire la date de fin avec l'heure
-      let dateFinISO = date_fin ? new Date(date_fin) : new Date(dateDebutISO);
-      if (heure_fin) {
-        const [hours, minutes] = heure_fin.split(':');
-        dateFinISO.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
-      } else {
-        dateFinISO.setHours(23, 59, 59, 999);
+      const createdEvents = [];
+      const errors = [];
+
+      for (const dateStr of datesToProcess) {
+        // Construire la date de début avec l'heure
+        let dateDebutISO = new Date(dateStr);
+        if (heure_debut) {
+          const [hours, minutes] = heure_debut.split(':');
+          dateDebutISO.setHours(parseInt(hours) || 6, parseInt(minutes) || 0, 0, 0);
+        } else {
+          dateDebutISO.setHours(6, 0, 0, 0);
+        }
+
+        // Construire la date de fin avec l'heure
+        let dateFinISO;
+        if (date_fin) {
+          const originalStart = new Date(date_debut);
+          const originalEnd = new Date(date_fin);
+          // Calculer la différence en jours
+          const diffTime = Math.abs(originalEnd - originalStart);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          // Appliquer la durée à la nouvelle date de début
+          dateFinISO = new Date(dateDebutISO);
+          dateFinISO.setDate(dateFinISO.getDate() + diffDays);
+        } else {
+          dateFinISO = new Date(dateDebutISO);
+        }
+
+        if (heure_fin) {
+          const [hours, minutes] = heure_fin.split(':');
+          dateFinISO.setHours(parseInt(hours) || 23, parseInt(minutes) || 59, 59, 999);
+        } else {
+          dateFinISO.setHours(23, 59, 59, 999);
+        }
+
+        // Construire la description complète
+        let description = '';
+        if (sanitizedDescVisiteurs) {
+          description += `Informations visiteurs :\n${sanitizedDescVisiteurs}\n\n`;
+        }
+        if (sanitizedDescExposants) {
+          description += `Modalités d'inscription / Horaires exposants :\n${sanitizedDescExposants}`;
+        }
+
+        // Normaliser le type d'événement
+        const normalizedType = normalizeEventType(type);
+
+        // Vérifier que l'utilisateur a un pseudo (displayName)
+        if (!req.user.displayName) {
+          return res.status(400).json({
+            error: 'Pseudo requis. Veuillez définir votre pseudo avant de soumettre un événement.',
+            redirectTo: '/set-pseudo'
+          });
+        }
+
+        // Construire l'objet événement pour la vérification de doublon
+        const eventToCheck = {
+          date_debut: dateDebutISO.toISOString(),
+          latitude: lat,
+          longitude: lon
+        };
+
+        // Vérification anti-doublon avec MongoDB
+        const exists = await eventExists(eventToCheck, eventsCollection);
+        if (exists) {
+          errors.push(`L'événement du ${dateStr} existe déjà.`);
+          continue;
+        }
+
+        // Générer le hash pour l'événement
+        const eventHash = generateEventHash(eventToCheck);
+
+        const newEvent = {
+          id: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          id_source: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          source_name: 'Utilisateur',
+          name: sanitizedName.trim(),
+          type: normalizedType,
+          date: dateStr.split('T')[0],
+          date_debut: dateDebutISO.toISOString(),
+          date_fin: dateFinISO.toISOString(),
+          city: sanitizedCity.trim(),
+          postalCode: sanitizedPostalCode || '',
+          address: sanitizedAddress.trim(),
+          latitude: lat,
+          longitude: lon,
+          description: description.trim(),
+          distance: 0,
+          statut_validation: 'pending_review',
+          date_creation: new Date().toISOString(),
+          role: role || 'Autre',
+          telephone: sanitizedTelephone || '',
+          pays: sanitizedPays || 'France',
+          prix_visiteur: prix_visiteur || 'Gratuite',
+          prix_montant: prix_montant ? parseFloat(prix_montant) : null,
+          nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,
+          user_id: req.user.id,
+          submitted_by_pseudo: req.user.displayName,
+          eventHash: eventHash
+        };
+
+        // Si l'utilisateur est un expert, l'événement est automatiquement publié
+        if (req.user.isExpert) {
+          newEvent.statut_validation = 'published';
+          newEvent.publishedAt = new Date().toISOString();
+        }
+
+        await eventsCollection.insertOne(newEvent);
+        createdEvents.push(newEvent);
       }
 
-      // Construire la description complète
-      let description = '';
-      if (sanitizedDescVisiteurs) {
-        description += `Informations visiteurs :\n${sanitizedDescVisiteurs}\n\n`;
-      }
-      if (sanitizedDescExposants) {
-        description += `Modalités d'inscription / Horaires exposants :\n${sanitizedDescExposants}`;
-      }
-
-      // Normaliser le type d'événement
-      const normalizedType = normalizeEventType(type);
-
-      // Vérifier que l'utilisateur a un pseudo (displayName)
-      if (!req.user.displayName) {
-        return res.status(400).json({
-          error: 'Pseudo requis. Veuillez définir votre pseudo avant de soumettre un événement.',
-          redirectTo: '/set-pseudo'
-        });
-      }
-
-      // Construire l'objet événement pour la vérification de doublon
-      const eventToCheck = {
-        date_debut: dateDebutISO.toISOString(),
-        latitude: lat,
-        longitude: lon
-      };
-
-      // Vérification anti-doublon avec MongoDB
-      const exists = await eventExists(eventToCheck, eventsCollection);
-      if (exists) {
+      if (createdEvents.length === 0 && errors.length > 0) {
         return res.status(409).json({
-          error: 'Cet événement semble déjà exister. Si vous souhaitez le mettre à jour, veuillez contacter l\'administration.',
-          duplicate: true
+          error: 'Tous les événements demandés existent déjà.',
+          details: errors
         });
       }
-
-      // Générer le hash pour l'événement
-      const eventHash = generateEventHash(eventToCheck);
-
-      const newEvent = {
-        id: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        id_source: `USER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        source_name: 'Utilisateur',
-        name: sanitizedName.trim(),
-        type: normalizedType,
-        date: date_debut.split('T')[0],
-        date_debut: dateDebutISO.toISOString(),
-        date_fin: dateFinISO.toISOString(),
-        city: sanitizedCity.trim(),
-        postalCode: sanitizedPostalCode || '',
-        address: sanitizedAddress.trim(),
-        latitude: lat,
-        longitude: lon,
-        description: description.trim(),
-        distance: 0,
-        statut_validation: 'pending_review',
-        date_creation: new Date().toISOString(),
-        role: role || 'Autre',
-        telephone: sanitizedTelephone || '',
-        pays: sanitizedPays || 'France',
-        prix_visiteur: prix_visiteur || 'Gratuite',
-        prix_montant: prix_montant ? parseFloat(prix_montant) : null,
-        nombre_exposants: nombre_exposants ? parseInt(nombre_exposants) : null,
-        user_id: req.user.id,
-        submitted_by_pseudo: req.user.displayName, // Utiliser uniquement displayName (pseudo)
-        eventHash: eventHash // Ajouter le hash pour la détection de doublons
-      };
-
-      // Si l'utilisateur est un expert, l'événement est automatiquement publié
-      if (req.user.isExpert) {
-        newEvent.statut_validation = 'published';
-        newEvent.publishedAt = new Date().toISOString();
-      }
-
-      await eventsCollection.insertOne(newEvent);
 
       res.status(201).json({
         success: true,
         message: req.user.isExpert
-          ? 'Événement publié instantanément (Mode Expert) !'
-          : 'Événement soumis avec succès. Il est en attente de validation.',
-        event: {
-          id: newEvent.id,
-          name: newEvent.name,
-          statut_validation: newEvent.statut_validation
-        }
+          ? `${createdEvents.length} événement(s) publié(s) instantanément (Mode Expert) !`
+          : `${createdEvents.length} événement(s) soumis avec succès. En attente de validation.`,
+        events: createdEvents.map(e => ({
+          id: e.id,
+          name: e.name,
+          date: e.date_debut,
+          statut_validation: e.statut_validation
+        })),
+        warnings: errors.length > 0 ? errors : undefined
       });
+
     } catch (error) {
       logger.error('Erreur lors de la soumission:', error);
       res.status(500).json({ error: 'Erreur lors de la soumission de l\'événement' });
     }
   });
-
   // Route pour modifier un événement (PUT /:id)
   router.put('/:id', authenticateJWT, async (req, res) => {
     try {

@@ -32,6 +32,7 @@ interface FormData {
   description_visiteurs: string
   description_exposants: string
   nombre_exposants: string
+  additionalDates: string[]
 }
 
 export default function SubmitEventPage() {
@@ -64,8 +65,29 @@ export default function SubmitEventPage() {
     prix_montant: '',
     description_visiteurs: '',
     description_exposants: '',
-    nombre_exposants: ''
+    nombre_exposants: '',
+    additionalDates: []
   })
+
+  // State for the new date input
+  const [newDate, setNewDate] = useState('')
+
+  const handleAddDate = () => {
+    if (newDate && !formData.additionalDates.includes(newDate)) {
+      setFormData(prev => ({
+        ...prev,
+        additionalDates: [...prev.additionalDates, newDate].sort()
+      }))
+      setNewDate('')
+    }
+  }
+
+  const handleRemoveDate = (dateToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      additionalDates: prev.additionalDates.filter(d => d !== dateToRemove)
+    }))
+  }
 
   // Vérification d'authentification
   useEffect(() => {
@@ -491,6 +513,56 @@ export default function SubmitEventPage() {
                   className="w-full px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
                 />
               </div>
+            </div>
+
+            {/* Dates supplémentaires */}
+            <div className="bg-background-lighter p-4 rounded-lg border border-gray-600">
+              <label className="block text-sm font-medium text-text-primary mb-3">
+                Dates supplémentaires (optionnel)
+              </label>
+              <p className="text-xs text-text-secondary mb-3">
+                Ajoutez d'autres dates si votre événement est récurrent (ex: tous les dimanches).
+                Un événement distinct sera créé pour chaque date.
+              </p>
+
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  min={formData.date_debut || new Date().toISOString().split('T')[0]}
+                  className="flex-1 px-4 py-2 bg-background border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-primary"
+                />
+                <button
+                  onClick={handleAddDate}
+                  disabled={!newDate}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${newDate
+                    ? 'bg-primary text-white hover:bg-primary-hover'
+                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    }`}
+                >
+                  Ajouter
+                </button>
+              </div>
+
+              {formData.additionalDates.length > 0 && (
+                <div className="space-y-2">
+                  {formData.additionalDates.map((date) => (
+                    <div key={date} className="flex items-center justify-between bg-background p-2 rounded border border-gray-700">
+                      <span className="text-text-primary">
+                        {new Date(date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveDate(date)}
+                        className="text-red-400 hover:text-red-300 p-1"
+                        title="Supprimer cette date"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
