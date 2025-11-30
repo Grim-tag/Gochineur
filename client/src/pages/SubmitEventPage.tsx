@@ -6,6 +6,7 @@ import { submitEvent } from '../services/api'
 import { API } from '../config/constants'
 import Header from '../components/Header'
 import LocationPicker from '../components/LocationPicker'
+import toast from 'react-hot-toast'
 
 interface FormData {
   // Étape 1
@@ -96,23 +97,45 @@ export default function SubmitEventPage() {
   // Géocodage de l'adresse (simulation avec Nominatim)
   // Géocodage avec debounce
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (formData.address && formData.city && formData.postalCode) {
+    const timer = setTimeout(async () => {
+      if (formData.city && formData.postalCode) {
         setIsGeocoding(true)
-        geocodeAddress(formData.address, formData.city, formData.postalCode).then(coords => {
-          if (coords) {
-            setFormData(prev => ({
-              ...prev,
-              latitude: coords.latitude.toString(),
-              longitude: coords.longitude.toString()
-            }))
+
+        // Tentative 1: Adresse complète (si renseignée)
+        let coords = null
+        if (formData.address) {
+          coords = await geocodeAddress(formData.address, formData.city, formData.postalCode)
+        }
+
+        // Tentative 2: Ville + Code postal uniquement (Fallback)
+        if (!coords) {
+          // Si on avait une adresse mais qu'on a rien trouvé, on prévient l'utilisateur
+          const isFallback = !!formData.address
+          coords = await geocodeAddress('', formData.city, formData.postalCode)
+
+          if (coords && isFallback) {
+            toast('Adresse exacte non trouvée. La carte est centrée sur la ville, déplacez le marqueur si nécessaire.', {
+              icon: '📍',
+              duration: 5000,
+              style: {
+                background: '#374151',
+                color: '#fff',
+              }
+            })
           }
-          setIsGeocoding(false)
-        }).catch(() => {
-          setIsGeocoding(false)
-        })
+        }
+
+        if (coords) {
+          setFormData(prev => ({
+            ...prev,
+            latitude: coords.latitude.toString(),
+            longitude: coords.longitude.toString()
+          }))
+        }
+
+        setIsGeocoding(false)
       }
-    }, 400) // Réduit de 1000ms à 400ms pour une réponse plus rapide
+    }, 800) // Délai augmenté pour éviter trop de requêtes pendant la frappe
 
     return () => clearTimeout(timer)
   }, [formData.address, formData.city, formData.postalCode])
@@ -120,8 +143,15 @@ export default function SubmitEventPage() {
   // Géocodage de l'adresse (via proxy serveur)
   const geocodeAddress = async (address: string, city: string, postalCode: string) => {
     try {
-      const query = `${address}, ${postalCode} ${city}, France`
+      // Construction intelligente de la requête
+      const parts = []
+      if (address) parts.push(address)
+      if (postalCode || city) parts.push(`${postalCode} ${city}`.trim())
+      parts.push('France')
+
+      const query = parts.join(', ')
       const baseUrl = API.BASE_URL || ''
+
       const response = await fetch(
         `${baseUrl}/api/geo/geocode?q=${encodeURIComponent(query)}&limit=1`
       )
