@@ -300,6 +300,8 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     coordinates?: { latitude: number; longitude: number; city: string }
   ) => {
     setCurrentRadius(radius)
+    // Prevent useEffect from triggering a redundant load
+    prevRadius.current = radius
     setCurrentEventType(eventType)
 
     if (coordinates) {
@@ -321,6 +323,15 @@ export default function HomePage({ regionSlugOverride }: HomePageProps) {
     const positionToUse = coordinates
       ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
       : undefined
+
+    console.log('🔍 handleSearch calling loadEvents', {
+      searchTerm,
+      radius,
+      eventType,
+      coordinates,
+      positionToUse,
+      userPosition
+    })
 
     loadEvents(start, end, false, eventType, radius, positionToUse, userPosition)
       .then((data: AppEvent[]) => {
