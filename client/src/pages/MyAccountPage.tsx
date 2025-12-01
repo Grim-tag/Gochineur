@@ -399,55 +399,6 @@ export default function MyAccountPage() {
                     )}
                 </section>
 
-                <hr className="border-gray-700" />
-
-                {/* Section Ma Collection (Résumé) */}
-                <section>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-                            🏺 Ma Collection
-                        </h2>
-                        <Link
-                            to="/ma-collection"
-                            className="text-primary hover:text-primary-hover text-sm font-semibold flex items-center gap-1"
-                        >
-                            Gérer ma collection <span>→</span>
-                        </Link>
-                    </div>
-
-                    <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-6">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                            <div className="flex-1">
-                                <h3 className="text-xl font-bold text-text-primary mb-2">Votre vitrine personnelle</h3>
-                                <p className="text-text-secondary mb-4">
-                                    Gérez vos objets, suivez leur valeur, et partagez votre passion avec la communauté.
-                                </p>
-                                <div className="flex gap-3">
-                                    <Link
-                                        to="/ma-collection"
-                                        className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors font-semibold shadow-lg shadow-orange-900/20"
-                                    >
-                                        Accéder à ma collection
-                                    </Link>
-                                    {user?.displayName && (
-                                        <Link
-                                            to={`/collection/${user.displayName}`}
-                                            className="px-6 py-2 border border-gray-600 text-text-primary rounded-lg hover:bg-gray-700 transition-colors font-semibold"
-                                            target="_blank"
-                                        >
-                                            Voir ma vitrine publique
-                                        </Link>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="hidden md:block text-6xl">
-                                🏺
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <hr className="border-gray-700" />
 
                 {/* Section Mes Événements */}
                 <section>

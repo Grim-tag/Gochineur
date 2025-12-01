@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Footer from './components/Footer';
 import CategoryRouteWrapper from './components/CategoryRouteWrapper';
@@ -16,10 +16,7 @@ const SetPseudoPage = lazy(() => import('./pages/SetPseudoPage'));
 const OAuthCallbackPage = lazy(() => import('./pages/OAuthCallbackPage'));
 const MentionsLegalesPage = lazy(() => import('./pages/MentionsLegalesPage'));
 const CGUPage = lazy(() => import('./pages/CGUPage'));
-const CollectionShowcasePage = lazy(() => import('./pages/CollectionShowcasePage'));
 const SubmitEventPage = lazy(() => import('./pages/SubmitEventPage'));
-const AddObjectPage = lazy(() => import('./pages/AddObjectPage'));
-const MyCollectionPage = lazy(() => import('./pages/MyCollectionPage'));
 
 import ScrollToTop from './components/ScrollToTop';
 
@@ -63,15 +60,15 @@ export default function App() {
 
               <Route path="/event/:id" element={<EventDetailsPage />} />
               <Route path="/mon-compte" element={<MyAccountPage />} />
-              <Route path="/ma-collection" element={<MyCollectionPage />} />
+              <Route path="/ma-collection" element={<Navigate to="/" replace />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/set-pseudo" element={<SetPseudoPage />} />
               <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
               <Route path="/mentions-legales" element={<MentionsLegalesPage />} />
               <Route path="/cgu" element={<CGUPage />} />
-              <Route path="/collection/:userPseudo" element={<CollectionShowcasePage />} />
+              <Route path="/collection/:userPseudo" element={<Navigate to="/" replace />} />
               <Route path="/soumettre" element={<SubmitEventPage />} />
-              <Route path="/ma-collection/ajouter" element={<AddObjectPage />} />
+              <Route path="/ma-collection/ajouter" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </main>
