@@ -437,12 +437,14 @@ export default function MyAccountPage() {
                                     <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4 hover:border-primary transition-colors">
                                         <div className="flex justify-between items-start mb-2">
                                             <h3 className="font-bold text-lg text-text-primary truncate pr-2">{event.name}</h3>
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${event.statut_validation === 'valide' ? 'bg-green-900/30 text-green-400 border border-green-800' :
-                                                    event.statut_validation === 'annule' ? 'bg-red-900/30 text-red-400 border border-red-800' :
-                                                        'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${event.cancelled ? 'bg-red-900/30 text-red-400 border border-red-800' :
+                                                    ['published', 'validé', 'publie', 'Published', 'Validé'].includes(event.statut_validation || '') ? 'bg-green-900/30 text-green-400 border border-green-800' :
+                                                        event.statut_validation === 'rejected' ? 'bg-red-900/30 text-red-400 border border-red-800' :
+                                                            'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
                                                 }`}>
-                                                {event.statut_validation === 'valide' ? 'Validé' :
-                                                    event.statut_validation === 'annule' ? 'Annulé' : 'En attente'}
+                                                {event.cancelled ? 'Annulé' :
+                                                    ['published', 'validé', 'publie', 'Published', 'Validé'].includes(event.statut_validation || '') ? 'Validé' :
+                                                        event.statut_validation === 'rejected' ? 'Refusé' : 'En attente'}
                                             </span>
                                         </div>
 
@@ -458,7 +460,7 @@ export default function MyAccountPage() {
                                             >
                                                 Voir
                                             </Link>
-                                            {event.statut_validation !== 'annule' && (
+                                            {!event.cancelled && (
                                                 <button
                                                     onClick={() => handleCancelEvent(event.id)}
                                                     className="text-sm text-red-400 hover:text-red-300"
