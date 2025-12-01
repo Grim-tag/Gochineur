@@ -169,14 +169,39 @@ module.exports = function () {
     try {
       const eventsCollection = getEventsCollection();
       const userId = req.user.id;
-      logger.info(`🔍 Récupération des événements pour user_id: ${userId}`);
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 100; // Default limit if not specified
+      const skip = (page - 1) * limit;
 
-      const myEvents = await eventsCollection.find({ user_id: userId })
-        .sort({ date_creation: -1 }) // Plus récents d'abord
+      logger.info(`🔍 Récupération des événements pour user_id: ${userId}, page: ${page}, limit: ${limit}`);
+
+      // Filtrer les événements passés (date_debut < hier)
+      // On garde les événements d'aujourd'hui et futurs
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayISO = yesterday.toISOString();
+
+      const query = {
+        user_id: userId,
+        date_debut: { $gte: yesterdayISO }
+      };
+
+      const totalCount = await eventsCollection.countDocuments(query);
+
+      const myEvents = await eventsCollection.find(query)
+        .sort({ date_creation: -1 }) // Plus récents ajoutés d'abord
+        .skip(skip)
+        .limit(limit)
         .toArray();
 
-      logger.info(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId}`);
-      res.json(myEvents);
+      logger.info(`✅ ${myEvents.length} événements trouvés pour user_id: ${userId} (Total: ${totalCount})`);
+
+      res.json({
+        events: myEvents,
+        totalCount: totalCount,
+        page: page,
+        totalPages: Math.ceil(totalCount / limit)
+      });
     } catch (error) {
       logger.error('Erreur lors de la récupération des événements utilisateur:', error);
       res.status(500).json({ error: 'Erreur serveur' });

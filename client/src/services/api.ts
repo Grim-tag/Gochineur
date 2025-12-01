@@ -170,11 +170,24 @@ export async function updateDisplayName(displayName: string) {
 /**
  * Récupère les événements créés par l'utilisateur connecté
  */
-export async function fetchMyEvents(): Promise<Event[]> {
-  const endpoint = `${API.ENDPOINTS.EVENTS}/my-events`;
-  const url = API.BASE_URL ? `${API.BASE_URL}${endpoint}` : endpoint;
+export interface PaginatedEvents {
+  events: Event[];
+  totalCount: number;
+  page: number;
+  totalPages: number;
+}
 
-  const response = await fetch(url, {
+/**
+ * Récupère les événements créés par l'utilisateur connecté
+ */
+export async function fetchMyEvents(page = 1, limit = 100): Promise<PaginatedEvents> {
+  const endpoint = `${API.ENDPOINTS.EVENTS}/my-events`;
+  const url = API.BASE_URL ? new URL(`${API.BASE_URL}${endpoint}`) : new URL(endpoint, window.location.origin);
+
+  url.searchParams.set('page', page.toString());
+  url.searchParams.set('limit', limit.toString());
+
+  const response = await fetch(url.toString(), {
     headers: getAuthHeaders()
   });
 
@@ -183,7 +196,18 @@ export async function fetchMyEvents(): Promise<Event[]> {
     throw new Error(`Erreur HTTP ${response.status}: ${errorText}`);
   }
 
-  const data: Event[] = await response.json();
+  const data = await response.json();
+
+  // Backwards compatibility if backend returns array (during deployment transition)
+  if (Array.isArray(data)) {
+    return {
+      events: data,
+      totalCount: data.length,
+      page: 1,
+      totalPages: 1
+    };
+  }
+
   return data;
 }
 

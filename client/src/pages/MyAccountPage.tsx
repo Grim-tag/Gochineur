@@ -4,26 +4,22 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import Header from '../components/Header'
+import Footer from '../components/Footer'
 import type { Event } from '../types'
 import { fetchMyEvents, cancelEvent, deleteAccount } from '../services/api'
 import { fetchEvents } from '../services/api'
 import {
     calculateDistance,
-    generateChronologicalCircuitUrl,
     generateEventNavigationUrl,
-    groupEventsByDay,
-    cleanExpiredEventsFromCircuit,
-    optimizeNearestNeighbor,
-    type GroupedEvents
+    cleanExpiredEventsFromCircuit
 } from '../utils/appUtils'
 import { checkAuth, logout, type User } from '../utils/authUtils'
 import Breadcrumbs from '../components/Breadcrumbs'
-
+import toast from 'react-hot-toast'
 
 // Fix pour les icônes par défaut de Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png'
 import iconShadow from 'leaflet/dist/images/marker-shadow.png'
-import toast from 'react-hot-toast';
 
 const DefaultIcon = L.icon({
     iconUrl: icon,
@@ -49,6 +45,9 @@ export default function MyAccountPage() {
     // États pour "Mes Événements"
     const [myEvents, setMyEvents] = useState<Event[]>([])
     const [loadingMyEvents, setLoadingMyEvents] = useState(false)
+    const [totalMyEvents, setTotalMyEvents] = useState(0)
+    const [hasMoreMyEvents, setHasMoreMyEvents] = useState(false)
+    const [loadingMoreMyEvents, setLoadingMoreMyEvents] = useState(false)
 
     // États pour "Mon Circuit"
     const [circuitEvents, setCircuitEvents] = useState<Event[]>([])
@@ -61,7 +60,7 @@ export default function MyAccountPage() {
         longitude: -1.2780
     }
 
-    // 1. Vérifier l'authentification
+    // 1. Vérifier l'authentification et charger les événements initiaux
     useEffect(() => {
         checkAuth().then(({ authenticated, user }) => {
             if (!authenticated || !user) {
@@ -71,14 +70,43 @@ export default function MyAccountPage() {
             setUser(user)
             setLoadingAuth(false)
 
-            // Charger les événements créés par l'utilisateur
+            // Charger les événements créés par l'utilisateur (3 premiers)
             setLoadingMyEvents(true)
-            fetchMyEvents()
-                .then(setMyEvents)
+            fetchMyEvents(1, 3)
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        setMyEvents(data)
+                        setTotalMyEvents(data.length)
+                        setHasMoreMyEvents(false)
+                    } else {
+                        setMyEvents(data.events)
+                        setTotalMyEvents(data.totalCount)
+                        setHasMoreMyEvents(data.events.length < data.totalCount)
+                    }
+                })
                 .catch(err => console.error('Erreur chargement mes événements:', err))
                 .finally(() => setLoadingMyEvents(false))
         })
     }, [navigate])
+
+    // Fonction pour charger plus d'événements
+    const handleLoadMoreMyEvents = () => {
+        if (loadingMoreMyEvents) return
+
+        setLoadingMoreMyEvents(true)
+
+        // On recharge tout avec une limite augmentée
+        fetchMyEvents(1, myEvents.length + 12)
+            .then(data => {
+                if (!Array.isArray(data)) {
+                    setMyEvents(data.events)
+                    setTotalMyEvents(data.totalCount)
+                    setHasMoreMyEvents(data.events.length < data.totalCount)
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoadingMoreMyEvents(false))
+    }
 
     // 2. Géolocalisation
     useEffect(() => {
@@ -175,12 +203,17 @@ export default function MyAccountPage() {
         }
     }
 
-    const handleCancelEvent = async (eventId: string) => {
+    const handleCancelEvent = async (eventId: string | number) => {
         if (confirm('Êtes-vous sûr de vouloir annuler cet événement ? Il sera marqué comme annulé mais restera visible.')) {
             try {
-                await cancelEvent(eventId)
-                // Rafraîchir la liste
-                fetchMyEvents().then(setMyEvents)
+                await cancelEvent(eventId.toString())
+                // Rafraîchir la liste en gardant le nombre actuel
+                fetchMyEvents(1, myEvents.length).then(data => {
+                    if (!Array.isArray(data)) {
+                        setMyEvents(data.events)
+                        setTotalMyEvents(data.totalCount)
+                    }
+                })
             } catch (error) {
                 console.error('Erreur annulation événement:', error)
                 toast.error('Erreur lors de l\'annulation de l\'événement')
@@ -218,7 +251,6 @@ export default function MyAccountPage() {
     }
 
     const mapCenter: [number, number] = userPosition ? [userPosition.latitude, userPosition.longitude] : [testPosition.latitude, testPosition.longitude];
-    const polylinePositions = userPosition ? [[userPosition.latitude, userPosition.longitude], ...circuitEvents.map(event => [event.latitude, event.longitude])] : circuitEvents.map(event => [event.latitude, event.longitude]);
 
     return (
         <div className="min-h-screen bg-background pb-12">
@@ -297,169 +329,172 @@ export default function MyAccountPage() {
                                     className="leaflet-container"
                                 >
                                     <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                     />
                                     {userPosition && (
-                                        <Marker position={[userPosition.latitude, userPosition.longitude]} icon={L.icon({
-                                            iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-                                            shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-                                            iconSize: [25, 41],
-                                            iconAnchor: [12, 41],
-                                            popupAnchor: [1, -34],
-                                            shadowSize: [41, 41]
-                                        })}>
+                                        <Marker position={[userPosition.latitude, userPosition.longitude]}>
                                             <Popup>Votre position</Popup>
                                         </Marker>
                                     )}
-                                    {circuitEvents.map((event) => (
+                                    {circuitEvents.map(event => (
                                         <Marker
                                             key={event.id}
                                             position={[event.latitude, event.longitude]}
                                         >
                                             <Popup>
                                                 <div className="p-2">
-                                                    <h3 className="font-bold text-lg text-primary">{event.name}</h3>
-                                                    <p className="text-sm text-gray-600 mt-1">{event.city}</p>
-                                                    <p className="text-sm mt-1">{new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}</p>
+                                                    <h3 className="font-bold">{event.name}</h3>
+                                                    <p className="text-sm">{event.city}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                    </p>
                                                 </div>
                                             </Popup>
                                         </Marker>
                                     ))}
-                                    {polylinePositions.length > 1 && (
-                                        <Polyline positions={polylinePositions as L.LatLngExpression[]} color="#ff6b35" weight={3} />
+                                    {circuitEvents.length > 0 && (
+                                        <Polyline
+                                            positions={
+                                                (userPosition
+                                                    ? [[userPosition.latitude, userPosition.longitude], ...circuitEvents.map(e => [e.latitude, e.longitude])]
+                                                    : circuitEvents.map(e => [e.latitude, e.longitude])) as [number, number][]
+                                            }
+                                            color="#e65100"
+                                        />
                                     )}
                                 </MapContainer>
                             </div>
 
-                            {/* Liste Circuit - Groupée par jour */}
-                            <div className="lg:w-1/3 flex flex-col gap-4 h-[500px] overflow-y-auto pr-2">
-                                {groupEventsByDay(circuitEvents).map((group: GroupedEvents) => {
-                                    const dayEvents = group.events
-
-                                    const launchDayCircuit = () => {
-                                        if (!userPosition) return
-                                        // 🗺️ Optimiser le circuit avec l'algorithme du Plus Proche Voisin
-                                        const optimizedEvents = optimizeNearestNeighbor(userPosition, dayEvents)
-                                        const url = generateChronologicalCircuitUrl(userPosition, optimizedEvents)
-                                        if (url) window.open(url, '_blank')
-                                    }
-
-                                    return (
-                                        <div key={group.date} className="bg-background-paper/50 rounded-lg border border-gray-600 p-3">
-                                            {/* En-tête du jour avec bouton circuit */}
-                                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-600">
-                                                <h3 className="font-bold text-primary capitalize">{group.label}</h3>
-                                                {userPosition && dayEvents.length > 0 && (
-                                                    <button
-                                                        onClick={launchDayCircuit}
-                                                        className="bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-1.5 text-sm font-semibold shadow-lg shadow-orange-900/20"
-                                                        title={`Lancer le circuit pour ${group.label}`}
-                                                    >
-                                                        <span>▶️</span>
-                                                        <span className="hidden sm:inline">Circuit</span>
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {/* Liste des événements du jour */}
-                                            <div className="space-y-2">
-                                                {dayEvents.map((event) => (
-                                                    <div key={event.id} className="bg-background-paper rounded-lg border border-gray-700 p-3">
-                                                        <h4 className="font-semibold text-text-primary text-sm">{event.name}</h4>
-                                                        <p className="text-xs text-text-secondary">{event.city} ({event.postalCode})</p>
-                                                        {event.distance !== undefined && (
-                                                            <p className="text-xs text-text-muted">📍 {event.distance} km</p>
-                                                        )}
-
-                                                        <div className="flex gap-2 mt-2">
-                                                            {userPosition && (
-                                                                <button
-                                                                    onClick={() => navigateToEvent(event)}
-                                                                    className="flex-1 py-1 px-2 bg-primary/20 text-primary rounded hover:bg-primary/30 text-xs font-medium flex items-center justify-center gap-1"
-                                                                >
-                                                                    <span>📍 Y aller</span>
-                                                                </button>
-                                                            )}
+                            {/* Liste des étapes */}
+                            <div className="lg:w-1/3 space-y-4">
+                                <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4">
+                                    <h3 className="font-bold text-lg mb-4 text-primary">Étapes du circuit</h3>
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                                        {circuitEvents.map((event, index) => (
+                                            <div key={event.id} className="flex items-start gap-3 p-3 bg-background rounded border border-gray-700">
+                                                <div className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                                    {index + 1}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-semibold text-text-primary truncate">{event.name}</h4>
+                                                    <p className="text-sm text-text-secondary">{event.city} ({event.postalCode})</p>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        <span className="text-xs text-text-muted">
+                                                            {event.distance ? `${event.distance} km` : ''}
+                                                        </span>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => navigateToEvent(event)}
+                                                                className="text-xs text-primary hover:underline"
+                                                            >
+                                                                Y aller
+                                                            </button>
                                                             <button
                                                                 onClick={() => handleRemoveFromCircuit(event.id)}
-                                                                className="py-1 px-2 bg-red-900/30 text-red-400 rounded hover:bg-red-900/50 text-xs font-medium"
+                                                                className="text-xs text-red-400 hover:underline"
                                                             >
                                                                 Retirer
                                                             </button>
                                                         </div>
                                                     </div>
-                                                ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )
-                                })}
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
                 </section>
 
-
                 {/* Section Mes Événements */}
                 <section>
-                    <h2 className="text-2xl font-bold text-text-primary mb-4 flex items-center gap-2">
-                        📅 Mes Événements Ajoutés
-                    </h2>
-                    {loadingMyEvents ? (
-                        <p className="text-text-muted">Chargement de vos événements...</p>
-                    ) : myEvents.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {myEvents.map(event => (
-                                <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4 flex flex-col h-full">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-lg text-text-primary">{event.name}</h3>
-                                        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ml-2 ${event.cancelled ? 'bg-red-900/30 text-red-400' :
-                                            event.statut_validation === 'published' ? 'bg-green-900/30 text-green-400' : 'bg-yellow-900/30 text-yellow-400'
-                                            }`}>
-                                            {event.cancelled ? 'Annulé' : (event.statut_validation === 'published' ? 'Publié' : 'En attente')}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-text-secondary mt-1">{event.city} ({event.postalCode})</p>
-                                    <p className="text-sm text-text-muted mt-2 mb-4">
-                                        {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR')}
-                                    </p>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-2xl font-bold text-text-primary flex items-center gap-2">
+                            📅 Mes Événements <span className="text-sm font-normal text-text-muted">({totalMyEvents})</span>
+                        </h2>
+                        <Link
+                            to="/soumettre"
+                            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors shadow-lg shadow-orange-900/20 text-sm font-semibold"
+                        >
+                            + Ajouter un événement
+                        </Link>
+                    </div>
 
-                                    <div className="mt-auto pt-4 border-t border-gray-700 flex gap-2">
-                                        {!event.cancelled && (
-                                            <>
-                                                <Link
-                                                    to={`/edit-event/${event.id}`}
-                                                    className="flex-1 py-2 px-3 bg-blue-600/20 text-blue-400 border border-blue-800/50 rounded-lg hover:bg-blue-600/30 text-sm font-medium text-center transition-colors"
-                                                >
-                                                    Modifier
-                                                </Link>
+                    {loadingMyEvents ? (
+                        <div className="text-center py-8">
+                            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    ) : myEvents.length === 0 ? (
+                        <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-8 text-center">
+                            <p className="text-text-muted mb-4">Vous n'avez pas encore soumis d'événements.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {myEvents.map(event => (
+                                    <div key={event.id} className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-4 hover:border-primary transition-colors">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-bold text-lg text-text-primary truncate pr-2">{event.name}</h3>
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${event.statut_validation === 'valide' ? 'bg-green-900/30 text-green-400 border border-green-800' :
+                                                    event.statut_validation === 'annule' ? 'bg-red-900/30 text-red-400 border border-red-800' :
+                                                        'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                                                }`}>
+                                                {event.statut_validation === 'valide' ? 'Validé' :
+                                                    event.statut_validation === 'annule' ? 'Annulé' : 'En attente'}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-1 text-sm text-text-secondary mb-4">
+                                            <p>📍 {event.city} ({event.postalCode})</p>
+                                            <p>📅 {new Date(event.date_debut || event.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                        </div>
+
+                                        <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
+                                            <Link
+                                                to={`/event/${event.id}`}
+                                                className="text-sm text-primary hover:text-primary-hover"
+                                            >
+                                                Voir
+                                            </Link>
+                                            {event.statut_validation !== 'annule' && (
                                                 <button
-                                                    onClick={() => handleCancelEvent(event.id.toString())}
-                                                    className="flex-1 py-2 px-3 bg-red-600/20 text-red-400 border border-red-800/50 rounded-lg hover:bg-red-600/30 text-sm font-medium transition-colors"
+                                                    onClick={() => handleCancelEvent(event.id)}
+                                                    className="text-sm text-red-400 hover:text-red-300"
                                                 >
                                                     Annuler
                                                 </button>
-                                            </>
-                                        )}
-                                        {event.cancelled && (
-                                            <span className="w-full text-center text-sm text-red-400 italic py-2">
-                                                Cet événement est annulé
-                                            </span>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
+                                ))}
+                            </div>
+
+                            {hasMoreMyEvents && (
+                                <div className="flex justify-center mt-6">
+                                    <button
+                                        onClick={handleLoadMoreMyEvents}
+                                        disabled={loadingMoreMyEvents}
+                                        className="px-6 py-2 bg-background-paper border border-gray-600 rounded-lg text-text-primary hover:bg-background-lighter transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    >
+                                        {loadingMoreMyEvents ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                                Chargement...
+                                            </>
+                                        ) : (
+                                            'Charger plus d\'événements'
+                                        )}
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="bg-background-paper rounded-lg shadow-lg border border-gray-700 p-6 text-center">
-                            <p className="text-text-muted">Vous n'avez pas encore ajouté d'événements.</p>
-                            <Link to="/soumettre" className="text-primary hover:text-primary-hover mt-2 inline-block">
-                                Ajouter un événement
-                            </Link>
+                            )}
                         </div>
                     )}
                 </section>
+
             </div>
+            <Footer />
         </div>
     )
 }
